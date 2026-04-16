@@ -1,0 +1,394 @@
+<!DOCTYPE html><html class="light" lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Precision Curator - 项目管理控制台</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#191c1d",
+                    "surface-bright": "#f8f9fa",
+                    "on-secondary-fixed-variant": "#005320",
+                    "tertiary-fixed-dim": "#fbbc06",
+                    "primary-fixed": "#d8e2ff",
+                    "secondary-container": "#86f898",
+                    "surface-container": "#edeeef",
+                    "inverse-primary": "#adc7ff",
+                    "inverse-surface": "#2e3132",
+                    "primary-fixed-dim": "#adc7ff",
+                    "on-tertiary-container": "#ffffff",
+                    "surface-variant": "#e1e3e4",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed-dim": "#6ddd81",
+                    "background": "#f8f9fa",
+                    "secondary": "#006e2c",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#261a00",
+                    "on-background": "#191c1d",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "surface-dim": "#d9dadb",
+                    "on-error": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#ffffff",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f2",
+                    "error-container": "#ffdad6",
+                    "primary-container": "#1a73e8",
+                    "outline": "#727785",
+                    "surface": "#f8f9fa",
+                    "tertiary": "#795900",
+                    "on-secondary-fixed": "#002108",
+                    "secondary-fixed": "#89fa9b",
+                    "surface-container-high": "#e7e8e9",
+                    "on-primary-fixed-variant": "#004493",
+                    "tertiary-container": "#987000",
+                    "surface-container-low": "#f3f4f5",
+                    "on-primary-fixed": "#001a41",
+                    "tertiary-fixed": "#ffdea0",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#414754",
+                    "on-secondary-container": "#00722f",
+                    "outline-variant": "#c1c6d6",
+                    "primary": "#005bbf",
+                    "surface-tint": "#005bc0"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope", "Inter", "system-ui"],
+                    "body": ["Inter", "system-ui"],
+                    "label": ["Inter", "system-ui"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        .font-manrope { font-family: 'Manrope', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-fixed selection:text-on-primary-fixed">
+<aside class="h-screen w-64 fixed left-0 top-0 bg-white dark:bg-slate-950 flex flex-col p-4 space-y-6 border-r border-outline-variant/10 transition-all duration-200 ease-in-out z-40">
+<div class="px-2 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: &quot;FILL&quot; 1;">dashboard</span>
+</div>
+<div>
+<h1 class="font-manrope font-extrabold text-primary leading-none" style="">&nbsp;管理控制台</h1>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-1" style="">战略总览</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/5 text-primary shadow-sm rounded-lg transition-all duration-200 ease-in-out" href="#" style="">
+<span class="material-symbols-outlined" style="">dashboard</span>
+<span class="text-sm font-medium" style="">项目概览</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-all duration-200 ease-in-out" href="#" style="">
+<span class="material-symbols-outlined" style="">folder_copy</span>
+<span class="text-sm font-medium" style="">项目库</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-all duration-200 ease-in-out" href="#" style="">
+<span class="material-symbols-outlined" style="">insights</span>
+<span class="text-sm font-medium" style="">数据分析</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-all duration-200 ease-in-out" href="#" style="">
+<span class="material-symbols-outlined" style="">group</span>
+<span class="text-sm font-medium" style="">团队管理</span>
+</a>
+</nav>
+<div class="pt-4 border-t border-outline-variant/10 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-all duration-200 ease-in-out" href="#" style="">
+<span class="material-symbols-outlined" style="">help</span>
+<span class="text-sm font-medium" style="">帮助中心</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-all duration-200 ease-in-out" href="#" style="">
+<span class="material-symbols-outlined" style="">logout</span>
+<span class="text-sm font-medium" style="">退出登录</span>
+</a>
+</div>
+</aside>
+<main class="ml-64 min-h-screen">
+<header class="bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex justify-between items-center w-full px-8 py-3 sticky top-0 z-50 transition-colors border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold tracking-tight text-on-surface font-manrope" style="">Precision Curator</h2>
+<div class="h-6 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-1 text-on-surface-variant text-sm font-medium">
+<span class="" style="">项目概览</span>
+<span class="material-symbols-outlined text-xs" style="">chevron_right</span>
+<span class="text-primary font-semibold" style="">战略仪表盘</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl" style="">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary transition-all" placeholder="搜索项目..." type="text">
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors active:scale-95 duration-150" style="">
+<span class="material-symbols-outlined" style="">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors active:scale-95 duration-150" style="">
+<span class="material-symbols-outlined" style="">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="用户头像" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxRCSxa6lE3m549Oy9My2ObIZcpqPM1crJvZmQP3TqVVIVQ-Va2D-dtR1MkPJvQHtLydIfUvtk1R5UNM4w83bP2842qQ9z0EOP8BT1B-Nl_uISYNIx03_eg_E27O0qJrX_sQ5G1qaUQsvIy3ZhL5qBv5sf_TcKsYzbs2sMIdqUbHUxKBr8ssiYxBvfIKtynwP7oCYONX-e_RTSToMJuhtusDN7-yjK-8hMWsOlugjUZ0K9ZCFi7hu5L0RcWbQJNyhLAtvBt7swwG8" style="">
+</div>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-manrope text-4xl font-extrabold tracking-tight text-on-surface" style="">业务概览</h2>
+<p class="text-on-surface-variant mt-2 font-medium" style="">欢迎回来，这是为您准备的今日战略简报。</p>
+</div>
+<button class="px-6 py-3 bg-primary text-on-primary rounded-xl font-bold font-manrope text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:translate-y-[-2px] transition-all active:translate-y-0" style="">
+<span class="material-symbols-outlined" style="">add</span>
+                    新增项目
+                </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white p-6 rounded-xl relative overflow-hidden border border-outline-variant/10">
+<div class="absolute top-0 right-0 p-4 opacity-5">
+<span class="material-symbols-outlined text-6xl" style="">folder</span>
+</div>
+<div class="relative z-10">
+<p class="text-sm font-medium text-on-surface-variant" style="">项目总数</p>
+<h3 class="font-manrope text-4xl font-extrabold mt-1" style="">42</h3>
+<div class="mt-4 flex items-center gap-2 text-secondary text-xs font-bold">
+<span class="material-symbols-outlined text-xs" style="">trending_up</span>
+<span class="" style="">较上季度增长 12%</span>
+</div>
+</div>
+</div>
+<div class="bg-white p-6 rounded-xl relative overflow-hidden border border-outline-variant/10">
+<div class="absolute top-0 right-0 p-4 opacity-5">
+<span class="material-symbols-outlined text-6xl" style="">pending_actions</span>
+</div>
+<div class="relative z-10">
+<p class="text-sm font-medium text-on-surface-variant" style="">进行中</p>
+<h3 class="font-manrope text-4xl font-extrabold mt-1" style="">18</h3>
+<div class="mt-4 flex items-center gap-2 text-tertiary text-xs font-bold">
+<span class="material-symbols-outlined text-xs" style="">schedule</span>
+<span class="" style="">本周有 8 项到期</span>
+</div>
+</div>
+</div>
+<div class="bg-white p-6 rounded-xl relative overflow-hidden border border-outline-variant/10">
+<div class="absolute top-0 right-0 p-4 opacity-5 text-primary">
+<span class="material-symbols-outlined text-6xl" style="">payments</span>
+</div>
+<div class="relative z-10">
+<p class="text-sm font-medium text-on-surface-variant" style="">全局预算执行率</p>
+<h3 class="font-manrope text-4xl font-extrabold mt-1" style="">68%</h3>
+<div class="mt-4 w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-1000" style="width: 68%;"></div>
+</div>
+<div class="mt-2 flex justify-between items-center text-[10px] font-bold text-on-surface-variant">
+<span class="" style="">已使用: ￥8.4M</span>
+<span class="" style="">总金额: ￥12.35M</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-xl overflow-hidden border border-outline-variant/10">
+<div class="p-6 flex flex-col md:flex-row gap-4 items-center justify-between bg-surface-container-low/50">
+<div class="flex flex-wrap gap-3">
+<div class="relative">
+<select class="appearance-none pl-10 pr-10 py-2.5 bg-white border border-outline-variant/20 rounded-full text-sm font-medium shadow-sm focus:ring-2 focus:ring-primary min-w-[140px] text-on-surface">
+<option>三月</option>
+<option>五月</option>
+<option>七月</option>
+</select>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" style="">calendar_today</span>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg pointer-events-none" style="">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none pl-10 pr-10 py-2.5 bg-white border border-outline-variant/20 rounded-full text-sm font-medium shadow-sm focus:ring-2 focus:ring-primary min-w-[160px] text-on-surface">
+<option>进行中</option>
+<option>已完成</option>
+<option>暂停中</option>
+</select>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg" style="">flag</span>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg pointer-events-none" style="">expand_more</span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2.5 rounded-full bg-white border border-outline-variant/20 shadow-sm text-on-surface-variant hover:text-primary transition-colors" title="筛选" style="">
+<span class="material-symbols-outlined" style="">filter_list</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface text-on-surface-variant border-b border-outline-variant/10">
+<th class="px-6 py-4 font-bold text-xs uppercase tracking-wider" style="">项目名称</th>
+<th class="px-6 py-4 font-bold text-xs uppercase tracking-wider" style="">产品线</th>
+<th class="px-6 py-4 font-bold text-xs uppercase tracking-wider" style="">负责人</th>
+<th class="px-6 py-4 font-bold text-xs uppercase tracking-wider" style="">总金额</th>
+<th class="px-6 py-4 font-bold text-xs uppercase tracking-wider" style="">已使用金额</th>
+<th class="px-6 py-4 font-bold text-xs uppercase tracking-wider" style="">预算执行率</th>
+<th class="px-6 py-4 font-bold text-xs uppercase tracking-wider text-right" style="">操作</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-surface transition-colors">
+<td class="px-6 py-5" style="">
+<p class="font-bold text-on-surface" style="">战略品牌重塑</p>
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-full font-bold mt-1 inline-block" style="">项目 A - 三月</span>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant" style="">营销云</td>
+<td class="px-6 py-5" style="">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="Sarah Chen" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyjxRO5qOB3M-dlHZiV1yUy07Ahs1ghgx3iQrBUqoyr-AmkLEgYSBlwxsdNxzqOmGfe7Kh2epx7cBN3mjzHv5CzbjG-uW_XNHkoC6bvgX3Qx6xkPWeM2ADh-K8gTKeU7VD8iuO0e0AyVcE3B6crdQylAzIVaqMC-DHXDLIkLDCg1K6GFSi1T1X5W-hWH6GNlPE-eocSUblhc990nX7hGcVghdqcodC_YSBEEC46ilYi05eh3rso29Ane-YGZMz8hi0fvUDhlkhKRs" style="">
+</div>
+<span class="text-sm font-medium" style="">Sarah Chen</span>
+</div>
+</td>
+<td class="px-6 py-5" style="">
+<span class="text-sm font-bold text-on-surface" style="">￥2,240,000</span>
+</td>
+<td class="px-6 py-5" style="">
+<span class="text-sm font-bold text-on-surface" style="">￥1,680,000</span>
+</td>
+<td class="px-6 py-5" style="">
+<div class="flex items-center gap-3">
+<div class="w-24 bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 75%;"></div>
+</div>
+<span class="text-xs font-bold text-primary" style="">75%</span>
+</div>
+</td>
+<td class="px-6 py-5 text-right" style="">
+<div class="flex justify-end gap-2">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-all" style=""><span class="material-symbols-outlined text-lg" style="">edit</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" style=""><span class="material-symbols-outlined text-lg" style="">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface transition-colors">
+<td class="px-6 py-5" style="">
+<p class="font-bold text-on-surface" style="">次世代界面设计</p>
+<span class="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full font-bold mt-1 inline-block" style="">项目 B - 五月</span>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant" style="">UI 系统</td>
+<td class="px-6 py-5" style="">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="Marcus Wade" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1NG5yP7IDtI7ZklxZ4LMw19fvgcPmV84D5u6sBjJChVrcDUJHpJ_705koYnLFzaA8DQJMgGmLHKdyoUeP14p3Oq7yTg0anevTj2rcpo9oGexfmhlq8HV_Aw2e4NDcUC2XfADURaSIrt37GA4JLyL65nPykgDeoNz1bHsf3FyofgaW2VICELeQD63wWQfmSNcKBgXswW1g_4jCO87VrkItvJujd47GzFGvo2o3EetR6btvmtXMR8Wbw1RZffVOhBFK4GstD-COIro" style="">
+</div>
+<span class="text-sm font-medium" style="">Marcus Wade</span>
+</div>
+</td>
+<td class="px-6 py-5" style="">
+<span class="text-sm font-bold text-on-surface" style="">￥1,916,000</span>
+</td>
+<td class="px-6 py-5" style="">
+<span class="text-sm font-bold text-on-surface" style="">￥805,000</span>
+</td>
+<td class="px-6 py-5" style="">
+<div class="flex items-center gap-3">
+<div class="w-24 bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 42%;"></div>
+</div>
+<span class="text-xs font-bold text-tertiary" style="">42%</span>
+</div>
+</td>
+<td class="px-6 py-5 text-right" style="">
+<div class="flex justify-end gap-2">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-all" style=""><span class="material-symbols-outlined text-lg" style="">edit</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" style=""><span class="material-symbols-outlined text-lg" style="">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface transition-colors">
+<td class="px-6 py-5" style="">
+<p class="font-bold text-on-surface" style="">全球扩张路线图</p>
+<span class="text-[10px] bg-tertiary-fixed text-on-tertiary-fixed-variant px-2 py-0.5 rounded-full font-bold mt-1 inline-block" style="">项目 C - 七月</span>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-on-surface-variant" style="">运营策略</td>
+<td class="px-6 py-5" style="">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="Elena Rodriguez" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN9WEe66bICHdr4CtxscmtwVEgf3UDO7qumDCnUAaDUaAg00eJGcAVSXHY38_DqjYz8tTUAzZauumBXFa4sNAnhcO7n0Mv9rpPP3yXeSxe-4zyqfOdqnYcx-y5wIJRMCO8xHy4UTeSHBEh9T89ACqqZvEehVF1kgf8XDgJMnNrxx5pxnUqgDsfDjfjN1UrxajRUH9kwQMxKTZgwsh39uuoDQQq5OT_8cI5udLTnjXmedEVB_iyZ1byDxpP5eBAPHqWa28l2qdRmnw" style="">
+</div>
+<span class="text-sm font-medium" style="">Elena Rodriguez</span>
+</div>
+</td>
+<td class="px-6 py-5" style="">
+<span class="text-sm font-bold text-on-surface" style="">￥40,600,000</span>
+</td>
+<td class="px-6 py-5" style="">
+<span class="text-sm font-bold text-on-surface" style="">￥4,060,000</span>
+</td>
+<td class="px-6 py-5" style="">
+<div class="flex items-center gap-3">
+<div class="w-24 bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-error h-full rounded-full" style="width: 10%;"></div>
+</div>
+<span class="text-xs font-bold text-error" style="">10%</span>
+</div>
+</td>
+<td class="px-6 py-5 text-right" style="">
+<div class="flex justify-end gap-2">
+<button class="p-1.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded transition-all" style=""><span class="material-symbols-outlined text-lg" style="">edit</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error/10 rounded transition-all" style=""><span class="material-symbols-outlined text-lg" style="">delete</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 bg-surface-container-low/50 flex items-center justify-between">
+<p class="text-xs font-bold text-on-surface-variant" style="">显示 42 个活跃项目中的第 1-3 个</p>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white hover:shadow-sm transition-all" style=""><span class="material-symbols-outlined text-sm" style="">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-on-primary font-bold text-xs" style="">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white hover:shadow-sm transition-all font-bold text-xs" style="">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white hover:shadow-sm transition-all font-bold text-xs" style="">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white hover:shadow-sm transition-all" style=""><span class="material-symbols-outlined text-sm" style="">chevron_right</span></button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="bg-white p-8 rounded-xl flex flex-col justify-center border border-outline-variant/10 shadow-sm">
+<h4 class="font-manrope text-xl font-extrabold text-on-surface mb-2" style="">需要定制分析？</h4>
+<p class="text-on-surface-variant text-sm mb-6" style="">为您的利益相关者会议快速生成精准整理的业务洞察，支持多维度深度透视。</p>
+<button class="self-start px-6 py-2.5 rounded-full bg-surface-container font-bold text-sm hover:bg-primary hover:text-on-primary transition-all" style="">配置智能分析</button>
+</div>
+<div class="relative rounded-xl overflow-hidden min-h-[200px] shadow-sm">
+<img alt="背景图" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB935vxQ3nNO1RB6Gj4Iii_pjS8wZbLPGlJ2GBo-vFCpgqQhMWogfyl_m1TVgwMh468b0liFGQxws5KIGuDT6twX5tWhPQxwpHmg4zeMI1sxXFv3RFP07vtvtQCO9LAxZbCiQj9JWVS1S2hM--sZXuGm_rlXj33s3tNPZSCFnQnvsirQnQjeAoegaOP0EnPDpfHWnaBIX3h_EMmd2keRSr8hE-1ZsuhgO_Lxdy0V1JdYvqUpGGVXIywba3D2eOpfFTkqj_fU-4iNyc" style="">
+<div class="absolute inset-0 bg-primary/40 backdrop-blur-sm p-8 flex flex-col justify-center">
+<span class="text-on-primary/70 text-[10px] font-extrabold uppercase tracking-widest mb-1" style="">实时资讯</span>
+<h4 class="text-on-primary font-manrope text-2xl font-extrabold" style="">战略洞察 AI</h4>
+<p class="text-on-primary/90 text-sm mt-2 max-w-xs leading-relaxed" style="">系统检测到 Q3 路线图中存在 3 处潜在的资源瓶颈。请立即审阅以保持交付速度。</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

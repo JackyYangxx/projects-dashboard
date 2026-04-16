@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+          tailwind.config = {
+            darkMode: "class",
+            theme: {
+              extend: {
+                "colors": {
+                        "on-surface": "#191c1d",
+                        "surface-bright": "#f8f9fa",
+                        "on-secondary-fixed-variant": "#005320",
+                        "tertiary-fixed-dim": "#fbbc06",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary-container": "#86f898",
+                        "surface-container": "#edeeef",
+                        "inverse-primary": "#adc7ff",
+                        "inverse-surface": "#2e3132",
+                        "primary-fixed-dim": "#adc7ff",
+                        "on-tertiary-container": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#6ddd81",
+                        "background": "#f8f9fa",
+                        "secondary": "#006e2c",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#261a00",
+                        "on-background": "#191c1d",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "surface-dim": "#d9dadb",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#1a73e8",
+                        "outline": "#727785",
+                        "surface": "#f8f9fa",
+                        "tertiary": "#795900",
+                        "on-secondary-fixed": "#002108",
+                        "secondary-fixed": "#89fa9b",
+                        "surface-container-high": "#e7e8e9",
+                        "on-primary-fixed-variant": "#004493",
+                        "tertiary-container": "#987000",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary-fixed": "#001a41",
+                        "tertiary-fixed": "#ffdea0",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#414754",
+                        "on-secondary-container": "#00722f",
+                        "outline-variant": "#c1c6d6",
+                        "primary": "#005bbf",
+                        "surface-tint": "#005bc0"
+                },
+                "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                },
+                "fontFamily": {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                }
+              },
+            },
+          }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .headline-font {
+            font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #005bbf;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 4px solid white;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #005bbf;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 4px solid white;
+        }
+        /* Rich Text Editor Minimal Styles */
+        .rte-editor:focus {
+            outline: none;
+            border-color: #005bbf;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- 顶部导航栏 -->
+<nav class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 flex justify-between items-center w-full px-8 py-3 border-b border-outline-variant/30">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-on-surface font-manrope">精准策展人</span>
+<div class="hidden md:flex items-center space-x-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors py-1 px-3 rounded-lg font-medium text-sm" href="#">项目概览</a>
+<a class="text-primary font-bold py-1 px-3 rounded-lg text-sm" href="#">项目</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors py-1 px-3 rounded-lg font-medium text-sm" href="#">数据分析</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors py-1 px-3 rounded-lg font-medium text-sm" href="#">团队</a>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative hidden lg:block">
+<input class="bg-surface-container-high border-none rounded-full px-4 py-1.5 text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all outline-none" placeholder="搜索策展数据..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container-high rounded-full transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer p-2 hover:bg-surface-container-high rounded-full transition-colors" data-icon="settings">settings</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="用户头像" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDd9TKAQp7x6YAnnZVbRyg7ohx2nSBtA9dMuXOiEi0lpVomOUYzDcm-lN4hhDzDowY0MGJAXH1fRDG2ikwPuKHzx_vkJTP3jL5YyTsASSgz7N5imxxAE8KaC_eZWhvShzg2Ym-VlrS86Oqtbs6eosULV1sy8fMETDPgDKzJU-maRrTTe5-E2H2WGk4KXTfzdJy5FxAfOgQAB8nHvEZDWdSA29jNk5hWVmqt15S1TLjwCkV8NnspSgIqlIsiK0wFvAfitB8yOM4PVLQ"/>
+</div>
+</div>
+</nav>
+<main class="max-w-[1440px] mx-auto p-8 lg:p-12">
+<!-- 头部区域 -->
+<header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-2">
+<div class="flex items-center gap-3 mb-2">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full uppercase tracking-wider">进行中</span>
+<span class="text-on-surface-variant text-sm font-medium">项目 ID: PRJ-2024-089</span>
+</div>
+<h1 class="headline-font text-5xl font-extrabold tracking-tight text-on-surface">极乐数字生态系统</h1>
+<p class="text-on-surface-variant text-lg max-w-2xl leading-relaxed">专注于生成式策展与定制化用户旅程的多平台奢侈生活方式接口。</p>
+</div>
+<div class="flex items-center gap-4">
+<!-- 移除了导出和修改范围按钮 -->
+</div>
+</header>
+<!-- Bento 网格布局 -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- 进度跟踪 (交互式) -->
+<section class="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/20 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<h2 class="headline-font text-2xl font-bold">进度动态</h2>
+<span class="text-primary font-bold text-3xl transition-all" id="progress-value">74%</span>
+</div>
+<div class="relative w-full mb-8">
+<input class="w-full h-3 bg-surface-container rounded-full appearance-none cursor-pointer accent-primary" id="main-progress-slider" max="100" min="0" oninput="updateProgress(this.value)" type="range" value="74"/>
+</div>
+<div class="mb-8 text-xs text-on-surface-variant h-6 overflow-hidden italic" id="update-log">
+                    最后更新: 刚刚
+                </div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
+<p class="text-on-surface-variant text-xs font-bold uppercase mb-1">底层架构</p>
+<p class="headline-font text-xl font-bold">100%</p>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
+<p class="text-on-surface-variant text-xs font-bold uppercase mb-1">UI/UX 设计</p>
+<p class="headline-font text-xl font-bold">92%</p>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
+<p class="text-on-surface-variant text-xs font-bold uppercase mb-1">工程开发</p>
+<p class="headline-font text-xl font-bold">45%</p>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low border border-outline-variant/10">
+<p class="text-on-surface-variant text-xs font-bold uppercase mb-1">质量审计</p>
+<p class="headline-font text-xl font-bold">12%</p>
+</div>
+</div>
+</section>
+<!-- 简化的预算信息 -->
+<section class="md:col-span-4 bg-primary text-on-primary rounded-xl p-8 shadow-lg flex flex-col justify-center">
+<h2 class="headline-font text-2xl font-bold mb-8">预算统计</h2>
+<div class="space-y-8">
+<div>
+<p class="text-white/60 text-xs font-bold uppercase mb-1">总金额</p>
+<p class="headline-font text-4xl font-extrabold">¥4,900,000</p>
+</div>
+<div class="pt-6 border-t border-white/10">
+<p class="text-white/60 text-xs font-bold uppercase mb-1">已使用金额</p>
+<div class="flex items-end gap-2">
+<p class="headline-font text-4xl font-extrabold">¥3,215,000</p>
+<p class="text-sm font-medium opacity-60 mb-1">(65.6%)</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 富文本输入区域 -->
+<section class="md:col-span-12 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/20 shadow-sm">
+<h2 class="headline-font text-2xl font-bold mb-6">项目笔记与描述</h2>
+<div class="border border-outline-variant/30 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+<!-- 简易工具栏 -->
+<div class="flex items-center gap-2 p-2 bg-surface-container-low border-b border-outline-variant/30">
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors" title="粗体"><span class="material-symbols-outlined text-[20px]">format_bold</span></button>
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors" title="斜体"><span class="material-symbols-outlined text-[20px]">format_italic</span></button>
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors" title="列表"><span class="material-symbols-outlined text-[20px]">format_list_bulleted</span></button>
+<div class="w-px h-6 bg-outline-variant/30 mx-1"></div>
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors" title="链接"><span class="material-symbols-outlined text-[20px]">link</span></button>
+<button class="p-1.5 hover:bg-surface-container-high rounded transition-colors" title="图片"><span class="material-symbols-outlined text-[20px]">image</span></button>
+</div>
+<div class="rte-editor min-h-[200px] p-6 text-on-surface-variant leading-relaxed focus:outline-none" contenteditable="true">
+                        在此输入项目详细描述、重要记录或备忘事项...
+                    </div>
+</div>
+</section>
+<!-- 核心团队 -->
+<section class="md:col-span-5 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/20 shadow-sm">
+<h2 class="headline-font text-2xl font-bold mb-6">战略团队</h2>
+<div class="space-y-5">
+<div class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<img alt="Marcus Chen" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAI-HpY7M1P7xfnGz3RqJqyglKAKpB08VW5Od1-2fPXpepHhg5JtPbmHUriD8wwvobEr8dmeRBuzRee6HoeUD-nSHmA-H66qJo4ECh7rvWDzkozY2zEzWgGunZEe-E54KpEVbPnzuxjIQdGvHcZSw8cneVZs1mH49YtUsXkjC5-42eCghhQ_0Xg4wORFSZLgNa419VcSSChEoyzFrbbATcvBOm14OcGeriDFIxhD_LF78KM1_NgAPMF9zgxnazmHALYoftwLBUI4s"/>
+<div>
+<p class="font-bold">陈马克 (Marcus Chen)</p>
+<p class="text-xs text-on-surface-variant">首席架构师</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<img alt="Sarah Jenkins" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNHcjEKiHFt0Fyb6hRF5qSNzh_PXuHyPho5sG8Y264M_Nz8pC2zKE0dF0PWaHJGtcxKPFQUAqT54ixoUEvTJbpxnTeR5Du1DWB-uWZ1VGB8nWsTfUCR2Y3QKOvMvA-g_TuvfOV8BzLSCbzXjb-K3EFa5zurTHpUyHQkktG7ZelnvePvL2u638HB0NJGD-yyrCd28UTAD_bd3pQMm8Sheuoq-McdBVm_YI9312uKt1yS3BwToTw-M4sEsN8bM81hwRFhdNTZiozuj8"/>
+<div>
+<p class="font-bold">莎拉·詹金斯 (Sarah Jenkins)</p>
+<p class="text-xs text-on-surface-variant">体验设计主管</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<img alt="David Miller" class="w-12 h-12 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ58C18TF7JN_htMDMaRQCuwceKk4P-TFGh37_QOUVz-Z45PEN6WK-2c-87cLE9XEZQb2kasFHbwBUpnwueMy1Jdy8x63mVYcbEYWZfUYfwWq08eJvSVkVrTm3LQFQgCgwYMhxo1xxyQAzBrkV9PzpHZ_xMovUyt73kaA8Xw8PWGYoCfPGXV6vLooA21q2x01Rns3HRIBuBMySoBvoGW0qMKTdcAHl0ny3bFFA0k6T7c381SJXQKujyM71INpqkewxD9nAAz2S1P8"/>
+<div>
+<p class="font-bold">大卫·米勒 (David Miller)</p>
+<p class="text-xs text-on-surface-variant">系统工程师</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+<button class="w-full mt-6 py-3 border border-dashed border-outline-variant rounded-xl text-on-surface-variant font-medium hover:bg-surface-container-low transition-all">
+                    + 添加专家成员
+                </button>
+</section>
+<!-- 策展范围 -->
+<section class="md:col-span-7 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/20 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h2 class="headline-font text-2xl font-bold">策展范围</h2>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="open_in_new">open_in_new</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-5 rounded-xl border-l-4 border-primary">
+<div class="flex items-center gap-3 mb-3 text-primary">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-sm font-bold uppercase tracking-tighter">AI 智能策展</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant">根据用户情绪和市场趋势进行实时编辑调整的动态引擎。</p>
+</div>
+<div class="bg-surface-container-low p-5 rounded-xl border-l-4 border-secondary">
+<div class="flex items-center gap-3 mb-3 text-secondary">
+<span class="material-symbols-outlined" data-icon="devices">devices</span>
+<span class="text-sm font-bold uppercase tracking-tighter">全渠道互联</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant">横跨 Web、iOS、Android 和 VisionOS 的统一体验，实现无缝状态同步。</p>
+</div>
+<div class="bg-surface-container-low p-5 rounded-xl border-l-4 border-tertiary">
+<div class="flex items-center gap-3 mb-3 text-tertiary">
+<span class="material-symbols-outlined" data-icon="shield_with_heart">shield_with_heart</span>
+<span class="text-sm font-bold uppercase tracking-tighter">隐私保护层</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant">端到端加密的用户偏好设置和零知识存储架构。</p>
+</div>
+<div class="bg-surface-container-low p-5 rounded-xl border-l-4 border-outline">
+<div class="flex items-center gap-3 mb-3 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="api">api</span>
+<span class="text-sm font-bold uppercase tracking-tighter">开放式框架</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant">可扩展的 API 框架，支持第三方工艺集成和数据流导入。</p>
+</div>
+</div>
+</section>
+<!-- 发展历程 -->
+<section class="md:col-span-12 bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/20 shadow-sm">
+<div class="flex items-center justify-between mb-10">
+<div>
+<h2 class="headline-font text-2xl font-bold">演进历程</h2>
+<p class="text-on-surface-variant text-sm">架构变迁与版本部署的历史记录。</p>
+</div>
+<div class="flex items-center bg-surface-container-high p-1 rounded-full">
+<button class="px-4 py-1.5 bg-surface-container-lowest rounded-full text-xs font-bold shadow-sm">按月</button>
+<button class="px-4 py-1.5 text-xs font-bold text-on-surface-variant">按季度</button>
+</div>
+</div>
+<div class="relative overflow-x-auto pb-6">
+<div class="min-w-[1000px] flex gap-12 relative before:absolute before:top-4 before:left-0 before:w-full before:h-0.5 before:bg-surface-container before:z-0">
+<!-- 三月 -->
+<div class="relative z-10 w-1/4">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center mb-6 shadow-lg">
+<span class="material-symbols-outlined text-white text-[18px]" data-icon="check" style='font-variation-settings: "wght" 700;'>check</span>
+</div>
+<div class="space-y-3">
+<span class="px-2 py-1 bg-surface-container-highest text-[10px] font-bold rounded uppercase tracking-tighter">2024年3月</span>
+<h4 class="font-bold text-lg">v1.0 初始版本</h4>
+<ul class="text-sm text-on-surface-variant space-y-2">
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>核心架构搭建</li>
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>数据库模式验证</li>
+</ul>
+</div>
+</div>
+<!-- 五月 -->
+<div class="relative z-10 w-1/4">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center mb-6 shadow-lg">
+<span class="material-symbols-outlined text-white text-[18px]" data-icon="check" style='font-variation-settings: "wght" 700;'>check</span>
+</div>
+<div class="space-y-3">
+<span class="px-2 py-1 bg-surface-container-highest text-[10px] font-bold rounded uppercase tracking-tighter">2024年5月</span>
+<h4 class="font-bold text-lg">v1.4 界面优化</h4>
+<ul class="text-sm text-on-surface-variant space-y-2">
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>采用毛玻璃设计</li>
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>移动端测试版发布</li>
+</ul>
+</div>
+</div>
+<!-- 七月 (活跃) -->
+<div class="relative z-10 w-1/4">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-4 border-primary flex items-center justify-center mb-6">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+</div>
+<div class="space-y-3">
+<span class="px-2 py-1 bg-primary-fixed text-on-primary-fixed text-[10px] font-bold rounded uppercase tracking-tighter">2024年7月 (当前)</span>
+<h4 class="font-bold text-lg">v2.0 智能驱动</h4>
+<ul class="text-sm text-on-surface-variant space-y-2">
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>AI 引擎集成</li>
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-primary rounded-full"></span>公共 API Alpha 测试</li>
+</ul>
+</div>
+</div>
+<!-- 九月 -->
+<div class="relative z-10 w-1/4">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center mb-6"></div>
+<div class="space-y-3 opacity-50">
+<span class="px-2 py-1 bg-surface-container-highest text-[10px] font-bold rounded uppercase tracking-tighter">2024年9月</span>
+<h4 class="font-bold text-lg">v2.5 全面扩展</h4>
+<ul class="text-sm text-on-surface-variant space-y-2">
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-outline rounded-full"></span>支持 VisionOS</li>
+<li class="flex items-center gap-2"><span class="w-1 h-1 bg-outline rounded-full"></span>全球 CDN 节点部署</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<footer class="mt-20 py-12 px-8 border-t border-outline-variant/10">
+<div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold font-headline text-on-surface">精准策展人</span>
+<span class="text-on-surface-variant text-sm">© 2024 Strategic Digital Systems. 保留所有权利。</span>
+</div>
+<div class="flex gap-8 text-sm font-medium text-on-surface-variant">
+<a class="hover:text-primary transition-colors" href="#">文档中心</a>
+<a class="hover:text-primary transition-colors" href="#">系统状态</a>
+<a class="hover:text-primary transition-colors" href="#">合规性</a>
+<a class="hover:text-primary transition-colors" href="#">客户支持</a>
+</div>
+</div>
+</footer>
+<script>
+        function updateProgress(value) {
+            document.getElementById('progress-value').innerText = value + '%';
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                          now.getMinutes().toString().padStart(2, '0') + ':' + 
+                          now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('update-log').innerText = '最后调整时间: ' + timeStr + ' (' + value + '%)';
+        }
+    </script>
+</body></html>
