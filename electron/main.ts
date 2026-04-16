@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 
 const isDev = process.env.NODE_ENV !== 'production' || !app.isPackaged
@@ -13,8 +13,11 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: false,
     },
     show: false,
+    titleBarStyle: 'default',
+    autoHideMenuBar: false,
   })
 
   win.once('ready-to-show', () => {
@@ -27,8 +30,14 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'))
   }
+
+  // Window events
+  win.on('closed', () => {
+    // Clean up if needed
+  })
 }
 
+// App lifecycle
 app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
@@ -41,4 +50,13 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
   }
+})
+
+// IPC handlers for main process operations (if needed in future)
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion()
+})
+
+ipcMain.handle('get-platform', () => {
+  return process.platform
 })
