@@ -1,6 +1,9 @@
 import initSqlJs, { Database } from 'sql.js'
+import { seedProjects } from '../data/seedData'
+import { create as createProject } from './projectDao'
 
 let db: Database | null = null
+let seeded = false
 
 export async function initDatabase(): Promise<Database> {
   if (db) return db
@@ -31,6 +34,18 @@ export async function initDatabase(): Promise<Database> {
       updated_at TEXT
     )
   `)
+
+  // Load seed data if database is empty
+  if (!seeded) {
+    const result = db.exec('SELECT COUNT(*) as count FROM projects')
+    const count = result[0]?.values[0]?.[0] as number || 0
+    if (count === 0) {
+      for (const project of seedProjects) {
+        createProject(project)
+      }
+      seeded = true
+    }
+  }
 
   return db
 }

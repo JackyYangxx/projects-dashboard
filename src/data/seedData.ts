@@ -1,0 +1,143 @@
+import type { Project } from '../types'
+
+export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
+  {
+    name: '战略品牌重塑',
+    productLine: '营销云',
+    status: 'ongoing',
+    tag: '项目 A - 三月',
+    totalAmount: 2240000,
+    usedAmount: 1680000,
+    progress: 75,
+    subProgress: {
+      architecture: 80,
+      uiux: 90,
+      engineering: 70,
+      qa: 60,
+    },
+    notes: '<p>战略品牌重塑项目正在进行中...</p>',
+    team: [
+      {
+        id: '1',
+        name: '张明',
+        role: '项目经理',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zhang',
+      },
+      {
+        id: '2',
+        name: '李华',
+        role: '设计师',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Li',
+      },
+    ],
+    scope: [
+      {
+        icon: 'auto_awesome',
+        title: 'AI智能策展',
+        description: '利用AI技术智能分析和策展内容',
+        color: 'primary',
+      },
+      {
+        icon: 'hub',
+        title: '全渠道互联',
+        description: '打通线上线下全渠道数据',
+        color: 'secondary',
+      },
+    ],
+    timeline: [
+      {
+        date: '2024年3月',
+        version: 'v1.0',
+        title: '项目启动',
+        items: ['完成需求调研', '组建团队', '制定项目计划'],
+        isActive: false,
+        isCompleted: true,
+      },
+      {
+        date: '2024年4月',
+        version: 'v2.0',
+        title: '中期交付',
+        items: ['完成核心功能', '用户测试'],
+        isActive: true,
+        isCompleted: false,
+      },
+    ],
+  },
+  {
+    name: '次世代界面设计',
+    productLine: 'UI 系统',
+    status: 'ongoing',
+    tag: '项目 B - 五月',
+    totalAmount: 1916000,
+    usedAmount: 804720,
+    progress: 42,
+    subProgress: {
+      architecture: 30,
+      uiux: 60,
+      engineering: 40,
+      qa: 35,
+    },
+    notes: '<p>次世代界面设计正在有序推进...</p>',
+    team: [
+      {
+        id: '3',
+        name: '王芳',
+        role: '设计总监',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wang',
+      },
+    ],
+    scope: [
+      {
+        icon: 'design_services',
+        title: 'UI设计',
+        description: '全新界面设计方案',
+        color: 'tertiary',
+      },
+    ],
+    timeline: [
+      {
+        date: '2024年5月',
+        version: 'v1.0',
+        title: '设计启动',
+        items: ['完成设计方案', '评审通过'],
+        isActive: false,
+        isCompleted: true,
+      },
+    ],
+  },
+  {
+    name: '全球扩张路线图',
+    productLine: '运营策略',
+    status: 'ongoing',
+    tag: '项目 C - 七月',
+    totalAmount: 40600000,
+    usedAmount: 4060000,
+    progress: 10,
+    subProgress: {
+      architecture: 15,
+      uiux: 5,
+      engineering: 10,
+      qa: 8,
+    },
+    notes: '<p>全球扩张路线图规划中...</p>',
+    team: [],
+    scope: [
+      {
+        icon: 'public',
+        title: '全球布局',
+        description: '海外市场拓展规划',
+        color: 'outline',
+      },
+    ],
+    timeline: [
+      {
+        date: '2024年7月',
+        version: 'v1.0',
+        title: '规划启动',
+        items: ['市场调研', '方案制定'],
+        isActive: true,
+        isCompleted: false,
+      },
+    ],
+  },
+]
