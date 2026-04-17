@@ -1,6 +1,5 @@
 import initSqlJs, { Database } from 'sql.js'
 import { seedProjects } from '../data/seedData'
-import { create as createProject } from './projectDao'
 
 let db: Database | null = null
 let seeded = false
@@ -44,8 +43,31 @@ export async function initDatabase(): Promise<Database> {
     const result = db.exec('SELECT COUNT(*) as count FROM projects')
     const count = result[0]?.values[0]?.[0] as number || 0
     if (count === 0) {
+      const now = new Date().toISOString()
       for (const project of seedProjects) {
-        createProject(project)
+        db.run(
+          `INSERT INTO projects (
+            id, name, product_line, status, tag, total_amount, used_amount,
+            progress, sub_progress, notes, team, scope, timeline, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            crypto.randomUUID(),
+            project.name,
+            project.productLine,
+            project.status,
+            project.tag,
+            project.totalAmount,
+            project.usedAmount,
+            project.progress,
+            JSON.stringify(project.subProgress),
+            project.notes,
+            JSON.stringify(project.team),
+            JSON.stringify(project.scope),
+            JSON.stringify(project.timeline),
+            now,
+            now,
+          ]
+        )
       }
       seeded = true
     }
