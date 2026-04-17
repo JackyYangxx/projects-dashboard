@@ -20,7 +20,10 @@ const ProjectDetail: React.FC = () => {
   const [budgetEditUsed, setBudgetEditUsed] = useState('')
   const [budgetSaving, setBudgetSaving] = useState(false)
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(
-    (() => project?.noteHistory?.[0]?.id ?? null)()
+    (() => {
+      const history = project?.noteHistory
+      return history && history.length > 0 ? history[history.length - 1].id : null
+    })()
   )
 
   const handleAddMember = () => {
