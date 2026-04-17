@@ -36,9 +36,9 @@ src/
 │   ├── Sidebar.tsx      # Fixed left nav (256px)
 │   ├── Header.tsx       # Top bar with search/avatar
 │   ├── StatsCard.tsx    # Metric cards (default + budget variant)
-│   ├── ProjectTable.tsx # Sortable project list table
+│   ├── ProjectTable.tsx # Sortable project list table (infinite scroll)
 │   ├── ProgressSlider.tsx # Draggable progress + sub-progress cards
-│   ├── RichTextEditor.tsx  # contentEditable HTML editor
+│   ├── TipTapEditor.tsx # Rich text editor (Tiptap-based, replaces RichTextEditor)
 │   └── Timeline.tsx    # Version history timeline
 ├── store/
 │   └── projectStore.ts  # Zustand store (CRUD + loading state)
@@ -48,7 +48,7 @@ src/
 ├── data/
 │   └── seedData.ts      # 3 demo projects auto-loaded on first run
 └── types/
-    └── index.ts         # Project, TeamMember, ScopeItem, TimelineEvent interfaces
+    └── index.ts         # Project, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone interfaces
 ```
 
 ### Data Flow
@@ -119,6 +119,33 @@ Projects table with JSON columns for `team`, `scope`, `timeline`, `subProgress`.
 1. Create in `src/components/`
 2. Import into page: `import Component from '@/components/Component'`
 3. Use in page JSX
+
+### Read-Only Mode Pattern
+ProjectDetail supports read-only mode (`isReadOnly` state). Components should respect this:
+- `ProgressSlider`: `readOnly` prop disables drag handle
+- `TipTapEditor`: `readOnly` prop disables editing
+- Budget cards: Show text instead of input fields
+
+### Inline Edit Pattern
+For budget cards and similar editable fields:
+1. Click text → becomes input (controlled by edit state)
+2. Enter/blur → save
+3. ESC → cancel, restore original value
+4. Show saving indicator during async operations
+
+### Accordion Pattern
+For collapsible sections (e.g., note history):
+1. `expandedId` state tracks which item is expanded
+2. Default: expand newest/last item
+3. Header onClick toggles expand/collapse
+4. Chevron rotation: collapsed=-90deg, expanded=0deg (pointing down when collapsed)
+
+### Modal Pattern
+For dialogs (e.g., add member):
+1. `showModal` state controls visibility
+2. Modal contains form inputs + preview
+3. On submit: close modal, insert data
+4. DiceBear avatar: `https://api.dicebear.com/7.x/initials/svg?seed={name}`
 
 ### State Update Flow
 Zustand store action → `projectDao` function → sql.js → store.setState() to sync UI
