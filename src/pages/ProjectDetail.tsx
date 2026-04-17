@@ -224,7 +224,7 @@ const ProjectDetail: React.FC = () => {
                         onFocus={() => setBudgetEditUsed(String(project.usedAmount))}
                         onBlur={() => {
                           const val = Number(budgetEditUsed)
-                          if (!isNaN(val) && val >= 0) {
+                          if (!isNaN(val) && val >= 0 && val <= project.totalAmount) {
                             setBudgetSaving(true)
                             updateProject(project.id, { usedAmount: val, updatedAt: new Date().toISOString() })
                             setTimeout(() => setBudgetSaving(false), 600)
@@ -304,7 +304,10 @@ const ProjectDetail: React.FC = () => {
               <div className="bg-surface-elevated rounded-xl overflow-hidden">
                 <div
                   className="flex items-center justify-between px-6 py-4 cursor-pointer select-none"
-                  onClick={() => setExpandedHistoryId(expandedHistoryId ? null : project.noteHistory[0]?.id ?? null)}
+                  onClick={() => {
+                    const newest = project.noteHistory[project.noteHistory.length - 1]?.id ?? null
+                    setExpandedHistoryId(expandedHistoryId ? null : newest)
+                  }}
                 >
                   <h3 className="text-sm font-body font-medium text-on-surface-secondary">
                     笔记历史
@@ -313,7 +316,7 @@ const ProjectDetail: React.FC = () => {
                     <span className="text-xs font-body text-on-surface-tertiary">
                       {project.noteHistory.length} 条记录
                     </span>
-                    <span className="material-symbols-outlined text-base text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                    <span className="material-symbols-outlined text-base text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
                       expand_more
                     </span>
                   </div>
@@ -335,7 +338,7 @@ const ProjectDetail: React.FC = () => {
                           <span className="text-xs font-mono text-on-surface-tertiary">
                             {formatDate(entry.createdAt)}
                           </span>
-                          <span className="material-symbols-outlined text-sm text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId === entry.id ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                          <span className="material-symbols-outlined text-sm text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId === entry.id ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
                             expand_more
                           </span>
                         </div>

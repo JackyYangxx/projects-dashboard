@@ -24,6 +24,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const [filteredProjects, setFilteredProjects] = React.useState(projects)
   const [visibleCount, setVisibleCount] = React.useState(INITIAL_PAGE_SIZE)
   const [isLoadingMore, setIsLoadingMore] = React.useState(false)
+  const isLoadingMoreRef = React.useRef(false)
   const sentinelRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
@@ -60,10 +61,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries
-        if (entry.isIntersecting && !isLoadingMore) {
+        if (entry.isIntersecting && !isLoadingMoreRef.current) {
+          isLoadingMoreRef.current = true
           setIsLoadingMore(true)
           setTimeout(() => {
             setVisibleCount((prev) => Math.min(prev + 20, filteredProjects.length))
+            isLoadingMoreRef.current = false
             setIsLoadingMore(false)
           }, 300)
         }
