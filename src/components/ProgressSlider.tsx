@@ -6,6 +6,7 @@ interface ProgressSliderProps {
   subProgress: SubProgress
   onChange: (value: number) => void
   lastUpdated?: string
+  readOnly?: boolean
 }
 
 const subProgressItems = [
@@ -20,11 +21,13 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
   subProgress,
   onChange,
   lastUpdated,
+  readOnly = false,
 }) => {
   const sliderRef = React.useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = React.useState(false)
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (readOnly) return
     setIsDragging(true)
     updateValue(e.clientX)
   }
@@ -88,19 +91,23 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="项目进度"
-        className="relative h-3 bg-surface-base rounded-full cursor-pointer select-none group"
+        className={`relative h-3 bg-surface-base rounded-full select-none group ${
+          readOnly ? 'cursor-default' : 'cursor-pointer'
+        }`}
         onMouseDown={handleMouseDown}
       >
         <div
           className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-150 ease-out shadow-sm"
           style={{ width: `${value}%` }}
         />
-        <div
-          className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full shadow-lg cursor-grab active:cursor-grabbing transition-all duration-150 ${
-            isDragging ? 'scale-110' : 'group-hover:scale-105'
-          }`}
-          style={{ left: `calc(${value}% - 10px)` }}
-        />
+        {!readOnly && (
+          <div
+            className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full shadow-lg transition-all duration-150 ${
+              isDragging ? 'scale-110 cursor-grabbing' : 'group-hover:scale-105 cursor-grab'
+            }`}
+            style={{ left: `calc(${value}% - 10px)` }}
+          />
+        )}
       </div>
 
       {/* Percentage labels */}

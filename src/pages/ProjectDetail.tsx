@@ -12,6 +12,7 @@ const ProjectDetail: React.FC = () => {
   const project = id ? getProjectById(id) : undefined
 
   const [viewMode, setViewMode] = useState<'monthly' | 'quarterly'>('monthly')
+  const [isReadOnly, setIsReadOnly] = useState(true)
 
   if (!project) {
     return (
@@ -111,6 +112,19 @@ const ProjectDetail: React.FC = () => {
           </span>
         </div>
         <div className="ml-auto flex items-center gap-3">
+          <button
+            onClick={() => setIsReadOnly((prev) => !prev)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-body font-medium transition-all duration-150 ${
+              isReadOnly
+                ? 'bg-surface-base text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500'
+                : 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-sm'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">
+              {isReadOnly ? 'edit' : 'visibility'}
+            </span>
+            {isReadOnly ? '编辑' : '查看'}
+          </button>
           <span
             className={`px-2 py-1 rounded text-xs font-body font-medium ${
               project.status === 'ongoing'
@@ -139,6 +153,7 @@ const ProjectDetail: React.FC = () => {
                 subProgress={project.subProgress}
                 onChange={handleProgressChange}
                 lastUpdated={formatDate(project.updatedAt)}
+                readOnly={isReadOnly}
               />
             </div>
           </div>
@@ -185,6 +200,7 @@ const ProjectDetail: React.FC = () => {
                 value={project.notes}
                 onChange={handleNotesChange}
                 placeholder="在此记录项目进展、关键决策和重要事项..."
+                readOnly={isReadOnly}
               />
             </div>
           </div>

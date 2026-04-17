@@ -11,6 +11,8 @@ interface ProjectTableProps {
 const MONTHS = ['全部', '一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
 const STATUS_OPTIONS = ['全部', '进行中', '已完成', '暂停中']
 
+const INITIAL_PAGE_SIZE = 20
+
 const ProjectTable: React.FC<ProjectTableProps> = ({
   projects,
   onEdit,
@@ -19,9 +21,10 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 }) => {
   const [monthFilter, setMonthFilter] = React.useState('全部')
   const [statusFilter, setStatusFilter] = React.useState('全部')
-  const [currentPage, setCurrentPage] = React.useState(1)
   const [filteredProjects, setFilteredProjects] = React.useState(projects)
-  const pageSize = 10
+  const [visibleCount, setVisibleCount] = React.useState(INITIAL_PAGE_SIZE)
+  const [isLoadingMore, setIsLoadingMore] = React.useState(false)
+  const sentinelRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     let result = projects
@@ -47,14 +50,33 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     }
 
     setFilteredProjects(result)
-    setCurrentPage(1)
+    setVisibleCount(INITIAL_PAGE_SIZE)
   }, [projects, monthFilter, statusFilter])
 
-  const totalPages = Math.ceil(filteredProjects.length / pageSize)
-  const paginatedProjects = filteredProjects.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  )
+  React.useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry.isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true)
+          setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + 20, filteredProjects.length))
+            setIsLoadingMore(false)
+          }, 300)
+        }
+      },
+      { rootMargin: '100px' }
+    )
+
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [isLoadingMore, filteredProjects.length])
+
+  const visibleProjects = filteredProjects.slice(0, visibleCount)
+  const hasMore = visibleCount < filteredProjects.length
 
   const formatAmount = (amount: number) => {
     if (amount >= 100000000) {
@@ -169,7 +191,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {paginatedProjects.length === 0 ? (
+            {visibleProjects.length === 0 ? (
               <tr>
                 <td colSpan={8} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
                   <div className="flex flex-col items-center gap-2">
@@ -179,10 +201,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
               </tr>
             ) : (
-              paginatedProjects.map((project, idx) => (
+              visibleProjects.map((project, idx) => (
                 <tr
                   key={project.id}
-                  className={`border-b border-outline-variant transition-colors duration-150 hover:bg-primary-50/50 ${
+                  onClick={() => onView?.(project)}
+                  className={`border-b border-outline-variant transition-colors duration-150 hover:bg-primary-50/50 cursor-pointer ${
                     idx % 2 === 0 ? 'bg-transparent' : 'bg-surface-base/30'
                   }`}
                 >
@@ -228,7 +251,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   <td className="px-4 py-3 text-center">
                     {getStatusBadge(project.status)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => onView?.(project)}
@@ -260,61 +283,23 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         </table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-outline bg-gradient-to-r from-surface-base to-white/50">
-          <p className="text-sm font-body text-on-surface-secondary">
-            第 <span className="font-mono text-primary-500 font-medium">{(currentPage - 1) * pageSize + 1}</span>-
-            <span className="font-mono text-primary-500 font-medium">{Math.min(currentPage * pageSize, filteredProjects.length)}</span> 条，共 <span className="font-mono text-primary-500 font-medium">{filteredProjects.length}</span> 条
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              aria-label="上一页"
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-base">chevron_left</span>
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-              .reduce<(number | '...')[]>((acc, p, idx, arr) => {
-                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...')
-                acc.push(p)
-                return acc
-              }, [])
-              .map((p, idx) =>
-                p === '...' ? (
-                  <span key={`ellipsis-${idx}`} aria-label="更多页码" className="w-8 h-8 flex items-center justify-center text-sm font-body text-on-surface-tertiary">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => setCurrentPage(p as number)}
-                    aria-label={`第 ${p} 页`}
-                    aria-current={currentPage === p ? 'page' : undefined}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body transition-all duration-150 cursor-pointer ${
-                      currentPage === p
-                        ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-sm'
-                        : 'text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                )
-              )}
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              aria-label="下一页"
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-base">chevron_right</span>
-            </button>
+      {/* Infinite scroll sentinel & loading indicator */}
+      <div ref={sentinelRef} className="px-4 py-3 border-t border-outline bg-gradient-to-r from-surface-base to-white/50">
+        {isLoadingMore ? (
+          <div className="flex items-center justify-center gap-2 py-2">
+            <span className="material-symbols-outlined text-lg text-primary-500 animate-spin">progress_activity</span>
+            <span className="text-sm font-body text-on-surface-secondary">加载更多...</span>
           </div>
-        </div>
-      )}
+        ) : hasMore ? (
+          <div className="flex items-center justify-center py-2">
+            <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary-300 to-transparent" />
+          </div>
+        ) : visibleProjects.length > 0 ? (
+          <p className="text-center text-sm font-body text-on-surface-tertiary">
+            已展示全部 <span className="font-mono text-primary-500 font-medium">{filteredProjects.length}</span> 个项目
+          </p>
+        ) : null}
+      </div>
     </div>
   )
 }
