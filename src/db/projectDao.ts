@@ -19,26 +19,40 @@ function parseJsonField<T>(value: unknown, fallback: T): T {
 
 export function findAll(): Project[] {
   const db = getDatabase()
-  if (!db) return []
+  if (!db) {
+    console.log('[DAO] findAll: db is null!')
+    return []
+  }
 
   const results = db.exec('SELECT * FROM projects ORDER BY created_at DESC')
+  console.log('[DAO] findAll: query results length:', results.length)
   if (results.length === 0) return []
 
-  const columns = results[0].columns
+  console.log('[DAO] findAll: rows count:', results[0].values.length)
   return results[0].values.map((row) => {
-    const project: Record<string, unknown> = {}
+    const columns = results[0].columns
+    const rowObj: Record<string, unknown> = {}
     columns.forEach((col, i) => {
-      if (col === 'sub_progress' || col === 'team' || col === 'scope' || col === 'timeline') {
-        try {
-          project[col] = JSON.parse(row[i] as string || '{}')
-        } catch {
-          project[col] = row[i]
-        }
-      } else {
-        project[col] = row[i]
-      }
+      rowObj[col] = row[i]
     })
-    return project as unknown as Project
+
+    return {
+      id: rowObj.id as string,
+      name: rowObj.name as string,
+      productLine: rowObj.product_line as string,
+      status: rowObj.status as Project['status'],
+      tag: rowObj.tag as string,
+      totalAmount: rowObj.total_amount as number,
+      usedAmount: rowObj.used_amount as number,
+      progress: rowObj.progress as number,
+      subProgress: parseJsonField<SubProgress>(rowObj.sub_progress, { architecture: 0, uiux: 0, engineering: 0, qa: 0 }),
+      notes: rowObj.notes as string,
+      team: parseJsonField<TeamMember[]>(rowObj.team, []),
+      scope: parseJsonField<ScopeItem[]>(rowObj.scope, []),
+      timeline: parseJsonField<TimelineEvent[]>(rowObj.timeline, []),
+      createdAt: rowObj.created_at as string,
+      updatedAt: rowObj.updated_at as string,
+    }
   })
 }
 

@@ -26,8 +26,11 @@ export const useProjectStore = zustandCreate<ProjectStore>((set, get) => ({
   loadProjects: async () => {
     set({ isLoading: true, error: null })
     try {
+      console.log('[Store] loadProjects: calling initDatabase...')
       await initDatabase()
+      console.log('[Store] loadProjects: initDatabase done, calling findAll...')
       const projects = findAll()
+      console.log('[Store] loadProjects: found', projects.length, 'projects')
       set({ projects, isLoading: false })
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Failed to load projects', isLoading: false })
