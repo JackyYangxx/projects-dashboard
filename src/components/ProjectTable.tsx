@@ -68,13 +68,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
   const getStatusBadge = (status: Project['status']) => {
     const styles = {
-      ongoing: 'bg-primary-500/10 text-primary-500',
-      completed: 'bg-success/10 text-success',
-      paused: 'bg-warning/10 text-warning',
+      ongoing: 'bg-primary-50 text-primary-600 border border-primary-200',
+      completed: 'bg-success/10 text-success border border-success/20',
+      paused: 'bg-warning/10 text-warning border border-warning/20',
     }
     const labels = { ongoing: '进行中', completed: '已完成', paused: '暂停中' }
     return (
-      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-body font-medium ${styles[status]}`}>
+      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-body font-medium ${styles[status]}`}>
         {labels[status]}
       </span>
     )
@@ -86,16 +86,23 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     return `${rate}%`
   }
 
+  const handleDelete = (project: Project) => {
+    if (window.confirm(`确定要删除项目 "${project.name}" 吗？此操作不可撤销。`)) {
+      onDelete?.(project)
+    }
+  }
+
   return (
-    <div className="bg-surface-elevated rounded-lg shadow-surface">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-outline overflow-hidden">
       {/* Filters */}
-      <div className="flex items-center gap-3 p-4 border-b border-outline">
+      <div className="flex items-center gap-3 p-4 border-b border-outline bg-gradient-to-r from-surface-base to-white/50">
         <select
           id="monthFilter"
           name="monthFilter"
           value={monthFilter}
           onChange={(e) => setMonthFilter(e.target.value)}
-          className="px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 cursor-pointer"
+          aria-label="按月份筛选"
+          className="px-3 py-2 bg-white border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
         >
           {MONTHS.map((m) => (
             <option key={m} value={m}>{m}</option>
@@ -107,7 +114,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           name="statusFilter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 cursor-pointer"
+          aria-label="按状态筛选"
+          className="px-3 py-2 bg-white border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>{s}</option>
@@ -119,43 +127,43 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             setMonthFilter('全部')
             setStatusFilter('全部')
           }}
-          className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-body font-medium hover:bg-primary-600 transition-colors"
+          className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer"
         >
-          筛选
+          重置筛选
         </button>
 
         <div className="ml-auto text-sm font-body text-on-surface-secondary">
-          共 {filteredProjects.length} 个项目
+          <span className="font-mono text-primary-500 font-medium">{filteredProjects.length}</span> 个项目
         </div>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" role="table">
           <thead>
-            <tr className="border-b border-outline">
-              <th className="text-left px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+            <tr className="border-b border-outline bg-surface-base/50">
+              <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 项目名称
               </th>
-              <th className="text-left px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+              <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 产品线
               </th>
-              <th className="text-left px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+              <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 负责人
               </th>
-              <th className="text-right px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+              <th scope="col" className="text-right px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 总金额
               </th>
-              <th className="text-right px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+              <th scope="col" className="text-right px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 已使用
               </th>
-              <th className="text-center px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+              <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 预算执行率
               </th>
-              <th className="text-center px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+              <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 状态
               </th>
-              <th className="text-center px-4 py-3 text-xs font-body font-medium text-on-surface-secondary uppercase tracking-wide">
+              <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 操作
               </th>
             </tr>
@@ -164,14 +172,19 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             {paginatedProjects.length === 0 ? (
               <tr>
                 <td colSpan={8} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
-                  暂无项目数据
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="material-symbols-outlined text-4xl text-on-surface-tertiary">inbox</span>
+                    <span>暂无项目数据</span>
+                  </div>
                 </td>
               </tr>
             ) : (
-              paginatedProjects.map((project) => (
+              paginatedProjects.map((project, idx) => (
                 <tr
                   key={project.id}
-                  className="border-b border-outline-variant hover:bg-surface-container/50 transition-colors"
+                  className={`border-b border-outline-variant transition-colors duration-150 hover:bg-primary-50/50 ${
+                    idx % 2 === 0 ? 'bg-transparent' : 'bg-surface-base/30'
+                  }`}
                 >
                   <td className="px-4 py-3">
                     <div>
@@ -179,7 +192,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         {project.name}
                       </p>
                       {project.tag && (
-                        <p className="text-xs font-body text-on-surface-tertiary">
+                        <p className="text-xs font-body text-on-surface-tertiary mt-0.5">
                           {project.tag}
                         </p>
                       )}
@@ -191,23 +204,23 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   <td className="px-4 py-3 text-sm font-body text-on-surface-secondary">
                     {project.team[0]?.name || '-'}
                   </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-primary text-right font-medium">
+                  <td className="px-4 py-3 text-sm font-body text-on-surface-primary text-right font-medium tabular-nums">
                     {formatAmount(project.totalAmount)}
                   </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-secondary text-right">
+                  <td className="px-4 py-3 text-sm font-body text-on-surface-secondary text-right tabular-nums">
                     {formatAmount(project.usedAmount)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden">
+                      <div className="w-16 h-1.5 bg-surface-base rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary-500 rounded-full"
+                          className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-300"
                           style={{
                             width: `${getBudgetRate(project.usedAmount, project.totalAmount)}`,
                           }}
                         />
                       </div>
-                      <span className="text-xs font-body text-on-surface-secondary">
+                      <span className="text-xs font-body text-on-surface-secondary tabular-nums">
                         {getBudgetRate(project.usedAmount, project.totalAmount)}
                       </span>
                     </div>
@@ -219,22 +232,22 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => onView?.(project)}
-                        className="w-8 h-8 flex items-center justify-center rounded text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
-                        title="查看"
+                        aria-label={`查看 ${project.name}`}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-base">visibility</span>
                       </button>
                       <button
                         onClick={() => onEdit?.(project)}
-                        className="w-8 h-8 flex items-center justify-center rounded text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
-                        title="编辑"
+                        aria-label={`编辑 ${project.name}`}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-base">edit</span>
                       </button>
                       <button
-                        onClick={() => onDelete?.(project)}
-                        className="w-8 h-8 flex items-center justify-center rounded text-on-surface-tertiary hover:bg-error transition-colors"
-                        title="删除"
+                        onClick={() => handleDelete(project)}
+                        aria-label={`删除 ${project.name}`}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-error/10 hover:text-error transition-all duration-150 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-base">delete</span>
                       </button>
@@ -249,15 +262,17 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-outline">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-outline bg-gradient-to-r from-surface-base to-white/50">
           <p className="text-sm font-body text-on-surface-secondary">
-            第 {(currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, filteredProjects.length)} 条，共 {filteredProjects.length} 条
+            第 <span className="font-mono text-primary-500 font-medium">{(currentPage - 1) * pageSize + 1}</span>-
+            <span className="font-mono text-primary-500 font-medium">{Math.min(currentPage * pageSize, filteredProjects.length)}</span> 条，共 <span className="font-mono text-primary-500 font-medium">{filteredProjects.length}</span> 条
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body text-on-surface-secondary hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="上一页"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer"
             >
               <span className="material-symbols-outlined text-base">chevron_left</span>
             </button>
@@ -270,17 +285,19 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               }, [])
               .map((p, idx) =>
                 p === '...' ? (
-                  <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm font-body text-on-surface-tertiary">
+                  <span key={`ellipsis-${idx}`} aria-label="更多页码" className="w-8 h-8 flex items-center justify-center text-sm font-body text-on-surface-tertiary">
                     ...
                   </span>
                 ) : (
                   <button
                     key={p}
                     onClick={() => setCurrentPage(p as number)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body transition-colors ${
+                    aria-label={`第 ${p} 页`}
+                    aria-current={currentPage === p ? 'page' : undefined}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body transition-all duration-150 cursor-pointer ${
                       currentPage === p
-                        ? 'bg-primary-500 text-white'
-                        : 'text-on-surface-secondary hover:bg-surface-container'
+                        ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-sm'
+                        : 'text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500'
                     }`}
                   >
                     {p}
@@ -290,7 +307,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body text-on-surface-secondary hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="下一页"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-body text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 cursor-pointer"
             >
               <span className="material-symbols-outlined text-base">chevron_right</span>
             </button>

@@ -4,14 +4,164 @@
 
 @layer base {
   html {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Fira Sans', sans-serif;
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-surface-base text-on-surface-primary antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Manrope', sans-serif;
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-base;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-outline rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-400;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-primary-500/20 text-primary-700;
+  }
+}
+
+@layer components {
+  /* Flowing gradient background */
+  .bg-flow {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+  }
+
+  .bg-flow-subtle {
+    background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.08) 0%,
+      rgba(139, 92, 246, 0.05) 30%,
+      rgba(236, 72, 153, 0.03) 60%,
+      rgba(59, 130, 246, 0.08) 100%
+    );
+    background-size: 200% 200%;
+    animation: gradientFlow 20s ease infinite;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-white/70 backdrop-blur-md;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-500 via-accent-500 to-primary-400 bg-clip-text text-transparent;
+  }
+
+  /* Card with flowing border */
+  .card-flow {
+    @apply relative overflow-hidden;
+  }
+
+  .card-flow::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-500;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+  }
+
+  .card-flow:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Subtle glow border */
+  .border-glow {
+    @apply relative;
+  }
+
+  .border-glow::after {
+    content: '';
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
+    box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.1);
+  }
+
+  .border-glow:hover::after {
+    @apply opacity-100;
+  }
+}
+
+@layer utilities {
+  /* Tabular numbers for data */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Gradient animations */
+  @keyframes gradientFlow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Blob animation for background */
+  .animate-blob {
+    animation: blob 7s ease-in-out infinite;
+  }
+
+  @keyframes blob {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+  }
+
+  /* Floating orbs */
+  .orb {
+    @apply absolute rounded-full blur-3xl opacity-30;
+    animation: orbFloat 20s ease-in-out infinite;
+  }
+
+  @keyframes orbFloat {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+      transform: translate(10vw, -10vh) rotate(90deg);
+    }
+    50% {
+      transform: translate(-5vw, 15vh) rotate(180deg);
+    }
+    75% {
+      transform: translate(-15vw, -5vh) rotate(270deg);
+    }
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

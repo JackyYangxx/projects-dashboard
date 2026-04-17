@@ -67,15 +67,15 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
         <div>
           <h3 className="text-sm font-body font-medium text-on-surface-secondary">进度动态</h3>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-heading font-bold text-on-surface-primary">
+            <span className="text-3xl font-heading font-bold text-on-surface-primary tabular-nums">
               {value}%
             </span>
             <span className="text-sm font-body text-on-surface-tertiary">完成度</span>
           </div>
         </div>
         {lastUpdated && (
-          <span className="text-xs font-body text-on-surface-tertiary">
-            最后调整: {lastUpdated}
+          <span className="text-xs font-mono text-on-surface-tertiary">
+            更新: {lastUpdated}
           </span>
         )}
       </div>
@@ -83,21 +83,28 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
       {/* Main Slider */}
       <div
         ref={sliderRef}
-        className="relative h-3 bg-surface-container rounded-full cursor-pointer select-none"
+        role="slider"
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="项目进度"
+        className="relative h-3 bg-surface-base rounded-full cursor-pointer select-none group"
         onMouseDown={handleMouseDown}
       >
         <div
-          className="absolute top-0 left-0 h-full bg-primary-500 rounded-full transition-all"
+          className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-150 ease-out shadow-sm"
           style={{ width: `${value}%` }}
         />
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-primary-500 rounded-full shadow-elevated border-2 border-white cursor-grab active:cursor-grabbing transition-all"
+          className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full shadow-lg cursor-grab active:cursor-grabbing transition-all duration-150 ${
+            isDragging ? 'scale-110' : 'group-hover:scale-105'
+          }`}
           style={{ left: `calc(${value}% - 10px)` }}
         />
       </div>
 
       {/* Percentage labels */}
-      <div className="flex justify-between text-xs font-body text-on-surface-tertiary px-1">
+      <div className="flex justify-between text-xs font-mono text-on-surface-tertiary px-1">
         <span>0%</span>
         <span>25%</span>
         <span>50%</span>
@@ -110,21 +117,21 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
         {subProgressItems.map((item) => (
           <div
             key={item.key}
-            className="bg-surface-base rounded-lg p-3 flex items-center gap-3"
+            className="bg-white rounded-xl p-3 flex items-center gap-3 border border-outline transition-all duration-150 hover:shadow-elevated hover:border-primary-200"
           >
-            <div className="w-9 h-9 bg-primary-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="material-symbols-outlined text-primary-500 text-base">
+            <div className="w-9 h-9 bg-gradient-to-br from-primary-50 to-accent-50 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-100">
+              <span className="material-symbols-outlined text-accent-500 text-base">
                 {item.icon}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-body text-on-surface-secondary">{item.label}</p>
-              <p className="text-base font-heading font-semibold text-on-surface-primary">
+              <p className="text-base font-heading font-semibold text-on-surface-primary tabular-nums">
                 {subProgress[item.key]}%
               </p>
-              <div className="w-full h-1 bg-surface-container rounded-full mt-1 overflow-hidden">
+              <div className="w-full h-1 bg-surface-base rounded-full mt-1 overflow-hidden">
                 <div
-                  className="h-full bg-primary-500 rounded-full"
+                  className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
                   style={{ width: `${subProgress[item.key]}%` }}
                 />
               </div>
