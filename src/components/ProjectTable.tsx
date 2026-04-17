@@ -91,6 +91,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       {/* Filters */}
       <div className="flex items-center gap-3 p-4 border-b border-outline">
         <select
+          id="monthFilter"
+          name="monthFilter"
           value={monthFilter}
           onChange={(e) => setMonthFilter(e.target.value)}
           className="px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 cursor-pointer"
@@ -101,6 +103,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         </select>
 
         <select
+          id="statusFilter"
+          name="statusFilter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 cursor-pointer"
@@ -229,7 +233,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </button>
                       <button
                         onClick={() => onDelete?.(project)}
-                        className="w-8 h-8 flex items-center justify-center rounded text-on-surface-tertiary hover:bg-surface-container hover:text-error transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded text-on-surface-tertiary hover:bg-error transition-colors"
                         title="删除"
                       >
                         <span className="material-symbols-outlined text-base">delete</span>

@@ -22,6 +22,7 @@ const Header: React.FC<HeaderProps> = ({ title = '项目概览' }) => {
           </span>
           <input
             type="text"
+            id="search"
             placeholder="搜索项目..."
             className="w-full pl-10 pr-4 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 transition-colors"
           />
