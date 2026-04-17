@@ -73,7 +73,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [isLoadingMore, filteredProjects.length])
+  }, [filteredProjects.length])
 
   const visibleProjects = filteredProjects.slice(0, visibleCount)
   const hasMore = visibleCount < filteredProjects.length
