@@ -43,8 +43,10 @@ async function doInitDatabase(): Promise<Database> {
       progress INTEGER DEFAULT 0,
       sub_progress TEXT DEFAULT '{}',
       notes TEXT DEFAULT '',
+      note_history TEXT DEFAULT '[]',
       team TEXT DEFAULT '[]',
       scope TEXT DEFAULT '[]',
+      milestones TEXT DEFAULT '[]',
       timeline TEXT DEFAULT '[]',
       created_at TEXT,
       updated_at TEXT
@@ -65,8 +67,8 @@ async function doInitDatabase(): Promise<Database> {
         db.run(
           `INSERT INTO projects (
             id, name, product_line, status, tag, total_amount, used_amount,
-            progress, sub_progress, notes, team, scope, timeline, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            progress, sub_progress, notes, note_history, team, scope, milestones, timeline, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             crypto.randomUUID(),
             project.name,
@@ -78,8 +80,10 @@ async function doInitDatabase(): Promise<Database> {
             project.progress,
             JSON.stringify(project.subProgress),
             project.notes,
+            JSON.stringify(project.noteHistory || []),
             JSON.stringify(project.team),
             JSON.stringify(project.scope),
+            JSON.stringify(project.milestones || []),
             JSON.stringify(project.timeline),
             now,
             now,

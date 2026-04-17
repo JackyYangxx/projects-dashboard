@@ -1,7 +1,7 @@
 import { create as zustandCreate } from 'zustand'
 import { initDatabase } from '@/db'
 import { findAll, findById, create as createProject, update, remove } from '@/db/projectDao'
-import type { Project } from '@/types'
+import type { Project, NoteHistory } from '@/types'
 
 interface ProjectStore {
   // State
@@ -15,6 +15,7 @@ interface ProjectStore {
   updateProject: (id: string, updates: Partial<Project>) => Promise<void>
   deleteProject: (id: string) => Promise<void>
   getProjectById: (id: string) => Project | undefined
+  addNoteHistory: (projectId: string, content: string) => Promise<void>
 }
 
 export const useProjectStore = zustandCreate<ProjectStore>((set, get) => ({
@@ -82,5 +83,29 @@ export const useProjectStore = zustandCreate<ProjectStore>((set, get) => ({
 
   getProjectById: (id) => {
     return get().projects.find((p) => p.id === id)
+  },
+
+  addNoteHistory: async (projectId, content) => {
+    set({ isLoading: true, error: null })
+    try {
+      await initDatabase()
+      const project = get().projects.find((p) => p.id === projectId)
+      if (!project) throw new Error('Project not found')
+      const historyEntry: NoteHistory = {
+        id: crypto.randomUUID(),
+        content,
+        createdAt: new Date().toISOString(),
+      }
+      const newHistory = [...(project.noteHistory || []), historyEntry]
+      update(projectId, { noteHistory: newHistory })
+      set((state) => ({
+        projects: state.projects.map((p) =>
+          p.id === projectId ? { ...p, noteHistory: newHistory } : p
+        ),
+        isLoading: false,
+      }))
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Failed to add note history', isLoading: false })
+    }
   },
 }))

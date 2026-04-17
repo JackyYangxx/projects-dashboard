@@ -33,8 +33,10 @@ const ProjectForm: React.FC = () => {
         usedAmount: Number(formData.usedAmount),
         progress: Number(formData.progress),
         notes: '',
+        noteHistory: [],
         team: [],
         scope: [],
+        milestones: [],
         timeline: [],
         subProgress: { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
       })

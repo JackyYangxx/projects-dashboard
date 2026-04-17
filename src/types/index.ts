@@ -19,6 +19,20 @@ export interface ScopeItem {
   color: 'primary' | 'secondary' | 'tertiary' | 'outline'
 }
 
+export interface NoteHistory {
+  id: string
+  content: string
+  createdAt: string
+}
+
+export interface Milestone {
+  id: string
+  title: string
+  date: string
+  status: 'pending' | 'completed' | 'delayed'
+  description?: string
+}
+
 export interface TimelineEvent {
   date: string
   version: string
@@ -39,8 +53,10 @@ export interface Project {
   progress: number
   subProgress: SubProgress
   notes: string
+  noteHistory: NoteHistory[]
   team: TeamMember[]
   scope: ScopeItem[]
+  milestones: Milestone[]
   timeline: TimelineEvent[]
   createdAt: string
   updatedAt: string

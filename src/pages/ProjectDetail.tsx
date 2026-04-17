@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useProjectStore } from '@/store/projectStore'
 import ProgressSlider from '@/components/ProgressSlider'
-import RichTextEditor from '@/components/RichTextEditor'
+import TipTapEditor from '@/components/TipTapEditor'
 import Timeline from '@/components/Timeline'
 
 const ProjectDetail: React.FC = () => {
@@ -13,6 +13,26 @@ const ProjectDetail: React.FC = () => {
 
   const [viewMode, setViewMode] = useState<'monthly' | 'quarterly'>('monthly')
   const [isReadOnly, setIsReadOnly] = useState(true)
+  const [showMemberModal, setShowMemberModal] = useState(false)
+  const [newMemberName, setNewMemberName] = useState('')
+  const [newMemberRole, setNewMemberRole] = useState('')
+  const [budgetEditTotal, setBudgetEditTotal] = useState('')
+  const [budgetEditUsed, setBudgetEditUsed] = useState('')
+  const [budgetSaving, setBudgetSaving] = useState(false)
+
+  const handleAddMember = () => {
+    if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
+    const newMember = {
+      id: crypto.randomUUID(),
+      name: newMemberName.trim(),
+      role: newMemberRole.trim(),
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(newMemberName.trim())}`,
+    }
+    updateProject(project.id, { team: [...project.team, newMember] })
+    setNewMemberName('')
+    setNewMemberRole('')
+    setShowMemberModal(false)
+  }
 
   if (!project) {
     return (
@@ -42,6 +62,13 @@ const ProjectDetail: React.FC = () => {
     updateProject(project.id, { progress: value, updatedAt: new Date().toISOString() })
   }
 
+  const handleSubProgressChange = (key: keyof typeof project.subProgress, value: number) => {
+    updateProject(project.id, {
+      subProgress: { ...project.subProgress, [key]: value },
+      updatedAt: new Date().toISOString(),
+    })
+  }
+
   const handleNotesChange = (html: string) => {
     updateProject(project.id, { notes: html, updatedAt: new Date().toISOString() })
   }
@@ -68,27 +95,10 @@ const ProjectDetail: React.FC = () => {
     })
   }
 
-  const scopeColorClasses: Record<string, { border: string; text: string; bg: string }> = {
-    primary: {
-      border: 'border-primary-500',
-      text: 'text-primary-500',
-      bg: 'bg-primary-500/10',
-    },
-    secondary: {
-      border: 'border-secondary-500',
-      text: 'text-secondary-500',
-      bg: 'bg-secondary-500/10',
-    },
-    tertiary: {
-      border: 'border-tertiary-500',
-      text: 'text-tertiary-500',
-      bg: 'bg-tertiary-500/10',
-    },
-    outline: {
-      border: 'border-outline',
-      text: 'text-on-surface-secondary',
-      bg: 'bg-surface-container',
-    },
+  const milestoneStatusStyles: Record<string, { dot: string; label: string; line: string }> = {
+    completed: { dot: 'bg-success', label: 'text-success', line: 'bg-success' },
+    pending: { dot: 'bg-primary-500', label: 'text-primary-500', line: 'bg-surface-base' },
+    delayed: { dot: 'bg-warning', label: 'text-warning', line: 'bg-warning' },
   }
 
   return (
@@ -152,6 +162,7 @@ const ProjectDetail: React.FC = () => {
                 value={project.progress}
                 subProgress={project.subProgress}
                 onChange={handleProgressChange}
+                onSubProgressChange={handleSubProgressChange}
                 lastUpdated={formatDate(project.updatedAt)}
                 readOnly={isReadOnly}
               />
@@ -165,22 +176,77 @@ const ProjectDetail: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-xs font-body text-white/60 mb-1">总金额</p>
-                    <p className="text-2xl font-heading font-bold text-white">
-                      {formatCurrency(project.totalAmount)}
-                    </p>
+                    {isReadOnly ? (
+                      <p className="text-2xl font-heading font-bold text-white">
+                        {formatCurrency(project.totalAmount)}
+                      </p>
+                    ) : (
+                      <input
+                        type="number"
+                        value={budgetEditTotal}
+                        onChange={(e) => setBudgetEditTotal(e.target.value)}
+                        onFocus={() => setBudgetEditTotal(String(project.totalAmount))}
+                        onBlur={() => {
+                          const val = Number(budgetEditTotal)
+                          if (!isNaN(val) && val >= 0) {
+                            setBudgetSaving(true)
+                            updateProject(project.id, { totalAmount: val, updatedAt: new Date().toISOString() })
+                            setTimeout(() => setBudgetSaving(false), 600)
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setBudgetEditTotal(String(project.totalAmount))
+                          }
+                        }}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-2xl font-heading font-bold text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        placeholder="0"
+                      />
+                    )}
                   </div>
                   <div>
                     <p className="text-xs font-body text-white/60 mb-1">已使用</p>
-                    <p className="text-xl font-heading font-semibold text-white">
-                      {formatCurrency(project.usedAmount)}
-                    </p>
+                    {isReadOnly ? (
+                      <p className="text-xl font-heading font-semibold text-white">
+                        {formatCurrency(project.usedAmount)}
+                      </p>
+                    ) : (
+                      <input
+                        type="number"
+                        value={budgetEditUsed}
+                        onChange={(e) => setBudgetEditUsed(e.target.value)}
+                        onFocus={() => setBudgetEditUsed(String(project.usedAmount))}
+                        onBlur={() => {
+                          const val = Number(budgetEditUsed)
+                          if (!isNaN(val) && val >= 0) {
+                            setBudgetSaving(true)
+                            updateProject(project.id, { usedAmount: val, updatedAt: new Date().toISOString() })
+                            setTimeout(() => setBudgetSaving(false), 600)
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setBudgetEditUsed(String(project.usedAmount))
+                          }
+                        }}
+                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-xl font-heading font-semibold text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        placeholder="0"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-body text-white/60">执行率</span>
-                  <span className="text-lg font-heading font-bold text-white">{budgetPercent}%</span>
+                  {budgetSaving ? (
+                    <span className="flex items-center gap-1 text-xs font-body text-white/70">
+                      <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                      保存中...
+                    </span>
+                  ) : (
+                    <span className="text-lg font-heading font-bold text-white">{budgetPercent}%</span>
+                  )}
                 </div>
                 <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
                   <div
@@ -196,16 +262,77 @@ const ProjectDetail: React.FC = () => {
           <div className="col-span-12">
             <div className="bg-surface-elevated rounded-xl p-6">
               <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">项目笔记</h3>
-              <RichTextEditor
+              <TipTapEditor
                 value={project.notes}
                 onChange={handleNotesChange}
                 placeholder="在此记录项目进展、关键决策和重要事项..."
                 readOnly={isReadOnly}
               />
+              {!isReadOnly && (
+                <div className="flex items-center justify-end gap-3 mt-4">
+                  <button
+                    onClick={() => {
+                      updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
+                    }}
+                    className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => {
+                      const { addNoteHistory } = useProjectStore.getState()
+                      addNoteHistory(project.id, project.notes)
+                    }}
+                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all"
+                  >
+                    保存历史
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Row 3: Strategic Team (5 cols) + Curation Scope (7 cols) */}
+          {/* Row 2b: Note History Accordion */}
+          {project.noteHistory.length > 0 && (
+            <div className="col-span-12">
+              <div className="bg-surface-elevated rounded-xl overflow-hidden">
+                <div
+                  className="flex items-center justify-between px-6 py-4 cursor-pointer select-none"
+                  onClick={() => {}}
+                >
+                  <h3 className="text-sm font-body font-medium text-on-surface-secondary">
+                    笔记历史
+                  </h3>
+                  <span className="text-xs font-body text-on-surface-tertiary">
+                    {project.noteHistory.length} 条记录
+                  </span>
+                </div>
+                <div className="border-t border-outline">
+                  {project.noteHistory.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="border-b border-outline-variant last:border-b-0"
+                    >
+                      <div className="px-6 py-3 flex items-center justify-between">
+                        <span className="text-xs font-mono text-on-surface-tertiary">
+                          {formatDate(entry.createdAt)}
+                        </span>
+                        <span className="material-symbols-outlined text-sm text-on-surface-tertiary">
+                          history
+                        </span>
+                      </div>
+                      <div
+                        className="px-6 pb-3 text-sm font-body text-on-surface-secondary"
+                        dangerouslySetInnerHTML={{ __html: entry.content }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Row 3: Strategic Team (5 cols) + Milestones (7 cols) */}
           <div className="col-span-12 lg:col-span-5">
             <div className="bg-surface-elevated rounded-xl p-6 h-full">
               <div className="flex items-center justify-between mb-4">
@@ -253,7 +380,10 @@ const ProjectDetail: React.FC = () => {
                 </div>
               )}
 
-              <button className="mt-4 w-full py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2">
+              <button
+                onClick={() => setShowMemberModal(true)}
+                className="mt-4 w-full py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
+              >
                 <span className="material-symbols-outlined text-lg">add</span>
                 添加成员
               </button>
@@ -263,50 +393,54 @@ const ProjectDetail: React.FC = () => {
           <div className="col-span-12 lg:col-span-7">
             <div className="bg-surface-elevated rounded-xl p-6 h-full">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-body font-medium text-on-surface-secondary">策展范围</h3>
+                <h3 className="text-sm font-body font-medium text-on-surface-secondary">里程碑</h3>
                 <span className="text-xs font-body text-on-surface-tertiary">
-                  {project.scope.length} 项范围
+                  {project.milestones.length} 个里程碑
                 </span>
               </div>
 
-              {project.scope.length === 0 ? (
+              {project.milestones.length === 0 ? (
                 <div className="text-center py-8">
                   <span className="material-symbols-outlined text-4xl text-on-surface-tertiary mb-2">
-                    exploration_off
+                    timeline
                   </span>
-                  <p className="text-sm font-body text-on-surface-tertiary">暂无策展范围</p>
+                  <p className="text-sm font-body text-on-surface-tertiary">暂无里程碑</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {project.scope.map((item, index) => {
-                    const colors = scopeColorClasses[item.color] || scopeColorClasses.outline
-                    return (
-                      <div
-                        key={index}
-                        className={`p-4 rounded-lg border-2 ${colors.border} ${colors.bg}`}
-                      >
-                        <div className="flex items-start gap-3">
+                <div className="relative pl-6">
+                  {/* Vertical line */}
+                  <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-outline" />
+                  <div className="space-y-6">
+                    {project.milestones.map((milestone) => {
+                      const status = milestoneStatusStyles[milestone.status] || milestoneStatusStyles.pending
+                      return (
+                        <div key={milestone.id} className="relative">
+                          {/* Dot */}
                           <div
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colors.bg}`}
-                          >
-                            <span
-                              className={`material-symbols-outlined text-lg ${colors.text}`}
-                            >
-                              {item.icon}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-body font-semibold text-on-surface-primary mb-1">
-                              {item.title}
-                            </h4>
-                            <p className="text-xs font-body text-on-surface-secondary leading-relaxed">
-                              {item.description}
+                            className={`absolute -left-[1.125rem] top-1 w-4 h-4 rounded-full ${status.dot} ring-2 ring-white`}
+                          />
+                          <div className="ml-4">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="text-sm font-body font-semibold text-on-surface-primary">
+                                {milestone.title}
+                              </h4>
+                              <span className={`text-xs font-body font-medium ${status.label}`}>
+                                {milestone.status === 'completed' ? '已完成' : milestone.status === 'delayed' ? '延期' : '进行中'}
+                              </span>
+                            </div>
+                            <p className="text-xs font-body text-on-surface-tertiary font-mono mb-1">
+                              {milestone.date}
                             </p>
+                            {milestone.description && (
+                              <p className="text-xs font-body text-on-surface-secondary">
+                                {milestone.description}
+                              </p>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -324,6 +458,84 @@ const ProjectDetail: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Team Member Add Modal */}
+      {showMemberModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowMemberModal(false)}
+        >
+          <div
+            className="bg-surface-elevated rounded-2xl shadow-xl border border-outline w-full max-w-md mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-outline">
+              <h3 className="text-base font-heading font-semibold text-on-surface-primary">添加团队成员</h3>
+              <button
+                onClick={() => setShowMemberModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+            <div className="p-6 space-y-5">
+              {/* Avatar Preview */}
+              <div className="flex justify-center">
+                <img
+                  src={newMemberName.trim()
+                    ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(newMemberName.trim())}`
+                    : 'https://api.dicebear.com/7.x/initials/svg?seed=?'}
+                  alt="头像预览"
+                  className="w-20 h-20 rounded-full bg-surface-base ring-2 ring-outline"
+                />
+              </div>
+
+              {/* Name Input */}
+              <div>
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                  姓名 <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newMemberName}
+                  onChange={(e) => setNewMemberName(e.target.value)}
+                  placeholder="输入姓名，如：张明"
+                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                />
+              </div>
+
+              {/* Role Input */}
+              <div>
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                  职位 <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newMemberRole}
+                  onChange={(e) => setNewMemberRole(e.target.value)}
+                  placeholder="输入职位，如：项目经理"
+                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-outline bg-surface-base/50">
+              <button
+                onClick={() => setShowMemberModal(false)}
+                className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleAddMember}
+                disabled={!newMemberName.trim() || !newMemberRole.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                添加
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { getDatabase } from './index'
-import type { Project, SubProgress, TeamMember, ScopeItem, TimelineEvent } from '../types'
+import type { Project, SubProgress, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone } from '../types'
 import type { SqlValue } from 'sql.js'
 
 function generateId(): string {
@@ -47,8 +47,10 @@ export function findAll(): Project[] {
       progress: rowObj.progress as number,
       subProgress: parseJsonField<SubProgress>(rowObj.sub_progress, { architecture: 0, uiux: 0, engineering: 0, qa: 0 }),
       notes: rowObj.notes as string,
+      noteHistory: parseJsonField<NoteHistory[]>(rowObj.note_history, []),
       team: parseJsonField<TeamMember[]>(rowObj.team, []),
       scope: parseJsonField<ScopeItem[]>(rowObj.scope, []),
+      milestones: parseJsonField<Milestone[]>(rowObj.milestones, []),
       timeline: parseJsonField<TimelineEvent[]>(rowObj.timeline, []),
       createdAt: rowObj.created_at as string,
       updatedAt: rowObj.updated_at as string,
@@ -82,8 +84,10 @@ export function findById(id: string): Project | undefined {
     progress: row.progress as number,
     subProgress: parseJsonField<SubProgress>(row.sub_progress, { architecture: 0, uiux: 0, engineering: 0, qa: 0 }),
     notes: row.notes as string,
+    noteHistory: parseJsonField<NoteHistory[]>(row.note_history, []),
     team: parseJsonField<TeamMember[]>(row.team, []),
     scope: parseJsonField<ScopeItem[]>(row.scope, []),
+    milestones: parseJsonField<Milestone[]>(row.milestones, []),
     timeline: parseJsonField<TimelineEvent[]>(row.timeline, []),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
@@ -100,8 +104,8 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
   db.run(
     `INSERT INTO projects (
       id, name, product_line, status, tag, total_amount, used_amount,
-      progress, sub_progress, notes, team, scope, timeline, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       project.name,
@@ -113,8 +117,10 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
       project.progress,
       JSON.stringify(project.subProgress),
       project.notes,
+      JSON.stringify(project.noteHistory || []),
       JSON.stringify(project.team),
       JSON.stringify(project.scope),
+      JSON.stringify(project.milestones || []),
       JSON.stringify(project.timeline),
       now,
       now,
@@ -167,6 +173,10 @@ export function update(id: string, updates: Partial<Project>): void {
     setClauses.push('notes = ?')
     values.push(updates.notes)
   }
+  if (updates.noteHistory !== undefined) {
+    setClauses.push('note_history = ?')
+    values.push(JSON.stringify(updates.noteHistory))
+  }
   if (updates.team !== undefined) {
     setClauses.push('team = ?')
     values.push(JSON.stringify(updates.team))
@@ -174,6 +184,10 @@ export function update(id: string, updates: Partial<Project>): void {
   if (updates.scope !== undefined) {
     setClauses.push('scope = ?')
     values.push(JSON.stringify(updates.scope))
+  }
+  if (updates.milestones !== undefined) {
+    setClauses.push('milestones = ?')
+    values.push(JSON.stringify(updates.milestones))
   }
   if (updates.timeline !== undefined) {
     setClauses.push('timeline = ?')

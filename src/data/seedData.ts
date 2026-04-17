@@ -16,6 +16,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
       qa: 60,
     },
     notes: '<p>战略品牌重塑项目正在进行中...</p>',
+    noteHistory: [],
     team: [
       {
         id: '1',
@@ -44,6 +45,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
         color: 'secondary',
       },
     ],
+    milestones: [],
     timeline: [
       {
         date: '2024年3月',
@@ -78,6 +80,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
       qa: 35,
     },
     notes: '<p>次世代界面设计正在有序推进...</p>',
+    noteHistory: [],
     team: [
       {
         id: '3',
@@ -94,6 +97,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
         color: 'tertiary',
       },
     ],
+    milestones: [],
     timeline: [
       {
         date: '2024年5月',
@@ -120,6 +124,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
       qa: 8,
     },
     notes: '<p>全球扩张路线图规划中...</p>',
+    noteHistory: [],
     team: [],
     scope: [
       {
@@ -129,6 +134,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
         color: 'outline',
       },
     ],
+    milestones: [],
     timeline: [
       {
         date: '2024年7月',

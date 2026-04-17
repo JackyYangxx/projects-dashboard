@@ -5,6 +5,7 @@ interface ProgressSliderProps {
   value: number
   subProgress: SubProgress
   onChange: (value: number) => void
+  onSubProgressChange?: (key: keyof SubProgress, value: number) => void
   lastUpdated?: string
   readOnly?: boolean
 }
@@ -20,11 +21,19 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
   value,
   subProgress,
   onChange,
+  onSubProgressChange,
   lastUpdated,
   readOnly = false,
 }) => {
   const sliderRef = React.useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = React.useState(false)
+  const [draggingKey, setDraggingKey] = React.useState<keyof SubProgress | null>(null)
+  const subTrackRefs = React.useRef<Record<keyof SubProgress, HTMLDivElement | null>>({
+    architecture: null,
+    uiux: null,
+    engineering: null,
+    qa: null,
+  })
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (readOnly) return
@@ -62,6 +71,45 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
       }
     }
   }, [isDragging, handleMouseMove, handleMouseUp])
+
+  const handleSubMouseDown = (e: React.MouseEvent, key: keyof SubProgress) => {
+    if (readOnly || !onSubProgressChange) return
+    e.preventDefault()
+    setDraggingKey(key)
+    updateSubValue(e.clientX, key)
+  }
+
+  const handleSubMouseMove = React.useCallback(
+    (e: MouseEvent) => {
+      if (draggingKey) {
+        updateSubValue(e.clientX, draggingKey)
+      }
+    },
+    [draggingKey]
+  )
+
+  const handleSubMouseUp = React.useCallback(() => {
+    setDraggingKey(null)
+  }, [])
+
+  React.useEffect(() => {
+    if (draggingKey) {
+      window.addEventListener('mousemove', handleSubMouseMove)
+      window.addEventListener('mouseup', handleSubMouseUp)
+      return () => {
+        window.removeEventListener('mousemove', handleSubMouseMove)
+        window.removeEventListener('mouseup', handleSubMouseUp)
+      }
+    }
+  }, [draggingKey, handleSubMouseMove, handleSubMouseUp])
+
+  const updateSubValue = (clientX: number, key: keyof SubProgress) => {
+    const track = subTrackRefs.current[key]
+    if (!track || !onSubProgressChange) return
+    const rect = track.getBoundingClientRect()
+    const percent = Math.max(0, Math.min(100, Math.round(((clientX - rect.left) / rect.width) * 100)))
+    onSubProgressChange(key, percent)
+  }
 
   return (
     <div className="space-y-6">
@@ -136,9 +184,13 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
               <p className="text-base font-heading font-semibold text-on-surface-primary tabular-nums">
                 {subProgress[item.key]}%
               </p>
-              <div className="w-full h-1 bg-surface-base rounded-full mt-1 overflow-hidden">
+              <div
+                ref={(el) => { subTrackRefs.current[item.key] = el }}
+                className={`w-full h-1 bg-surface-base rounded-full mt-1 overflow-hidden ${!readOnly && onSubProgressChange ? 'cursor-pointer' : ''}`}
+                onMouseDown={(e) => handleSubMouseDown(e, item.key)}
+              >
                 <div
-                  className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"
+                  className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-100"
                   style={{ width: `${subProgress[item.key]}%` }}
                 />
               </div>
