@@ -59,7 +59,10 @@ const Dashboard: React.FC = () => {
             <h1 className="text-2xl font-heading font-bold text-on-surface-primary">
               业务概览
             </h1>
-            <button className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-body font-medium hover:bg-primary-600 transition-colors">
+            <button
+              onClick={() => navigate('/project/new')}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-body font-medium hover:bg-primary-600 transition-colors"
+            >
               <span className="material-symbols-outlined text-lg">add</span>
               新增项目
             </button>

@@ -211,4 +211,29 @@ npm run electron:build
 
 ---
 
+---
+
+## 八、修复记录 (2026-04-17)
+
+### Bug Fix #4: 新增项目按钮缺少点击处理程序
+
+**问题：** Dashboard 页面的"新增项目"按钮缺少 onClick 事件，点击无响应
+
+**修复方案：** 实现独立表单页面 `/project/new`
+
+**变更文件：**
+| 文件 | 操作 |
+|------|------|
+| `src/pages/ProjectForm.tsx` | 新建 - 项目表单页面 |
+| `src/App.tsx` | 修改 - 添加 `/project/new` 路由 |
+| `src/pages/Dashboard.tsx` | 修改 - 按钮添加 `onClick={() => navigate('/project/new')}` |
+
+**验证结果：** ✅ 通过 Playwright 自动化测试
+- 点击"新增项目" → 跳转 `/project/new` ✅
+- 填写表单提交 → 创建项目并跳转 Dashboard ✅
+- 新项目在列表中可见 ✅
+
+---
+
 *文档生成时间：2026-04-16*
+*最后更新：2026-04-17*
