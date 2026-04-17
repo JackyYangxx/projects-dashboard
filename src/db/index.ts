@@ -2,9 +2,18 @@ import initSqlJs, { Database } from 'sql.js'
 import { seedProjects } from '../data/seedData'
 
 let db: Database | null = null
+let dbPromise: Promise<Database> | null = null
 let seeded = false
 
 export async function initDatabase(): Promise<Database> {
+  // Return existing promise if already initializing
+  if (dbPromise) return dbPromise
+
+  dbPromise = doInitDatabase()
+  return dbPromise
+}
+
+async function doInitDatabase(): Promise<Database> {
   if (db) return db
 
   console.log('[DB] Loading WASM...')
