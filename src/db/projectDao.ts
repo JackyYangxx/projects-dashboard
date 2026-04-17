@@ -1,9 +1,20 @@
 import { getDatabase } from './index'
-import type { Project } from '../types'
+import type { Project, SubProgress, TeamMember, ScopeItem, TimelineEvent } from '../types'
 import type { SqlValue } from 'sql.js'
 
 function generateId(): string {
   return crypto.randomUUID()
+}
+
+function parseJsonField<T>(value: unknown, fallback: T): T {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as T
+    } catch {
+      return fallback
+    }
+  }
+  return fallback
 }
 
 export function findAll(): Project[] {
@@ -47,12 +58,22 @@ export function findById(id: string): Project | undefined {
   stmt.free()
 
   return {
-    ...row,
-    subProgress: JSON.parse(row.sub_progress as string || '{}'),
-    team: JSON.parse(row.team as string || '[]'),
-    scope: JSON.parse(row.scope as string || '[]'),
-    timeline: JSON.parse(row.timeline as string || '[]'),
-  } as unknown as Project
+    id: row.id as string,
+    name: row.name as string,
+    productLine: row.product_line as string,
+    status: row.status as Project['status'],
+    tag: row.tag as string,
+    totalAmount: row.total_amount as number,
+    usedAmount: row.used_amount as number,
+    progress: row.progress as number,
+    subProgress: parseJsonField<SubProgress>(row.sub_progress, { architecture: 0, uiux: 0, engineering: 0, qa: 0 }),
+    notes: row.notes as string,
+    team: parseJsonField<TeamMember[]>(row.team, []),
+    scope: parseJsonField<ScopeItem[]>(row.scope, []),
+    timeline: parseJsonField<TimelineEvent[]>(row.timeline, []),
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  }
 }
 
 export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Project {
