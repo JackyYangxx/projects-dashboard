@@ -19,6 +19,9 @@ const ProjectDetail: React.FC = () => {
   const [budgetEditTotal, setBudgetEditTotal] = useState('')
   const [budgetEditUsed, setBudgetEditUsed] = useState('')
   const [budgetSaving, setBudgetSaving] = useState(false)
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(
+    (() => project?.noteHistory?.[0]?.id ?? null)()
+  )
 
   const handleAddMember = () => {
     if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
@@ -298,36 +301,51 @@ const ProjectDetail: React.FC = () => {
               <div className="bg-surface-elevated rounded-xl overflow-hidden">
                 <div
                   className="flex items-center justify-between px-6 py-4 cursor-pointer select-none"
-                  onClick={() => {}}
+                  onClick={() => setExpandedHistoryId(expandedHistoryId ? null : project.noteHistory[0]?.id ?? null)}
                 >
                   <h3 className="text-sm font-body font-medium text-on-surface-secondary">
                     笔记历史
                   </h3>
-                  <span className="text-xs font-body text-on-surface-tertiary">
-                    {project.noteHistory.length} 条记录
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-body text-on-surface-tertiary">
+                      {project.noteHistory.length} 条记录
+                    </span>
+                    <span className="material-symbols-outlined text-base text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                      expand_more
+                    </span>
+                  </div>
                 </div>
-                <div className="border-t border-outline">
-                  {project.noteHistory.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="border-b border-outline-variant last:border-b-0"
-                    >
-                      <div className="px-6 py-3 flex items-center justify-between">
-                        <span className="text-xs font-mono text-on-surface-tertiary">
-                          {formatDate(entry.createdAt)}
-                        </span>
-                        <span className="material-symbols-outlined text-sm text-on-surface-tertiary">
-                          history
-                        </span>
-                      </div>
+                {expandedHistoryId && (
+                  <div className="border-t border-outline">
+                    {project.noteHistory.map((entry) => (
                       <div
-                        className="px-6 pb-3 text-sm font-body text-on-surface-secondary"
-                        dangerouslySetInnerHTML={{ __html: entry.content }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                        key={entry.id}
+                        className="border-b border-outline-variant last:border-b-0"
+                      >
+                        <div
+                          className="px-6 py-3 flex items-center justify-between cursor-pointer hover:bg-surface-base/50 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setExpandedHistoryId(expandedHistoryId === entry.id ? null : entry.id)
+                          }}
+                        >
+                          <span className="text-xs font-mono text-on-surface-tertiary">
+                            {formatDate(entry.createdAt)}
+                          </span>
+                          <span className="material-symbols-outlined text-sm text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId === entry.id ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                            expand_more
+                          </span>
+                        </div>
+                        {expandedHistoryId === entry.id && (
+                          <div
+                            className="px-6 pb-3 text-sm font-body text-on-surface-secondary"
+                            dangerouslySetInnerHTML={{ __html: entry.content }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
