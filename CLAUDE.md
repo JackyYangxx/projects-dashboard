@@ -60,12 +60,58 @@ src/
 ### Database Schema
 Projects table with JSON columns for `team`, `scope`, `timeline`, `subProgress`. SQLite WAL mode not used — in-memory only, data resets on app restart unless persisted to file.
 
-### Design System
-- Tailwind config uses custom color palette (primary: `#005bbf`, surface variants, etc.)
-- Fonts: **Manrope** (headings/numbers), **Inter** (body/labels)
-- Icons: Material Symbols Outlined via Google Fonts
-- Border radius: `sm` (2px), `lg` (4px), `xl` (8px), `full` (12px)
-- No 1px dividers — use surface elevation layers instead
+### Design System v2.0 - Light Tech Theme
+
+**设计理念:** 轻盈的科技感 - 浅色基调 + 毛玻璃 + 流动渐变
+
+**色彩系统:**
+```css
+/* 表面色 */
+--surface-base: #F8FAFC;      /* 主背景 */
+--surface-container: #FFFFFF;   /* 卡片 */
+--surface-elevated: #FFFFFF;   /* 抬升元素 */
+--surface-hover: #F1F5F9;      /* Hover */
+
+/* 主色 - 电光蓝 → 科技紫 */
+--primary: #3B82F6;
+--accent: #8B5CF6;
+
+/* 文字 */
+--on-surface-primary: #0F172A;   /* AAA 对比度 */
+--on-surface-secondary: #475569;
+--on-surface-tertiary: #94A3B8;
+
+/* 边框 */
+--outline: #E2E8F0;
+--outline-variant: #F1F5F9;
+```
+
+**字体系统:**
+- Headings/Numbers: **Fira Code** (等宽科技感)
+- Body: **Fira Sans** (清晰易读)
+- 数字使用 `tabular-nums` 确保对齐
+
+**组件规范:**
+- 按钮: `rounded-xl` + 渐变背景 + `shadow-glow-sm` hover
+- 卡片: `rounded-2xl` + `border border-outline` + `shadow-card`
+- 输入框: `rounded-xl` + `focus:ring-2 focus:ring-primary-500/20`
+- 图标: Material Symbols Outlined (Google Fonts)
+- 危险操作: 必须有确认对话框
+
+**动画规范:**
+- 过渡时长: 150-300ms (ease-out)
+- 进度条: `transition-[width] duration-500 ease-out`
+- 背景流动: `animate-blob` (blob 动画)
+- Hover: `hover:scale-[1.02]` + `shadow-glow-sm`
+
+**无障碍:**
+- 所有图标按钮必须有 `aria-label`
+- 颜色对比 ≥ 4.5:1
+- 支持 `prefers-reduced-motion`
+
+**参考文档:**
+- `doc/ui-design-system.md` - 完整设计系统文档
+- `doc/ui-review-dashboard.md` - UI审查报告及修复记录
 
 ## Key Patterns
 
