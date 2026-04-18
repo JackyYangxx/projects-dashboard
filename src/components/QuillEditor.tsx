@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 
@@ -9,25 +9,25 @@ interface QuillEditorProps {
   readOnly?: boolean
 }
 
-const modules = {
-  toolbar: [
-    [{ header: [1, 2, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    ['blockquote', 'code-block'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['link', 'image'],
-    ['clean'],
-  ],
-}
-
 const QuillEditor: React.FC<QuillEditorProps> = ({
   value = '',
   onChange,
   placeholder = '在此输入内容...',
   readOnly = false,
 }) => {
-  const handleChange = (_content: string, _delta: unknown, _source: string, editor: { getHTML: () => string }) => {
-    onChange?.(editor.getHTML())
+  const modules = useMemo(() => ({
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'image'],
+      ['clean'],
+    ],
+  }), [])
+
+  const handleChange = (content: string) => {
+    onChange?.(content)
   }
 
   if (readOnly) {
