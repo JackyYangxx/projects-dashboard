@@ -58,6 +58,7 @@ export interface Project {
   scope: ScopeItem[]
   milestones: Milestone[]
   timeline: TimelineEvent[]
+  leader: string
   createdAt: string
   updatedAt: string
 }
