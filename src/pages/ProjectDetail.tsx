@@ -337,38 +337,40 @@ const ProjectDetail: React.FC = () => {
           )}
 
           {/* Row 2b: Rich Text Editor (12 cols) */}
-          <div className="col-span-12">
-            <div className="bg-surface-elevated rounded-xl p-6">
-              <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">项目笔记</h3>
-              <RichEditor
-                value={project.notes}
-                onChange={handleNotesChange}
-                placeholder="在此记录项目进展、关键决策和重要事项..."
-                readOnly={isReadOnly}
-              />
-              {!isReadOnly && (
-                <div className="flex items-center justify-end gap-3 mt-4">
-                  <button
-                    onClick={() => {
-                      updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
-                    }}
-                    className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={() => {
-                      const { addNoteHistory } = useProjectStore.getState()
-                      addNoteHistory(project.id, project.notes)
-                    }}
-                    className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all"
-                  >
-                    保存历史
-                  </button>
-                </div>
-              )}
+          {!isReadOnly && (
+            <div className="col-span-12">
+              <div className="bg-surface-elevated rounded-xl p-6">
+                <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">项目笔记</h3>
+                <RichEditor
+                  value={project.notes}
+                  onChange={handleNotesChange}
+                  placeholder="在此记录项目进展、关键决策和重要事项..."
+                  readOnly={isReadOnly}
+                />
+                {!isReadOnly && (
+                  <div className="flex items-center justify-end gap-3 mt-4">
+                    <button
+                      onClick={() => {
+                        updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
+                      }}
+                      className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        const { addNoteHistory } = useProjectStore.getState()
+                        addNoteHistory(project.id, project.notes)
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all"
+                    >
+                      保存历史
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Row 3: Strategic Team (5 cols) + Milestones (7 cols) */}
           <div className="col-span-12 lg:col-span-5">
