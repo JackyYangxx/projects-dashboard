@@ -234,3 +234,41 @@ useEffect(() => {
 **修复文件：** `src/pages/ProjectDetail.tsx`
 
 **提交：** `f9f77a3`
+
+---
+
+## Issue #10: 笔记历史没有默认展开
+
+**严重程度：** 🟡 中等
+
+**问题描述：**
+在查看状态下，笔记历史没有默认展开最近一次的内容。
+
+**根本原因：**
+`expandedHistoryId` 在组件首次渲染时初始化，此时 `project` 可能为 `undefined`。
+
+**修复方案：**
+使用 `useEffect` 在 `project.noteHistory` 加载后设置 `expandedHistoryId` 为最后一条记录的 ID。
+
+**修复文件：** `src/pages/ProjectDetail.tsx`
+
+**提交：** `901920c`
+
+---
+
+## Issue #11: 战略团队添加成员按钮在查看模式下可见
+
+**严重程度：** 🟡 中等
+
+**问题描述：**
+战略团队的"添加成员"按钮在查看状态下仍然可见，应该隐藏。
+
+**根本原因：**
+添加成员按钮未被 `!isReadOnly` 条件渲染包裹。
+
+**修复方案：**
+在按钮外层添加 `{!isReadOnly && (...)}` 条件渲染。
+
+**修复文件：** `src/pages/ProjectDetail.tsx`
+
+**提交：** `901920c`
