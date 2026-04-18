@@ -23,22 +23,26 @@ const ProjectForm: React.FC = () => {
 
     setIsSubmitting(true)
     try {
+      const leaderAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(formData.leader.trim())}`
+      const updatedTeam: import('@/types').TeamMember[] = formData.leader.trim() ? [{
+        id: crypto.randomUUID(),
+        name: formData.leader.trim(),
+        role: '负责人',
+        avatar: leaderAvatar,
+      }] : []
+
       await addProject({
         name: formData.name,
         productLine: formData.productLine,
         status: formData.status,
+        leader: formData.leader.trim(),
         tag: '',
         totalAmount: Number(formData.totalAmount),
         usedAmount: Number(formData.usedAmount),
         progress: 0,
         notes: '',
         noteHistory: [],
-        team: formData.leader.trim() ? [{
-          id: crypto.randomUUID(),
-          name: formData.leader.trim(),
-          role: '负责人',
-          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(formData.leader.trim())}`,
-        }] : [],
+        team: updatedTeam,
         scope: [],
         milestones: [],
         timeline: [],
