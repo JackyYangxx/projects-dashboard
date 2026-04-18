@@ -20,9 +20,10 @@ npm run electron:build # Build Vite + package with electron-builder
 ## Architecture
 
 ### Electron Process Model
-- **Main process** (`electron/main.ts`): Window management, IPC handlers, app lifecycle
+- **Main process** (`electron/main.ts`): Window management, IPC handlers, app lifecycle, single instance lock
 - **Preload script** (`electron/preload.ts`): Secure API bridge via `contextBridge`
 - **Renderer process** (`src/`): React SPA - fully isolated from Node.js
+- **Single instance:** Uses `requestSingleInstanceLock()` to prevent multiple windows; second instance focuses existing window
 
 ### React App Structure
 ```

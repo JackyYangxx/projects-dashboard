@@ -307,6 +307,7 @@ interface ProjectStore {
 - 创建 BrowserWindow
 - 管理应用生命周期
 - 注册 IPC 通信处理
+- 单例锁：防止多窗口，通过 `requestSingleInstanceLock()` 实现
 
 ### 8.2 预加载脚本
 
