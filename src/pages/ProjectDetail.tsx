@@ -347,8 +347,7 @@ const ProjectDetail: React.FC = () => {
                   placeholder="在此记录项目进展、关键决策和重要事项..."
                   readOnly={isReadOnly}
                 />
-                {!isReadOnly && (
-                  <div className="flex items-center justify-end gap-3 mt-4">
+                <div className="flex items-center justify-end gap-3 mt-4">
                     <button
                       onClick={() => {
                         updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
@@ -367,7 +366,6 @@ const ProjectDetail: React.FC = () => {
                       保存历史
                     </button>
                   </div>
-                )}
               </div>
             </div>
           )}
