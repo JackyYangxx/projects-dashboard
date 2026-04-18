@@ -325,7 +325,7 @@ const ProjectDetail: React.FC = () => {
                         {expandedHistoryId === entry.id && (
                           <div
                             className="px-6 pb-3 text-sm font-body text-on-surface-secondary"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(entry.content)) }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(entry.content, { async: false })) }}
                           />
                         )}
                       </div>
