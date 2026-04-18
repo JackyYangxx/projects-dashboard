@@ -37,6 +37,21 @@ function createWindow() {
   })
 }
 
+// Ensure single instance
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  app.quit()
+}
+
+app.on('second-instance', () => {
+  // Someone tried to run a second instance, focus our window
+  const existingWindow = BrowserWindow.getAllWindows()[0]
+  if (existingWindow) {
+    if (existingWindow.isMinimized()) existingWindow.restore()
+    existingWindow.focus()
+  }
+})
+
 // App lifecycle
 app.whenReady().then(createWindow)
 
