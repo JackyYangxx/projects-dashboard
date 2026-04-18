@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 interface RichEditorProps {
   value?: string
@@ -15,6 +15,27 @@ const RichEditor: React.FC<RichEditorProps> = ({
 }) => {
   const [text, setText] = useState(value)
 
+  useEffect(() => {
+    setText(value)
+  }, [value])
+
+  const insertFormat = (prefix: string, suffix: string) => {
+    const textarea = document.querySelector('textarea') as HTMLTextAreaElement
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = text.substring(start, end)
+    const before = text.substring(0, start)
+    const after = text.substring(end)
+    const newText = before + prefix + selected + suffix + after
+    setText(newText)
+    onChange?.(newText)
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + prefix.length, end + prefix.length)
+    }, 0)
+  }
+
   if (readOnly) {
     return (
       <div
@@ -28,9 +49,9 @@ const RichEditor: React.FC<RichEditorProps> = ({
   return (
     <div className="rounded-lg overflow-hidden transition-all ring-1 ring-outline focus-within:ring-2 focus-within:ring-primary-500">
       <div className="bg-surface-base border-b border-outline px-3 py-2 flex items-center gap-2">
-        <button type="button" className="px-3 py-1 text-sm font-bold bg-surface-container rounded hover:bg-primary-50">B</button>
-        <button type="button" className="px-3 py-1 text-sm italic bg-surface-container rounded hover:bg-primary-50">I</button>
-        <button type="button" className="px-3 py-1 text-sm underline bg-surface-container rounded hover:bg-primary-50">U</button>
+        <button type="button" onClick={() => insertFormat('**', '**')} className="px-3 py-1 text-sm font-bold bg-surface-container rounded hover:bg-primary-50">B</button>
+        <button type="button" onClick={() => insertFormat('*', '*')} className="px-3 py-1 text-sm italic bg-surface-container rounded hover:bg-primary-50">I</button>
+        <button type="button" onClick={() => insertFormat('<u>', '</u>')} className="px-3 py-1 text-sm underline bg-surface-container rounded hover:bg-primary-50">U</button>
       </div>
       <textarea
         className="w-full min-h-[200px] max-h-[400px] p-4 bg-surface-elevated text-sm text-on-surface-primary focus:outline-none resize-none"

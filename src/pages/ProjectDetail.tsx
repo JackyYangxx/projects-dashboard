@@ -289,7 +289,7 @@ const ProjectDetail: React.FC = () => {
                 </div>
                 {expandedHistoryId && (
                   <div className="border-t border-outline">
-                    {[...project.noteHistory].reverse().map((entry) => (
+                    {project.noteHistory.slice().reverse().map((entry) => (
                       <div
                         key={entry.id}
                         className="border-b border-outline-variant last:border-b-0"

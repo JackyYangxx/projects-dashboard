@@ -38,7 +38,7 @@ src/
 │   ├── StatsCard.tsx    # Metric cards (default + budget variant)
 │   ├── ProjectTable.tsx # Sortable project list table (infinite scroll)
 │   ├── ProgressSlider.tsx # Draggable progress + sub-progress cards
-│   ├── TipTapEditor.tsx # Rich text editor (Tiptap-based, replaces RichTextEditor)
+│   ├── RichEditor.tsx   # Rich text editor (textarea-based, supports basic formatting)
 │   └── Timeline.tsx    # Version history timeline
 ├── store/
 │   └── projectStore.ts  # Zustand store (CRUD + loading state)
@@ -123,7 +123,7 @@ Projects table with JSON columns for `team`, `scope`, `timeline`, `subProgress`.
 ### Read-Only Mode Pattern
 ProjectDetail supports read-only mode (`isReadOnly` state). Components should respect this:
 - `ProgressSlider`: `readOnly` prop disables drag handle
-- `TipTapEditor`: `readOnly` prop disables editing
+- `RichEditor`: `readOnly` prop disables editing
 - Budget cards: Show text instead of input fields
 
 ### Inline Edit Pattern
