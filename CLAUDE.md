@@ -32,7 +32,8 @@ src/
 ├── main.tsx             # Bootstrap: DB init + React mount
 ├── pages/               # Route pages
 │   ├── Dashboard.tsx    # / - Project list with stats
-│   └── ProjectDetail.tsx # /project/:id - Single project view
+│   ├── ProjectDetail.tsx # /project/:id - Single project view (supports ?edit=true)
+│   └── ProjectForm.tsx  # /project/new - Create new project
 ├── components/          # Shared UI components
 │   ├── Sidebar.tsx      # Fixed left nav (256px)
 │   ├── Header.tsx       # Top bar with search/avatar
@@ -51,6 +52,14 @@ src/
 └── types/
     └── index.ts         # Project, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone interfaces
 ```
+
+### Dependencies
+- `react`, `react-dom` - UI framework
+- `react-router-dom` - Routing
+- `zustand` - State management
+- `sql.js` - SQLite in WebAssembly
+- `marked` - Markdown parsing
+- `dompurify` - HTML sanitization (XSS prevention)
 
 ### Data Flow
 1. `main.tsx` calls `initDatabase()` → loads `sql-wasm.wasm`
@@ -152,7 +161,15 @@ For dialogs (e.g., add member):
 Zustand store action → `projectDao` function → sql.js → store.setState() to sync UI
 
 ### Routing
-React Router v6 with two routes: `/` (Dashboard) and `/project/:id` (ProjectDetail). `Navigate` fallback for unknown routes.
+React Router v6 with routes:
+- `/` - Dashboard
+- `/project/:id` - ProjectDetail (supports `?edit=true` to start in edit mode)
+- `/project/new` - Create new project
+- `Navigate` fallback for unknown routes
+
+**Edit Mode Navigation:**
+- Dashboard `handleEdit` navigates to `/project/${id}?edit=true`
+- ProjectDetail uses `useEffect` with empty deps to read `edit` param only on mount
 
 ## File Paths
 - Electron entry: `electron/main.ts`, `electron/preload.ts`
@@ -222,6 +239,15 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+## 5. Prefer Mature Components
+
+**Use established, battle-tested UI components when available.**
+
+- 优先使用业界成熟的组件库（如 shadcn/ui、Radix、Tamagui 等）
+- 优先使用 npm 上维护活跃、版本稳定的包
+- 避免重复造轮子：先查 npm 或 GitHub，确认无合适方案后再自研
+- 成熟组件的优势：样式统一、无障碍支持完善、bug 少、文档好
 
 ---
 

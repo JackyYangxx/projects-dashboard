@@ -139,3 +139,98 @@ Dashboard 页面上的"新增项目"按钮点击后没有任何响应，缺少 o
 - 修改 `src/App.tsx` - 添加 `/project/new` 路由
 - 修改 `src/pages/Dashboard.tsx` - 按钮添加 `onClick={() => navigate('/project/new')}`
 - 表单提交后跳转到 Dashboard 并显示新项目
+
+---
+
+## Issue #6: 点击列表编辑按钮应跳转到编辑状态
+
+**严重程度：** 🟡 中等
+
+**问题描述：**
+在项目列表中点击"编辑"按钮后，跳转到的是项目查看状态，而非编辑状态。
+
+**预期行为：**
+点击"编辑"按钮应跳转到项目编辑模式。
+
+**实际行为：**
+点击"编辑"按钮跳转到项目查看模式。
+
+**修复建议：**
+1. 检查 Dashboard 或 ProjectTable 中的编辑按钮绑定
+2. 确认路由是否正确传递编辑状态参数
+
+**✅ 已修复 (2026-04-18)：**
+- Dashboard handleEdit 导航到 `/project/${id}?edit=true`
+- ProjectDetail 使用 useEffect 在挂载时从 URL 读取 edit 参数初始化 isReadOnly
+- 提交 `c6cc07f` (Issue #6)
+- 提交 `f9f77a3` (Issue #9 - 修复 isReadOnly 被 URL 覆盖的问题)
+
+---
+
+## Issue #7: 预算统计在编辑状态下没有正确回显数值
+
+**严重程度：** 🟡 中等
+
+**问题描述：**
+项目详情页中的预算统计卡片，在编辑状态下数值没有正确回显。
+
+**预期行为：**
+编辑状态下应显示当前已保存的预算数值。
+
+**实际行为：**
+数值未正确回显或显示为空。
+
+**修复建议：**
+检查 BudgetCard 组件在 edit 模式下的 value 回显逻辑。
+
+**✅ 已修复 (2026-04-18)：**
+- 使用 useEffect + useRef 监听 isReadOnly 从 true 变为 false 时初始化 budgetEditTotal 和 budgetEditUsed
+- 提交 `0ccf1a5`
+
+---
+
+## Issue #8: 笔记历史未正确解析 Markdown 格式
+
+**严重程度：** 🟡 中等
+
+**问题描述：**
+笔记历史中显示的内容没有正确解析项目笔记编辑时的加粗和斜体 Markdown 格式。
+
+**预期行为：**
+`*bold*` 和 `_italic_` 应分别显示为加粗和斜体。
+
+**实际行为：**
+Markdown 格式未解析，直接显示原始文本。
+
+**修复建议：**
+在 Timeline 或笔记历史组件中添加 Markdown 解析器（如 marked + DOMPurify）。
+
+**✅ 已修复 (2026-04-18)：**
+- 安装 marked + dompurify
+- 使用 marked.parse() 解析 + DOMPurify.sanitize() 防止 XSS
+- 提交 `a6e64f5`
+
+---
+
+## Issue #9: isReadOnly 状态在切换后被 URL 参数覆盖
+
+**严重程度：** 🔴 严重
+
+**问题描述：**
+当通过 `?edit=true` URL 参数进入编辑模式后，点击切换按钮（从"查看"到"编辑"）切换到查看模式，但状态没有正确保持。页面重渲染后，`isReadOnly` 又被 URL 参数覆盖回 `false`。
+
+**根本原因：**
+`isReadOnly` 初始值直接使用 `useState(searchParams.get('edit') !== 'true')`，每次渲染时 `searchParams.get('edit')` 表达式都会被重新评估（虽然 `useState` 只在首次渲染时使用初始值，但在某些情况下可能导致问题）。
+
+**修复方案：**
+使用 `useEffect` + 空依赖数组，在组件首次挂载时从 URL 读取参数作为初始值，之后不再受 URL 影响：
+```typescript
+const [isReadOnly, setIsReadOnly] = useState(true)
+useEffect(() => {
+  setIsReadOnly(searchParams.get('edit') !== 'true')
+}, []) // 空 deps = 只在挂载时执行一次
+```
+
+**修复文件：** `src/pages/ProjectDetail.tsx`
+
+**提交：** `f9f77a3`
