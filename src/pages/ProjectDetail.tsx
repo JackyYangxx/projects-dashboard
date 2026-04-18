@@ -410,6 +410,17 @@ const ProjectDetail: React.FC = () => {
             </div>
           )}
 
+          {/* Leader Section */}
+          {project.leader && (
+            <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-surface-base rounded-xl">
+              <span className="material-symbols-outlined text-primary-500">person</span>
+              <div>
+                <p className="text-xs font-body text-on-surface-tertiary">项目负责人</p>
+                <p className="text-sm font-body font-medium text-on-surface-primary">{project.leader}</p>
+              </div>
+            </div>
+          )}
+
           {/* Row 3: Strategic Team (5 cols) + Milestones (7 cols) */}
           <div className="col-span-12 lg:col-span-5">
             <div className="bg-surface-elevated rounded-xl p-6 h-full">
