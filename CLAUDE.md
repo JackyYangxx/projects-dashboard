@@ -46,6 +46,10 @@ src/
 ├── db/
 │   ├── index.ts         # sql.js init + schema creation
 │   └── projectDao.ts    # CRUD operations (getAllProjects, createProject, etc.)
+├── utils/
+│   └── avatar.ts        # Avatar URL generation
+├── constants/
+│   └── project.ts       # Project-related constants (status, headers)
 ├── data/
 │   └── seedData.ts      # 3 demo projects auto-loaded on first run
 └── types/
@@ -59,6 +63,7 @@ src/
 - `sql.js` - SQLite in WebAssembly
 - `marked` - Markdown parsing
 - `dompurify` - HTML sanitization (XSS prevention)
+- `xlsx` - Excel file parsing and generation (SheetJS)
 
 ### Data Flow
 1. `main.tsx` calls `initDatabase()` → loads `sql-wasm.wasm`
@@ -154,7 +159,7 @@ For dialogs (e.g., add member):
 1. `showModal` state controls visibility
 2. Modal contains form inputs + preview
 3. On submit: close modal, insert data
-4. DiceBear avatar: `https://api.dicebear.com/7.x/initials/svg?seed={name}`
+4. DiceBear avatar: use `generateAvatarUrl(name)` from `src/utils/avatar.ts`
 
 ### State Update Flow
 Zustand store action → `projectDao` function → sql.js → store.setState() to sync UI
@@ -175,9 +180,72 @@ React Router v6 with routes:
 - WASM file: `public/sql-wasm.wasm` (loaded by sql.js via `/sql-wasm.wasm`)
 - Tailwind config: `tailwind.config.js`
 - Vite config: `vite.config.ts` (includes Electron plugin)
+- Shared utilities: `src/utils/avatar.ts`
+- Shared constants: `src/constants/project.ts`
 
+## Code Conventions
 
-# Rules
+### Extract Shared Utilities and Constants
+
+**Duplicated string patterns** that appear 2+ times should be extracted:
+
+| Pattern | Location |
+|---|---|
+| Avatar URL generation | `src/utils/avatar.ts` → `generateAvatarUrl(name)` |
+| Status Chinese↔English mapping | `src/constants/project.ts` → `STATUS_MAP`, `STATUS_LABELS`, `VALID_STATUSES` |
+| Import required headers | `src/constants/project.ts` → `IMPORT_REQUIRED_HEADERS` |
+| Budget execution rate calculation | Inline where used (simple formula) |
+
+**Rule:** When adding inline string patterns that repeat elsewhere, check if a utility or constant already exists before adding another.
+
+### Avoid Redundant Post-Update Queries
+
+After an UPDATE/INSERT, don't re-fetch data you already have:
+```typescript
+// Bad - redundant findById call after UPDATE
+db.run('UPDATE ...')
+return { ...findById(id)! }
+
+// Good - return updated fields directly, or only query if truly needed
+return { ...existingData, ...updatedFields }
+```
+
+### No Silent Catch Blocks
+
+Always log or handle errors in catch blocks:
+```typescript
+// Bad
+} catch {}
+
+// Good
+} catch (e) {
+  console.error('[DAO] upsert: failed to parse existing team JSON', e)
+}
+```
+
+### Remove Unnecessary Comments
+
+Comments that state **what** (not **why**) should be deleted:
+```typescript
+// Bad - narrates the code
+// 验证表头
+const headers = Object.keys(json[0] || {})
+
+// Good - variable name explains what
+const headers = Object.keys(json[0] || {})
+```
+
+### Prefer Named Constants Over Magic Strings
+
+```typescript
+// Bad - magic string repeated
+if (!['ongoing', 'completed', 'paused'].includes(status)) { ... }
+
+// Good - uses named constant
+if (!VALID_STATUSES.includes(status)) { ... }
+```
+
+## Rules
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
