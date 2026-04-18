@@ -238,7 +238,9 @@ const ProjectDetail: React.FC = () => {
                       </p>
                     ) : (
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={budgetEditTotal}
                         onChange={(e) => setBudgetEditTotal(e.target.value)}
                         onFocus={() => setBudgetEditTotal(String(project.totalAmount))}
@@ -268,7 +270,9 @@ const ProjectDetail: React.FC = () => {
                       </p>
                     ) : (
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={budgetEditUsed}
                         onChange={(e) => setBudgetEditUsed(e.target.value)}
                         onFocus={() => setBudgetEditUsed(String(project.usedAmount))}
