@@ -36,12 +36,11 @@ src/
 │   └── ProjectForm.tsx  # /project/new - Create new project
 ├── components/          # Shared UI components
 │   ├── Sidebar.tsx      # Fixed left nav (256px)
-│   ├── Header.tsx       # Top bar with search/avatar
+│   ├── Header.tsx       # Top bar with search
 │   ├── StatsCard.tsx    # Metric cards (default + budget variant)
-│   ├── ProjectTable.tsx # Sortable project list table (infinite scroll)
+│   ├── ProjectTable.tsx # Project list table (infinite scroll)
 │   ├── ProgressSlider.tsx # Draggable progress + sub-progress cards
-│   ├── RichEditor.tsx   # Rich text editor (textarea-based, supports basic formatting)
-│   └── Timeline.tsx    # Version history timeline
+│   └── RichEditor.tsx   # Rich text editor (textarea-based, supports basic formatting)
 ├── store/
 │   └── projectStore.ts  # Zustand store (CRUD + loading state)
 ├── db/
