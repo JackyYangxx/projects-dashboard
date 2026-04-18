@@ -15,7 +15,11 @@ const ProjectDetail: React.FC = () => {
   const project = id ? getProjectById(id) : undefined
 
   const [viewMode, setViewMode] = useState<'monthly' | 'quarterly'>('monthly')
-  const [isReadOnly, setIsReadOnly] = useState(searchParams.get('edit') !== 'true')
+  const [isReadOnly, setIsReadOnly] = useState(true)
+  // Only set initial isReadOnly from URL on first mount, not on subsequent renders
+  useEffect(() => {
+    setIsReadOnly(searchParams.get('edit') !== 'true')
+  }, []) // Empty deps = only runs once on mount
   const [showMemberModal, setShowMemberModal] = useState(false)
   const [newMemberName, setNewMemberName] = useState('')
   const [newMemberRole, setNewMemberRole] = useState('')
@@ -37,13 +41,13 @@ const ProjectDetail: React.FC = () => {
   // Initialize budget edit states when entering edit mode
   const prevIsReadOnlyRef = useRef(isReadOnly)
   useEffect(() => {
-    if (prevIsReadOnlyRef.current && !isReadOnly) {
+    if (prevIsReadOnlyRef.current && !isReadOnly && project) {
       // Transitioned from read-only to edit mode - echo the current values
       setBudgetEditTotal(String(project.totalAmount))
       setBudgetEditUsed(String(project.usedAmount))
     }
     prevIsReadOnlyRef.current = isReadOnly
-  }, [isReadOnly, project.totalAmount, project.usedAmount])
+  }, [isReadOnly, project?.totalAmount, project?.usedAmount])
 
   // Reset milestone form state when modal closes
   useEffect(() => {
