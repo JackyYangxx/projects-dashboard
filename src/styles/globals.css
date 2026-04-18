@@ -165,3 +165,38 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Quill toolbar styling */
+.ql-toolbar {
+  background: #F8FAFC !important;
+  border: none !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  font-family: 'Fira Sans', sans-serif !important;
+}
+.ql-container {
+  border: none !important;
+  font-family: 'Fira Sans', sans-serif !important;
+}
+.ql-editor {
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 16px !important;
+  font-size: 14px !important;
+  color: #0F172A !important;
+  background: #FFFFFF !important;
+}
+.ql-editor p { margin-bottom: 8px; }
+.ql-editor.ql-blank::before { color: #94A3B8 !important; font-style: normal !important; }
+.ql-toolbar .ql-stroke { stroke: #475569; }
+.ql-toolbar .ql-fill { fill: #475569; }
+.ql-toolbar button:hover .ql-stroke,
+.ql-toolbar button.ql-active .ql-stroke { stroke: #3B82F6; }
+.ql-toolbar button:hover .ql-fill,
+.ql-toolbar button.ql-active .ql-fill { fill: #3B82F6; }
+.ql-toolbar .ql-picker { color: #475569; }
+.ql-toolbar .ql-picker-options {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 8px;
+}
