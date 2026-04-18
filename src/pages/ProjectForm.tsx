@@ -11,10 +11,9 @@ const ProjectForm: React.FC = () => {
     name: '',
     productLine: '',
     status: 'ongoing' as Project['status'],
-    tag: '',
+    leader: '',
     totalAmount: 0,
     usedAmount: 0,
-    progress: 0,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -28,13 +27,18 @@ const ProjectForm: React.FC = () => {
         name: formData.name,
         productLine: formData.productLine,
         status: formData.status,
-        tag: formData.tag,
+        tag: '',
         totalAmount: Number(formData.totalAmount),
         usedAmount: Number(formData.usedAmount),
-        progress: Number(formData.progress),
+        progress: 0,
         notes: '',
         noteHistory: [],
-        team: [],
+        team: formData.leader.trim() ? [{
+          id: crypto.randomUUID(),
+          name: formData.leader.trim(),
+          role: '负责人',
+          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(formData.leader.trim())}`,
+        }] : [],
         scope: [],
         milestones: [],
         timeline: [],
@@ -99,13 +103,13 @@ const ProjectForm: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">标签</label>
+            <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">负责人</label>
             <input
               type="text"
-              value={formData.tag}
-              onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+              value={formData.leader}
+              onChange={(e) => setFormData({ ...formData, leader: e.target.value })}
               className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
-              placeholder="输入标签"
+              placeholder="输入负责人姓名"
             />
           </div>
 
@@ -130,18 +134,6 @@ const ProjectForm: React.FC = () => {
                 min="0"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">进度 {formData.progress}%</label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={formData.progress}
-              onChange={(e) => setFormData({ ...formData, progress: Number(e.target.value) })}
-              className="w-full h-2 bg-surface-container rounded-full appearance-none cursor-pointer accent-primary-500"
-            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
