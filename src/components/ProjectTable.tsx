@@ -81,16 +81,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const visibleProjects = filteredProjects.slice(0, visibleCount)
   const hasMore = visibleCount < filteredProjects.length
 
-  const formatAmount = (amount: number) => {
-    if (amount >= 100000000) {
-      return `¥${(amount / 100000000).toFixed(2)}亿`
-    }
-    if (amount >= 10000) {
-      return `¥${(amount / 10000).toFixed(0)}万`
-    }
-    return `¥${amount.toLocaleString()}`
-  }
-
   const getStatusBadge = (status: Project['status']) => {
     const styles = {
       ongoing: 'bg-primary-50 text-primary-600 border border-primary-200',
@@ -103,12 +93,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         {labels[status]}
       </span>
     )
-  }
-
-  const getBudgetRate = (used: number, total: number) => {
-    if (total === 0) return '0%'
-    const rate = Math.round((used / total) * 100)
-    return `${rate}%`
   }
 
   const handleDelete = (project: Project) => {
@@ -176,14 +160,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 负责人
               </th>
-              <th scope="col" className="text-right px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                总金额
-              </th>
-              <th scope="col" className="text-right px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                已使用
-              </th>
               <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                预算执行率
+                项目进展
               </th>
               <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 状态
@@ -196,7 +174,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           <tbody>
             {visibleProjects.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
+                <td colSpan={6} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
                   <div className="flex flex-col items-center gap-2">
                     <span className="material-symbols-outlined text-4xl text-on-surface-tertiary">inbox</span>
                     <span>暂无项目数据</span>
@@ -230,24 +208,16 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   <td className="px-4 py-3 text-sm font-body text-on-surface-secondary">
                     {project.team[0]?.name || '-'}
                   </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-primary text-right font-medium tabular-nums">
-                    {formatAmount(project.totalAmount)}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-secondary text-right tabular-nums">
-                    {formatAmount(project.usedAmount)}
-                  </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-16 h-1.5 bg-surface-base rounded-full overflow-hidden">
+                      <div className="w-20 h-2 bg-surface-base rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-300"
-                          style={{
-                            width: `${getBudgetRate(project.usedAmount, project.totalAmount)}`,
-                          }}
+                          className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-500 ease-out"
+                          style={{ width: `${project.progress}%` }}
                         />
                       </div>
-                      <span className="text-xs font-body text-on-surface-secondary tabular-nums">
-                        {getBudgetRate(project.usedAmount, project.totalAmount)}
+                      <span className="text-xs font-body text-on-surface-secondary tabular-nums font-mono">
+                        {project.progress}%
                       </span>
                     </div>
                   </td>
