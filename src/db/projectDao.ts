@@ -1,6 +1,7 @@
 import { getDatabase } from './index'
 import type { Project, SubProgress, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone } from '../types'
 import type { SqlValue } from 'sql.js'
+import { generateAvatarUrl } from '../utils/avatar'
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -106,12 +107,11 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
   // Auto-create team[0] from leader if team is empty but leader is set
   let team = project.team
   if (team.length === 0 && project.leader) {
-    const leaderAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(project.leader)}`
     team = [{
       id: generateId(),
       name: project.leader,
       role: '负责人',
-      avatar: leaderAvatar,
+      avatar: generateAvatarUrl(project.leader),
     }]
   }
 
@@ -244,7 +244,6 @@ export function upsert(projectData: {
     [projectData.name]
   )
 
-  const leaderAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(projectData.leader)}`
   const now = new Date().toISOString()
 
   if (existing.length > 0 && existing[0].values.length > 0) {
@@ -252,11 +251,13 @@ export function upsert(projectData: {
     let existingTeam: TeamMember[] = []
     try {
       existingTeam = JSON.parse(existing[0].values[0][1] as string || '[]')
-    } catch {}
+    } catch (e) {
+      console.error('[DAO] upsert: failed to parse existing team JSON', e)
+    }
 
     const updatedTeam: TeamMember[] = existingTeam.length > 0
-      ? [{ ...existingTeam[0], name: projectData.leader, avatar: leaderAvatar }]
-      : [{ id: crypto.randomUUID(), name: projectData.leader, role: '负责人', avatar: leaderAvatar }]
+      ? [{ ...existingTeam[0], name: projectData.leader, avatar: generateAvatarUrl(projectData.leader) }]
+      : [{ id: crypto.randomUUID(), name: projectData.leader, role: '负责人', avatar: generateAvatarUrl(projectData.leader) }]
 
     db.run(
       `UPDATE projects SET product_line = ?, status = ?, total_amount = ?, used_amount = ?,
@@ -273,13 +274,23 @@ export function upsert(projectData: {
         existingId,
       ]
     )
-    return { ...findById(existingId)! }
+    // Return updated data directly — no need to re-query
+    return {
+      ...findById(existingId)!,
+      name: projectData.name,
+      productLine: projectData.productLine,
+      status: projectData.status,
+      leader: projectData.leader,
+      progress: projectData.progress,
+      totalAmount: projectData.totalAmount,
+      usedAmount: projectData.usedAmount,
+    }
   } else {
     const newTeam: TeamMember[] = [{
       id: crypto.randomUUID(),
       name: projectData.leader,
       role: '负责人',
-      avatar: leaderAvatar,
+      avatar: generateAvatarUrl(projectData.leader),
     }]
     const newProject = {
       name: projectData.name,

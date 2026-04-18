@@ -7,7 +7,7 @@ import StatsCard from '@/components/StatsCard'
 import ProjectTable from '@/components/ProjectTable'
 import { useProjectStore } from '@/store/projectStore'
 import { upsert } from '@/db/projectDao'
-import { Project } from '@/types'
+import { STATUS_MAP, STATUS_LABELS, VALID_STATUSES, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -65,20 +65,16 @@ const Dashboard: React.FC = () => {
           const sheet = workbook.Sheets[sheetName]
           const json = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[]
 
-          // 验证表头
-          const requiredHeaders = ['项目名称', '产品线', '负责人', '状态', '项目进展', '总预算', '已用预算']
-          const headers = Object.keys(json[0] || {})
-          const missing = requiredHeaders.filter(h => !headers.includes(h))
-          if (missing.length > 0) {
-            alert(`缺少必要字段：${missing.join(', ')}`)
+          if (json.length === 0) {
+            alert('Excel 文件为空')
             return
           }
 
-          // 状态映射
-          const statusMap: Record<string, Project['status']> = {
-            '进行中': 'ongoing',
-            '已完成': 'completed',
-            '暂停中': 'paused',
+          const headers = Object.keys(json[0])
+          const missing = IMPORT_REQUIRED_HEADERS.filter(h => !headers.includes(h))
+          if (missing.length > 0) {
+            alert(`缺少必要字段：${missing.join(', ')}`)
+            return
           }
 
           let successCount = 0
@@ -89,15 +85,14 @@ const Dashboard: React.FC = () => {
             const leader = String(row['负责人'] || '').trim()
             if (!name || !leader) { skipCount++; continue }
 
-            const statusKey = String(row['状态'] || '进行中')
-            const status = statusMap[statusKey] || 'ongoing'
-            if (!['ongoing', 'completed', 'paused'].includes(status)) { skipCount++; continue }
+            const statusKey = STATUS_MAP[row['状态'] as keyof typeof STATUS_MAP]
+            if (!statusKey || !VALID_STATUSES.includes(statusKey)) { skipCount++; continue }
 
             const progress = Number(row['项目进展']) || 0
             const totalAmount = Number(row['总预算']) || 0
             const usedAmount = Number(row['已用预算']) || 0
 
-            upsert({ name, productLine: String(row['产品线'] || ''), leader, status, progress, totalAmount, usedAmount })
+            upsert({ name, productLine: String(row['产品线'] || ''), leader, status: statusKey, progress, totalAmount, usedAmount })
             successCount++
           }
 
@@ -117,7 +112,7 @@ const Dashboard: React.FC = () => {
       '项目名称': p.name,
       '产品线': p.productLine,
       '负责人': p.leader,
-      '状态': p.status === 'ongoing' ? '进行中' : p.status === 'completed' ? '已完成' : '暂停中',
+      '状态': STATUS_LABELS[p.status],
       '项目进展': p.progress,
       '总预算': p.totalAmount,
       '已用预算': p.usedAmount,

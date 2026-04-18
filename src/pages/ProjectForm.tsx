@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '@/store/projectStore'
 import type { Project } from '@/types'
+import { generateAvatarUrl } from '@/utils/avatar'
 
 const ProjectForm: React.FC = () => {
   const navigate = useNavigate()
@@ -23,12 +24,11 @@ const ProjectForm: React.FC = () => {
 
     setIsSubmitting(true)
     try {
-      const leaderAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(formData.leader.trim())}`
       const updatedTeam: import('@/types').TeamMember[] = formData.leader.trim() ? [{
         id: crypto.randomUUID(),
         name: formData.leader.trim(),
         role: '负责人',
-        avatar: leaderAvatar,
+        avatar: generateAvatarUrl(formData.leader.trim()),
       }] : []
 
       await addProject({

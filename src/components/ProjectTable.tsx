@@ -1,5 +1,6 @@
 import React from 'react'
 import type { Project } from '../types/index'
+import { STATUS_LABELS } from '../constants/project'
 
 interface ProjectTableProps {
   projects: Project[]
@@ -87,7 +88,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       completed: 'bg-success/10 text-success border border-success/20',
       paused: 'bg-warning/10 text-warning border border-warning/20',
     }
-    const labels = { ongoing: '进行中', completed: '已完成', paused: '暂停中' }
+    const labels = STATUS_LABELS
     return (
       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-body font-medium ${styles[status]}`}>
         {labels[status]}
