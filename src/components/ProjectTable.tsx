@@ -214,7 +214,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     {project.productLine}
                   </td>
                   <td className="px-4 py-3 text-sm font-body text-on-surface-secondary">
-                    {project.team[0]?.name || '-'}
+                    {project.leader || '-'}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-2">
