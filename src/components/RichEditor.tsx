@@ -34,7 +34,7 @@ const RichEditor: React.FC<RichEditorProps> = ({
       </div>
       <textarea
         className="w-full min-h-[200px] max-h-[400px] p-4 bg-surface-elevated text-sm text-on-surface-primary focus:outline-none resize-none"
-        style={{ fontFamily: 'Fira Sans, sans-serif' }}
+        style={{ fontFamily: 'Fira Sans, sans-serif', whiteSpace: 'pre-wrap' }}
         value={text}
         onChange={(e) => {
           setText(e.target.value)
