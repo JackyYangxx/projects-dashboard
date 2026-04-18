@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
   }
 
   const handleEdit = (project: { id: string }) => {
-    navigate(`/project/${project.id}`)
+    navigate(`/project/${project.id}?edit=true`)
   }
 
   const handleDelete = (project: { id: string }) => {

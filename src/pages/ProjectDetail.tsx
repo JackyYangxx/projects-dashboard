@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useProjectStore } from '@/store/projectStore'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
@@ -8,11 +8,12 @@ import Timeline from '@/components/Timeline'
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { getProjectById, updateProject } = useProjectStore()
   const project = id ? getProjectById(id) : undefined
 
   const [viewMode, setViewMode] = useState<'monthly' | 'quarterly'>('monthly')
-  const [isReadOnly, setIsReadOnly] = useState(true)
+  const [isReadOnly, setIsReadOnly] = useState(searchParams.get('edit') !== 'true')
   const [showMemberModal, setShowMemberModal] = useState(false)
   const [newMemberName, setNewMemberName] = useState('')
   const [newMemberRole, setNewMemberRole] = useState('')
