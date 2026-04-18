@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useProjectStore } from '@/store/projectStore'
 import ProgressSlider from '@/components/ProgressSlider'
@@ -26,6 +26,17 @@ const ProjectDetail: React.FC = () => {
       return history && history.length > 0 ? history[history.length - 1].id : null
     })()
   )
+
+  // Initialize budget edit states when entering edit mode
+  const prevIsReadOnlyRef = useRef(isReadOnly)
+  useEffect(() => {
+    if (prevIsReadOnlyRef.current && !isReadOnly) {
+      // Transitioned from read-only to edit mode - echo the current values
+      setBudgetEditTotal(String(project.totalAmount))
+      setBudgetEditUsed(String(project.usedAmount))
+    }
+    prevIsReadOnlyRef.current = isReadOnly
+  }, [isReadOnly, project.totalAmount, project.usedAmount])
 
   const handleAddMember = () => {
     if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
