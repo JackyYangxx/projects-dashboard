@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import BraftEditor, { EditorState, ControlType } from 'braft-editor'
-import 'braft-editor/dist/index.css'
+import React, { useState } from 'react'
 
 interface RichEditorProps {
   value?: string
@@ -15,24 +13,7 @@ const RichEditor: React.FC<RichEditorProps> = ({
   placeholder = '在此输入内容...',
   readOnly = false,
 }) => {
-  const [editorState, setEditorState] = useState<EditorState>(() => {
-    if (value) {
-      return BraftEditor.createEditorState(value)
-    }
-    return BraftEditor.createEditorState('')
-  })
-
-  useEffect(() => {
-    if (value !== editorState.toHTML()) {
-      const newState = BraftEditor.createEditorState(value)
-      setEditorState(newState)
-    }
-  }, [value])
-
-  const handleChange = (newState: EditorState) => {
-    setEditorState(newState)
-    onChange?.(newState.toHTML())
-  }
+  const [text, setText] = useState(value)
 
   if (readOnly) {
     return (
@@ -44,20 +25,22 @@ const RichEditor: React.FC<RichEditorProps> = ({
     )
   }
 
-  const controls: ControlType[] = [
-    'bold', 'italic', 'underline', 'strike-through', 'separator',
-    'headings', 'list-ol', 'list-ul', 'blockquote', 'code', 'separator',
-    'link', 'separator',
-    'undo', 'redo'
-  ]
-
   return (
     <div className="rounded-lg overflow-hidden transition-all ring-1 ring-outline focus-within:ring-2 focus-within:ring-primary-500">
-      <BraftEditor
-        value={editorState}
-        onChange={handleChange}
+      <div className="bg-surface-base border-b border-outline px-3 py-2 flex items-center gap-2">
+        <button type="button" className="px-3 py-1 text-sm font-bold bg-surface-container rounded hover:bg-primary-50">B</button>
+        <button type="button" className="px-3 py-1 text-sm italic bg-surface-container rounded hover:bg-primary-50">I</button>
+        <button type="button" className="px-3 py-1 text-sm underline bg-surface-container rounded hover:bg-primary-50">U</button>
+      </div>
+      <textarea
+        className="w-full min-h-[200px] max-h-[400px] p-4 bg-surface-elevated text-sm text-on-surface-primary focus:outline-none resize-none"
+        style={{ fontFamily: 'Fira Sans, sans-serif' }}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value)
+          onChange?.(e.target.value)
+        }}
         placeholder={placeholder}
-        controls={controls}
       />
     </div>
   )
