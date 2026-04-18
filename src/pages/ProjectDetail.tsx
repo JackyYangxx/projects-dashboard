@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { useProjectStore } from '@/store/projectStore'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
@@ -324,7 +325,7 @@ const ProjectDetail: React.FC = () => {
                         {expandedHistoryId === entry.id && (
                           <div
                             className="px-6 pb-3 text-sm font-body text-on-surface-secondary"
-                            dangerouslySetInnerHTML={{ __html: marked(entry.content) }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(entry.content)) }}
                           />
                         )}
                       </div>
