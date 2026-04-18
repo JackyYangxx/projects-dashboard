@@ -11,9 +11,9 @@
     "electron:build": "npm run build && electron-builder"
   },
   "dependencies": {
+    "braft-editor": "^2.3.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-quill": "^2.0.0",
     "react-router-dom": "^6.26.2",
     "sql.js": "^1.11.0",
     "zustand": "^4.5.5"

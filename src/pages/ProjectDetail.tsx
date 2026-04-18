@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useProjectStore } from '@/store/projectStore'
 import ProgressSlider from '@/components/ProgressSlider'
-import QuillEditor from '@/components/QuillEditor'
+import RichEditor from '@/components/RichEditor'
 import Timeline from '@/components/Timeline'
 
 const ProjectDetail: React.FC = () => {
@@ -326,7 +326,7 @@ const ProjectDetail: React.FC = () => {
           <div className="col-span-12">
             <div className="bg-surface-elevated rounded-xl p-6">
               <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">项目笔记</h3>
-              <QuillEditor
+              <RichEditor
                 value={project.notes}
                 onChange={handleNotesChange}
                 placeholder="在此记录项目进展、关键决策和重要事项..."
