@@ -8,9 +8,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: '项目概览', icon: 'dashboard', path: '/' },
-  { label: '项目库', icon: 'folder', path: '/projects' },
-  { label: '数据分析', icon: 'analytics', path: '/analytics' },
-  { label: '团队管理', icon: 'group', path: '/team' },
 ]
 
 const Sidebar: React.FC = () => {
@@ -71,23 +68,6 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {/* Bottom actions */}
-      <div className="px-3 py-4 border-t border-outline">
-        <button
-          aria-label="帮助中心"
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body text-on-surface-secondary hover:bg-surface-hover hover:text-on-surface-primary transition-all duration-200 cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-lg leading-none">help</span>
-          帮助中心
-        </button>
-        <button
-          aria-label="退出登录"
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body text-on-surface-secondary hover:bg-error/10 hover:text-error transition-all duration-200 cursor-pointer mt-1"
-        >
-          <span className="material-symbols-outlined text-lg leading-none">logout</span>
-          退出登录
-        </button>
-      </div>
     </aside>
   )
 }
