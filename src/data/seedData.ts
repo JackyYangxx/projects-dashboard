@@ -3,6 +3,7 @@ import type { Project } from '../types'
 export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
     name: '战略品牌重塑',
+    leader: '张明',
     productLine: '营销云',
     status: 'ongoing',
     tag: '项目 A - 三月',
@@ -67,6 +68,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
   },
   {
     name: '次世代界面设计',
+    leader: '王芳',
     productLine: 'UI 系统',
     status: 'ongoing',
     tag: '项目 B - 五月',
@@ -111,6 +113,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
   },
   {
     name: '全球扩张路线图',
+    leader: '',
     productLine: '运营策略',
     status: 'ongoing',
     tag: '项目 C - 七月',
