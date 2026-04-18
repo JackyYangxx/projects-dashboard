@@ -54,6 +54,7 @@ export function findAll(): Project[] {
       timeline: parseJsonField<TimelineEvent[]>(rowObj.timeline, []),
       createdAt: rowObj.created_at as string,
       updatedAt: rowObj.updated_at as string,
+      leader: rowObj.leader as string,
     }
   })
 }
@@ -91,6 +92,7 @@ export function findById(id: string): Project | undefined {
     timeline: parseJsonField<TimelineEvent[]>(row.timeline, []),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
+    leader: row.leader as string,
   }
 }
 
@@ -101,11 +103,23 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
   const id = generateId()
   const now = new Date().toISOString()
 
+  // Auto-create team[0] from leader if team is empty but leader is set
+  let team = project.team
+  if (team.length === 0 && project.leader) {
+    const leaderAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(project.leader)}`
+    team = [{
+      id: generateId(),
+      name: project.leader,
+      role: '负责人',
+      avatar: leaderAvatar,
+    }]
+  }
+
   db.run(
     `INSERT INTO projects (
       id, name, product_line, status, tag, total_amount, used_amount,
-      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       project.name,
@@ -118,16 +132,17 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
       JSON.stringify(project.subProgress),
       project.notes,
       JSON.stringify(project.noteHistory || []),
-      JSON.stringify(project.team),
+      JSON.stringify(team),
       JSON.stringify(project.scope),
       JSON.stringify(project.milestones || []),
       JSON.stringify(project.timeline),
+      project.leader,
       now,
       now,
     ]
   )
 
-  return { ...project, id, createdAt: now, updatedAt: now } as Project
+  return { ...project, team, id, createdAt: now, updatedAt: now } as Project
 }
 
 export function update(id: string, updates: Partial<Project>): void {
@@ -193,6 +208,10 @@ export function update(id: string, updates: Partial<Project>): void {
     setClauses.push('timeline = ?')
     values.push(JSON.stringify(updates.timeline))
   }
+  if (updates.leader !== undefined) {
+    setClauses.push('leader = ?')
+    values.push(updates.leader)
+  }
 
   setClauses.push('updated_at = ?')
   values.push(new Date().toISOString())
@@ -206,4 +225,79 @@ export function remove(id: string): void {
   if (!db) throw new Error('Database not initialized')
 
   db.run('DELETE FROM projects WHERE id = ?', [id])
+}
+
+export function upsert(projectData: {
+  name: string
+  productLine: string
+  leader: string
+  status: Project['status']
+  progress: number
+  totalAmount: number
+  usedAmount: number
+}): Project {
+  const db = getDatabase()
+  if (!db) throw new Error('Database not initialized')
+
+  const existing = db.exec(
+    'SELECT id, team FROM projects WHERE name = ?',
+    [projectData.name]
+  )
+
+  const leaderAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(projectData.leader)}`
+  const now = new Date().toISOString()
+
+  if (existing.length > 0 && existing[0].values.length > 0) {
+    const existingId = existing[0].values[0][0] as string
+    let existingTeam: TeamMember[] = []
+    try {
+      existingTeam = JSON.parse(existing[0].values[0][1] as string || '[]')
+    } catch {}
+
+    const updatedTeam: TeamMember[] = existingTeam.length > 0
+      ? [{ ...existingTeam[0], name: projectData.leader, avatar: leaderAvatar }]
+      : [{ id: crypto.randomUUID(), name: projectData.leader, role: '负责人', avatar: leaderAvatar }]
+
+    db.run(
+      `UPDATE projects SET product_line = ?, status = ?, total_amount = ?, used_amount = ?,
+       progress = ?, leader = ?, team = ?, updated_at = ? WHERE id = ?`,
+      [
+        projectData.productLine,
+        projectData.status,
+        projectData.totalAmount,
+        projectData.usedAmount,
+        projectData.progress,
+        projectData.leader,
+        JSON.stringify(updatedTeam),
+        now,
+        existingId,
+      ]
+    )
+    return { ...findById(existingId)! }
+  } else {
+    const newTeam: TeamMember[] = [{
+      id: crypto.randomUUID(),
+      name: projectData.leader,
+      role: '负责人',
+      avatar: leaderAvatar,
+    }]
+    const newProject = {
+      name: projectData.name,
+      productLine: projectData.productLine,
+      status: projectData.status,
+      tag: '',
+      totalAmount: projectData.totalAmount,
+      usedAmount: projectData.usedAmount,
+      progress: projectData.progress,
+      subProgress: { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
+      notes: '',
+      noteHistory: [],
+      team: newTeam,
+      scope: [],
+      milestones: [],
+      timeline: [],
+      leader: projectData.leader,
+    }
+    return create(newProject)
+  }
 }
