@@ -5,7 +5,6 @@ import DOMPurify from 'dompurify'
 import { useProjectStore } from '@/store/projectStore'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
-import Timeline from '@/components/Timeline'
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -14,7 +13,6 @@ const ProjectDetail: React.FC = () => {
   const { getProjectById, updateProject } = useProjectStore()
   const project = id ? getProjectById(id) : undefined
 
-  const [viewMode, setViewMode] = useState<'monthly' | 'quarterly'>('monthly')
   const [isReadOnly, setIsReadOnly] = useState(true)
   // Only set initial isReadOnly from URL on first mount, not on subsequent renders
   useEffect(() => {
@@ -26,12 +24,14 @@ const ProjectDetail: React.FC = () => {
   const [budgetEditTotal, setBudgetEditTotal] = useState('')
   const [budgetEditUsed, setBudgetEditUsed] = useState('')
   const [budgetSaving, setBudgetSaving] = useState(false)
-  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(
-    (() => {
-      const history = project?.noteHistory
-      return history && history.length > 0 ? history[history.length - 1].id : null
-    })()
-  )
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null)
+  // Initialize expandedHistoryId when project loads (expand latest note history)
+  useEffect(() => {
+    if (project?.noteHistory && project.noteHistory.length > 0) {
+      const latestId = project.noteHistory[project.noteHistory.length - 1].id
+      setExpandedHistoryId(latestId)
+    }
+  }, [project?.noteHistory])
   const [showMilestoneModal, setShowMilestoneModal] = useState(false)
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('')
   const [newMilestoneDate, setNewMilestoneDate] = useState('')
@@ -454,13 +454,15 @@ const ProjectDetail: React.FC = () => {
                 </div>
               )}
 
-              <button
-                onClick={() => setShowMemberModal(true)}
-                className="mt-4 w-full py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined text-lg">add</span>
-                添加成员
-              </button>
+              {!isReadOnly && (
+                <button
+                  onClick={() => setShowMemberModal(true)}
+                  className="mt-4 w-full py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">add</span>
+                  添加成员
+                </button>
+              )}
             </div>
           </div>
 
@@ -528,17 +530,6 @@ const ProjectDetail: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Row 4: Evolution Timeline (12 cols) */}
-          <div className="col-span-12">
-            <div className="bg-surface-elevated rounded-xl p-6">
-              <Timeline
-                events={project.timeline}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-              />
             </div>
           </div>
         </div>
