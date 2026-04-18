@@ -28,6 +28,11 @@ const ProjectDetail: React.FC = () => {
       return history && history.length > 0 ? history[history.length - 1].id : null
     })()
   )
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false)
+  const [newMilestoneTitle, setNewMilestoneTitle] = useState('')
+  const [newMilestoneDate, setNewMilestoneDate] = useState('')
+  const [newMilestoneStatus, setNewMilestoneStatus] = useState<'pending' | 'completed' | 'delayed'>('pending')
+  const [newMilestoneDescription, setNewMilestoneDescription] = useState('')
 
   // Initialize budget edit states when entering edit mode
   const prevIsReadOnlyRef = useRef(isReadOnly)
@@ -52,6 +57,23 @@ const ProjectDetail: React.FC = () => {
     setNewMemberName('')
     setNewMemberRole('')
     setShowMemberModal(false)
+  }
+
+  const handleAddMilestone = () => {
+    if (!project || !newMilestoneTitle.trim() || !newMilestoneDate.trim()) return
+    const newMilestone = {
+      id: crypto.randomUUID(),
+      title: newMilestoneTitle.trim(),
+      date: newMilestoneDate.trim(),
+      status: newMilestoneStatus,
+      description: newMilestoneDescription.trim() || undefined,
+    }
+    updateProject(project.id, { milestones: [...project.milestones, newMilestone] })
+    setNewMilestoneTitle('')
+    setNewMilestoneDate('')
+    setNewMilestoneStatus('pending')
+    setNewMilestoneDescription('')
+    setShowMilestoneModal(false)
   }
 
   if (!project) {
@@ -432,9 +454,20 @@ const ProjectDetail: React.FC = () => {
             <div className="bg-surface-elevated rounded-xl p-6 h-full">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-body font-medium text-on-surface-secondary">里程碑</h3>
-                <span className="text-xs font-body text-on-surface-tertiary">
-                  {project.milestones.length} 个里程碑
-                </span>
+                <div className="flex items-center gap-2">
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => setShowMilestoneModal(true)}
+                      className="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg text-xs font-body font-medium hover:shadow-glow-sm transition-all flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-base">add</span>
+                      添加里程碑
+                    </button>
+                  )}
+                  <span className="text-xs font-body text-on-surface-tertiary">
+                    {project.milestones.length} 个里程碑
+                  </span>
+                </div>
               </div>
 
               {project.milestones.length === 0 ? (
@@ -566,6 +599,102 @@ const ProjectDetail: React.FC = () => {
               <button
                 onClick={handleAddMember}
                 disabled={!newMemberName.trim() || !newMemberRole.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                添加
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Milestone Add Modal */}
+      {showMilestoneModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowMilestoneModal(false)}
+        >
+          <div
+            className="bg-surface-elevated rounded-2xl shadow-xl border border-outline w-full max-w-md mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-outline">
+              <h3 className="text-base font-heading font-semibold text-on-surface-primary">添加里程碑</h3>
+              <button
+                onClick={() => setShowMilestoneModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+            <div className="p-6 space-y-5">
+              {/* Title Input */}
+              <div>
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                  标题 <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newMilestoneTitle}
+                  onChange={(e) => setNewMilestoneTitle(e.target.value)}
+                  placeholder="输入里程碑标题，如：需求分析完成"
+                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                />
+              </div>
+
+              {/* Date Input */}
+              <div>
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                  日期 <span className="text-error">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={newMilestoneDate}
+                  onChange={(e) => setNewMilestoneDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                />
+              </div>
+
+              {/* Status Select */}
+              <div>
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                  状态
+                </label>
+                <select
+                  value={newMilestoneStatus}
+                  onChange={(e) => setNewMilestoneStatus(e.target.value as 'pending' | 'completed' | 'delayed')}
+                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                >
+                  <option value="pending">进行中</option>
+                  <option value="completed">已完成</option>
+                  <option value="delayed">延期</option>
+                </select>
+              </div>
+
+              {/* Description Input */}
+              <div>
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                  描述
+                </label>
+                <textarea
+                  value={newMilestoneDescription}
+                  onChange={(e) => setNewMilestoneDescription(e.target.value)}
+                  placeholder="输入里程碑描述（可选）"
+                  rows={3}
+                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-outline bg-surface-base/50">
+              <button
+                onClick={() => setShowMilestoneModal(false)}
+                className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleAddMilestone}
+                disabled={!newMilestoneTitle.trim() || !newMilestoneDate.trim()}
                 className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 添加
