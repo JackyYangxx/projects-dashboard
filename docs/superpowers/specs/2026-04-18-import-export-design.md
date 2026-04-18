@@ -11,15 +11,29 @@
 - 图标：Material Symbols `upload_file` / `download`
 - 样式：与现有"新增项目"按钮一致，使用渐变背景 + shadow
 
+## leader 与 team 联动规则
+
+`leader` 字段与 `team[0]` 始终保持同步：
+
+- **导入时**：设置 `leader` 值，同时更新/创建 `team[0]` 为该负责人（保留 team[0].id 和 avatar，仅同步 name）
+- **表单提交时**：同步更新 `leader` 和 `team[0].name`（如果 team 为空则创建成员，如果已存在则只同步 name）
+- **展示时**：ProjectTable 显示 `project.leader`（不再依赖 `team[0]?.name`）
+
+## 数据库变更
+
+```sql
+-- projects 表新增 leader 列
+ALTER TABLE projects ADD COLUMN leader TEXT DEFAULT '';
+```
+
 ## 数据结构变更
 
-### 新增 leader 字段
+### types/index.ts
 
 ```typescript
-// src/types/index.ts
 interface Project {
   // ...existing fields
-  leader: string  // 项目负责人，独立于 team 数组
+  leader: string  // 项目负责人，与 team[0] 联动
 }
 ```
 
@@ -50,6 +64,7 @@ interface Project {
 ### 错误处理
 
 - 表头缺失必要字段 → alert 提示缺少字段，终止导入
+- leader 为空 → 跳过该行
 - status 值不在枚举内 → 跳过该行
 - totalAmount/usedAmount 非数字 → 跳过该行
 - name 为空 → 跳过该行
@@ -70,6 +85,13 @@ interface Project {
 
 ## 组件变更
 
-- `Dashboard.tsx`：新增两个按钮，处理导入/导出逻辑
-- `projectDao.ts`：新增 `upsert` 或 `batchUpdate/createBatch` 方法
-- `types/index.ts`：Project 接口新增 `leader` 字段
+| 组件 | 变更内容 |
+|---|---|
+| `db/index.ts` | 表结构新增 `leader` 列 |
+| `types/index.ts` | Project 接口新增 `leader` 字段 |
+| `projectDao.ts` | findAll/findById 解析 leader；create/update 支持 leader；新增 upsert 方法 |
+| `data/seedData.ts` | 每个项目补充 leader 字段 |
+| `ProjectTable.tsx:217` | 显示 `project.leader`（不再依赖 `team[0]?.name`） |
+| `ProjectForm.tsx` | leader 字段与 team[0] 联动同步 |
+| `ProjectDetail.tsx` | 新增"项目负责人"展示区块 |
+| `Dashboard.tsx` | 新增"导入"/"导出"按钮 |
