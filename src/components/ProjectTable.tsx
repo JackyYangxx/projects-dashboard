@@ -96,9 +96,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   }
 
   const getBudgetRate = (used: number, total: number) => {
-    if (total === 0) return '0%'
-    const rate = Math.round((used / total) * 100)
-    return `${rate}%`
+    if (total === 0) return 0
+    return Math.round((used / total) * 100)
   }
 
   const handleDelete = (project: Project) => {
@@ -235,11 +234,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       <div className="w-12 h-1.5 bg-surface-base rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-300"
-                          style={{ width: `${getBudgetRate(project.usedAmount, project.totalAmount)}` }}
+                          style={{ width: `${getBudgetRate(project.usedAmount, project.totalAmount)}%` }}
                         />
                       </div>
                       <span className="text-xs font-body text-on-surface-secondary tabular-nums">
-                        {getBudgetRate(project.usedAmount, project.totalAmount)}
+                        {getBudgetRate(project.usedAmount, project.totalAmount)}%
                       </span>
                     </div>
                   </td>
