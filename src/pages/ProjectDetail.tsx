@@ -45,6 +45,16 @@ const ProjectDetail: React.FC = () => {
     prevIsReadOnlyRef.current = isReadOnly
   }, [isReadOnly, project.totalAmount, project.usedAmount])
 
+  // Reset milestone form state when modal closes
+  useEffect(() => {
+    if (!showMilestoneModal) {
+      setNewMilestoneTitle('')
+      setNewMilestoneDate('')
+      setNewMilestoneStatus('pending')
+      setNewMilestoneDescription('')
+    }
+  }, [showMilestoneModal])
+
   const handleAddMember = () => {
     if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
     const newMember = {
