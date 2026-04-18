@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import * as XLSX from 'xlsx'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
 import StatsCard from '@/components/StatsCard'
 import ProjectTable from '@/components/ProjectTable'
 import { useProjectStore } from '@/store/projectStore'
+import { upsert } from '@/db/projectDao'
+import { Project } from '@/types'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -43,6 +46,89 @@ const Dashboard: React.FC = () => {
 
   const handleDelete = (project: { id: string }) => {
     useProjectStore.getState().deleteProject(project.id)
+  }
+
+  const handleImport = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.xlsx,.xls'
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (!file) return
+
+      const reader = new FileReader()
+      reader.onload = (evt) => {
+        try {
+          const data = new Uint8Array(evt.target!.result as ArrayBuffer)
+          const workbook = XLSX.read(data, { type: 'array' })
+          const sheetName = workbook.SheetNames[0]
+          const sheet = workbook.Sheets[sheetName]
+          const json = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[]
+
+          // 验证表头
+          const requiredHeaders = ['项目名称', '产品线', '负责人', '状态', '项目进展', '总预算', '已用预算']
+          const headers = Object.keys(json[0] || {})
+          const missing = requiredHeaders.filter(h => !headers.includes(h))
+          if (missing.length > 0) {
+            alert(`缺少必要字段：${missing.join(', ')}`)
+            return
+          }
+
+          // 状态映射
+          const statusMap: Record<string, Project['status']> = {
+            '进行中': 'ongoing',
+            '已完成': 'completed',
+            '暂停中': 'paused',
+          }
+
+          let successCount = 0
+          let skipCount = 0
+
+          for (const row of json) {
+            const name = String(row['项目名称'] || '').trim()
+            const leader = String(row['负责人'] || '').trim()
+            if (!name || !leader) { skipCount++; continue }
+
+            const statusKey = String(row['状态'] || '进行中')
+            const status = statusMap[statusKey] || 'ongoing'
+            if (!['ongoing', 'completed', 'paused'].includes(status)) { skipCount++; continue }
+
+            const progress = Number(row['项目进展']) || 0
+            const totalAmount = Number(row['总预算']) || 0
+            const usedAmount = Number(row['已用预算']) || 0
+
+            upsert({ name, productLine: String(row['产品线'] || ''), leader, status, progress, totalAmount, usedAmount })
+            successCount++
+          }
+
+          loadProjects()
+          alert(`导入完成：成功 ${successCount} 条，跳过 ${skipCount} 条`)
+        } catch {
+          alert('文件解析失败，请确认是有效的 Excel 文件')
+        }
+      }
+      reader.readAsArrayBuffer(file)
+    }
+    input.click()
+  }
+
+  const handleExport = () => {
+    const exportData = projects.map(p => ({
+      '项目名称': p.name,
+      '产品线': p.productLine,
+      '负责人': p.leader,
+      '状态': p.status === 'ongoing' ? '进行中' : p.status === 'completed' ? '已完成' : '暂停中',
+      '项目进展': p.progress,
+      '总预算': p.totalAmount,
+      '已用预算': p.usedAmount,
+      '预算执行率': p.totalAmount > 0 ? Math.round((p.usedAmount / p.totalAmount) * 100) : 0,
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, '项目列表')
+    const date = new Date().toISOString().slice(0, 10)
+    XLSX.writeFile(wb, `projects_${date}.xlsx`)
   }
 
   return (
@@ -84,13 +170,31 @@ const Dashboard: React.FC = () => {
                 实时监控项目状态与预算执行
               </p>
             </div>
-            <button
-              onClick={() => navigate('/project/new')}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer shadow-lg shadow-primary-500/20"
-            >
-              <span className="material-symbols-outlined text-lg">add</span>
-              新增项目
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleImport}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-lg">upload_file</span>
+                导入
+              </button>
+
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-lg">download</span>
+                导出
+              </button>
+
+              <button
+                onClick={() => navigate('/project/new')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer shadow-lg shadow-primary-500/20"
+              >
+                <span className="material-symbols-outlined text-lg">add</span>
+                新增项目
+              </button>
+            </div>
           </div>
 
           {/* Stats cards */}
