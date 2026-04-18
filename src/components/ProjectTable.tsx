@@ -81,16 +81,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const visibleProjects = filteredProjects.slice(0, visibleCount)
   const hasMore = visibleCount < filteredProjects.length
 
-  const formatAmount = (amount: number) => {
-    if (amount >= 100000000) {
-      return `¥${(amount / 100000000).toFixed(2)}亿`
-    }
-    if (amount >= 10000) {
-      return `¥${(amount / 10000).toFixed(0)}万`
-    }
-    return `¥${amount.toLocaleString()}`
-  }
-
   const getStatusBadge = (status: Project['status']) => {
     const styles = {
       ongoing: 'bg-primary-50 text-primary-600 border border-primary-200',
@@ -179,12 +169,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 项目进展
               </th>
-              <th scope="col" className="text-right px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                总金额
-              </th>
-              <th scope="col" className="text-right px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                已使用
-              </th>
               <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 预算执行率
               </th>
@@ -199,7 +183,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           <tbody>
             {visibleProjects.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
+                <td colSpan={7} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
                   <div className="flex flex-col items-center gap-2">
                     <span className="material-symbols-outlined text-4xl text-on-surface-tertiary">inbox</span>
                     <span>暂无项目数据</span>
@@ -245,12 +229,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         {project.progress}%
                       </span>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-primary text-right font-medium tabular-nums">
-                    {formatAmount(project.totalAmount)}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-secondary text-right tabular-nums">
-                    {formatAmount(project.usedAmount)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-2">
