@@ -1,6 +1,7 @@
 {
   "name": "precision-curator",
   "version": "1.0.0",
+  "author": "Precision Curator",
   "description": "Precision Curator - Electron desktop app for project management",
   "main": "dist-electron/main.js",
   "scripts": {

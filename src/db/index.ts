@@ -17,7 +17,7 @@ async function doInitDatabase(): Promise<Database> {
   if (db) return db
 
   console.log('[DB] Loading WASM...')
-  const wasmResponse = await fetch('/sql-wasm.wasm')
+  const wasmResponse = await fetch(new URL('./sql-wasm.wasm', window.location.href).href)
   if (!wasmResponse.ok) {
     throw new Error(`Failed to load WASM: ${wasmResponse.status} ${wasmResponse.statusText}`)
   }

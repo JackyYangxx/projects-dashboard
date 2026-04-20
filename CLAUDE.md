@@ -1,321 +1,71 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Project Overview
-
-**Precision Curator** is an Electron desktop application for project management. It uses a single-window SPA architecture with offline-first data persistence via sql.js (SQLite in WebAssembly).
+**Precision Curator** — Electron desktop app for project management. Offline-first, sql.js (SQLite in WASM), React SPA.
 
 ## Commands
 
 ```bash
-npm run dev           # Start Vite dev server (http://localhost:5173)
-npm run build         # TypeScript compile + Vite build + Electron builder
-npm run electron:dev  # Run Electron with Vite (concurrent dev server + Electron)
-npm run electron:build # Build Vite + package with electron-builder
+npm run dev           # Vite dev server only (http://localhost:5173)
+npm run electron:dev  # Full Electron + Vite (use this for development)
+npm run electron:build # Build + package
 ```
-
-**Note:** `npm run dev` starts only the Vite server. Use `npm run electron:dev` for full Electron development.
 
 ## Architecture
 
-### Electron Process Model
-- **Main process** (`electron/main.ts`): Window management, IPC handlers, app lifecycle, single instance lock
-- **Preload script** (`electron/preload.ts`): Secure API bridge via `contextBridge`
-- **Renderer process** (`src/`): React SPA - fully isolated from Node.js
-- **Single instance:** Uses `requestSingleInstanceLock()` to prevent multiple windows; second instance focuses existing window
+**Electron processes:**
+- `electron/main.ts` — window management, IPC, single-instance lock
+- `electron/preload.ts` — contextBridge API
+- `src/` — React SPA, fully isolated from Node.js
 
-### React App Structure
+**src layout:**
 ```
 src/
-├── App.tsx              # Router config (BrowserRouter, Routes)
-├── main.tsx             # Bootstrap: DB init + React mount
-├── pages/               # Route pages
-│   ├── Dashboard.tsx    # / - Project list with stats
-│   ├── ProjectDetail.tsx # /project/:id - Single project view (supports ?edit=true)
-│   └── ProjectForm.tsx  # /project/new - Create new project
-├── components/          # Shared UI components
-│   ├── Sidebar.tsx      # Fixed left nav (256px)
-│   ├── Header.tsx       # Top bar with search
-│   ├── StatsCard.tsx    # Metric cards (default + budget variant)
-│   ├── ProjectTable.tsx # Project list table (infinite scroll)
-│   ├── ProgressSlider.tsx # Draggable progress + sub-progress cards
-│   └── RichEditor.tsx   # Rich text editor (textarea-based, supports basic formatting)
-├── store/
-│   └── projectStore.ts  # Zustand store (CRUD + loading state)
-├── db/
-│   ├── index.ts         # sql.js init + schema creation
-│   └── projectDao.ts    # CRUD operations (getAllProjects, createProject, etc.)
-├── utils/
-│   └── avatar.ts        # Avatar URL generation
-├── constants/
-│   └── project.ts       # Project-related constants (status, headers)
-├── data/
-│   └── seedData.ts      # 3 demo projects auto-loaded on first run
-└── types/
-    └── index.ts         # Project, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone interfaces
+├── App.tsx / main.tsx        # Router + DB bootstrap
+├── pages/                    # Dashboard, ProjectDetail, ProjectForm
+├── components/               # Sidebar, Header, StatsCard, ProjectTable, ProgressSlider, RichEditor
+├── store/projectStore.ts     # Zustand (CRUD + loading state)
+├── db/                       # sql.js init + projectDao CRUD
+├── constants/project.ts      # STATUS_MAP, STATUS_LABELS, VALID_STATUSES, IMPORT_REQUIRED_HEADERS
+├── utils/avatar.ts           # generateAvatarUrl(name)
+├── data/seedData.ts          # 3 demo projects, auto-seeded on first run
+└── types/index.ts            # Project, TeamMember, ScopeItem, etc.
 ```
 
-### Dependencies
-- `react`, `react-dom` - UI framework
-- `react-router-dom` - Routing
-- `zustand` - State management
-- `sql.js` - SQLite in WebAssembly
-- `marked` - Markdown parsing
-- `dompurify` - HTML sanitization (XSS prevention)
-- `xlsx` - Excel file parsing and generation (SheetJS)
+**Data flow:** `main.tsx` → `initDatabase()` → seed if empty → Zustand store → `projectDao` → sql.js (in-memory, resets on restart)
 
-### Data Flow
-1. `main.tsx` calls `initDatabase()` → loads `sql-wasm.wasm`
-2. If DB is empty, seeds demo data from `seedData.ts`
-3. Zustand store (`projectStore`) holds in-memory state
-4. All CRUD operations go through `projectDao.ts` → sql.js → persisted in-memory SQLite
+**Routing:** `/` Dashboard · `/project/:id` detail (supports `?edit=true`) · `/project/new` create
 
-### Database Schema
-Projects table with JSON columns for `team`, `scope`, `timeline`, `subProgress`. SQLite WAL mode not used — in-memory only, data resets on app restart unless persisted to file.
+## Design System
 
-### Design System v2.0 - Light Tech Theme
-
-**设计理念:** 轻盈的科技感 - 浅色基调 + 毛玻璃 + 流动渐变
-
-**色彩系统:**
-```css
-/* 表面色 */
---surface-base: #F8FAFC;      /* 主背景 */
---surface-container: #FFFFFF;   /* 卡片 */
---surface-elevated: #FFFFFF;   /* 抬升元素 */
---surface-hover: #F1F5F9;      /* Hover */
-
-/* 主色 - 电光蓝 → 科技紫 */
---primary: #3B82F6;
---accent: #8B5CF6;
-
-/* 文字 */
---on-surface-primary: #0F172A;   /* AAA 对比度 */
---on-surface-secondary: #475569;
---on-surface-tertiary: #94A3B8;
-
-/* 边框 */
---outline: #E2E8F0;
---outline-variant: #F1F5F9;
-```
-
-**字体系统:**
-- Headings/Numbers: **Fira Code** (等宽科技感)
-- Body: **Fira Sans** (清晰易读)
-- 数字使用 `tabular-nums` 确保对齐
-
-**组件规范:**
-- 按钮: `rounded-xl` + 渐变背景 + `shadow-glow-sm` hover
-- 卡片: `rounded-2xl` + `border border-outline` + `shadow-card`
-- 输入框: `rounded-xl` + `focus:ring-2 focus:ring-primary-500/20`
-- 图标: Material Symbols Outlined (Google Fonts)
-- 危险操作: 必须有确认对话框
-
-**动画规范:**
-- 过渡时长: 150-300ms (ease-out)
-- 进度条: `transition-[width] duration-500 ease-out`
-- 背景流动: `animate-blob` (blob 动画)
-- Hover: `hover:scale-[1.02]` + `shadow-glow-sm`
-
-**无障碍:**
-- 所有图标按钮必须有 `aria-label`
-- 颜色对比 ≥ 4.5:1
-- 支持 `prefers-reduced-motion`
-
-**参考文档:**
-- `doc/ui-design-system.md` - 完整设计系统文档
-- `doc/ui-review-dashboard.md` - UI审查报告及修复记录
+Light Tech Theme. Full spec: `docs/ui-design-system.md`.
+- Fonts: Fira Code (headings/numbers), Fira Sans (body)
+- Primary: `#3B82F6` → Accent: `#8B5CF6`; Icons: Material Symbols Outlined
+- Danger actions require confirmation dialog
 
 ## Key Patterns
 
-### Adding a New Component
-1. Create in `src/components/`
-2. Import into page: `import Component from '@/components/Component'`
-3. Use in page JSX
+**Read-only mode** (`ProjectDetail`): `isReadOnly` state → `readOnly` prop on `ProgressSlider` and `RichEditor`; budget cards show text instead of inputs.
 
-### Read-Only Mode Pattern
-ProjectDetail supports read-only mode (`isReadOnly` state). Components should respect this:
-- `ProgressSlider`: `readOnly` prop disables drag handle
-- `RichEditor`: `readOnly` prop disables editing
-- Budget cards: Show text instead of input fields
+**Inline edit**: click text → input → Enter/blur saves, ESC cancels, restore original on cancel.
 
-### Inline Edit Pattern
-For budget cards and similar editable fields:
-1. Click text → becomes input (controlled by edit state)
-2. Enter/blur → save
-3. ESC → cancel, restore original value
-4. Show saving indicator during async operations
+**Accordion**: `expandedId` state, default expand newest. Chevron: collapsed=−90°, expanded=0°.
 
-### Accordion Pattern
-For collapsible sections (e.g., note history):
-1. `expandedId` state tracks which item is expanded
-2. Default: expand newest/last item
-3. Header onClick toggles expand/collapse
-4. Chevron rotation: collapsed=-90deg, expanded=0deg (pointing down when collapsed)
+**Modal**: `showModal` state, form + preview, use `generateAvatarUrl(name)` for avatars.
 
-### Modal Pattern
-For dialogs (e.g., add member):
-1. `showModal` state controls visibility
-2. Modal contains form inputs + preview
-3. On submit: close modal, insert data
-4. DiceBear avatar: use `generateAvatarUrl(name)` from `src/utils/avatar.ts`
-
-### State Update Flow
-Zustand store action → `projectDao` function → sql.js → store.setState() to sync UI
-
-### Routing
-React Router v6 with routes:
-- `/` - Dashboard
-- `/project/:id` - ProjectDetail (supports `?edit=true` to start in edit mode)
-- `/project/new` - Create new project
-- `Navigate` fallback for unknown routes
-
-**Edit Mode Navigation:**
-- Dashboard `handleEdit` navigates to `/project/${id}?edit=true`
-- ProjectDetail uses `useEffect` with empty deps to read `edit` param only on mount
-
-## File Paths
-- Electron entry: `electron/main.ts`, `electron/preload.ts`
-- WASM file: `public/sql-wasm.wasm` (loaded by sql.js via `/sql-wasm.wasm`)
-- Tailwind config: `tailwind.config.js`
-- Vite config: `vite.config.ts` (includes Electron plugin)
-- Shared utilities: `src/utils/avatar.ts`
-- Shared constants: `src/constants/project.ts`
+**Edit navigation**: `navigate(\`/project/${id}?edit=true\`)` → `ProjectDetail` reads `edit` param in `useEffect` with empty deps (mount only).
 
 ## Code Conventions
 
-### Extract Shared Utilities and Constants
-
-**Duplicated string patterns** that appear 2+ times should be extracted:
-
-| Pattern | Location |
-|---|---|
-| Avatar URL generation | `src/utils/avatar.ts` → `generateAvatarUrl(name)` |
-| Status Chinese↔English mapping | `src/constants/project.ts` → `STATUS_MAP`, `STATUS_LABELS`, `VALID_STATUSES` |
-| Import required headers | `src/constants/project.ts` → `IMPORT_REQUIRED_HEADERS` |
-| Budget execution rate calculation | Inline where used (simple formula) |
-
-**Rule:** When adding inline string patterns that repeat elsewhere, check if a utility or constant already exists before adding another.
-
-### Avoid Redundant Post-Update Queries
-
-After an UPDATE/INSERT, don't re-fetch data you already have:
-```typescript
-// Bad - redundant findById call after UPDATE
-db.run('UPDATE ...')
-return { ...findById(id)! }
-
-// Good - return updated fields directly, or only query if truly needed
-return { ...existingData, ...updatedFields }
-```
-
-### No Silent Catch Blocks
-
-Always log or handle errors in catch blocks:
-```typescript
-// Bad
-} catch {}
-
-// Good
-} catch (e) {
-  console.error('[DAO] upsert: failed to parse existing team JSON', e)
-}
-```
-
-### Remove Unnecessary Comments
-
-Comments that state **what** (not **why**) should be deleted:
-```typescript
-// Bad - narrates the code
-// 验证表头
-const headers = Object.keys(json[0] || {})
-
-// Good - variable name explains what
-const headers = Object.keys(json[0] || {})
-```
-
-### Prefer Named Constants Over Magic Strings
-
-```typescript
-// Bad - magic string repeated
-if (!['ongoing', 'completed', 'paused'].includes(status)) { ... }
-
-// Good - uses named constant
-if (!VALID_STATUSES.includes(status)) { ... }
-```
+- **Shared utilities/constants**: Before adding an inline pattern, check `src/utils/` and `src/constants/` first.
+- **After UPDATE/INSERT**: return updated fields directly — don't re-fetch with `findById`.
+- **catch blocks**: always log — no silent `catch {}`.
+- **Comments**: only explain *why*, not *what*. Delete narrating comments.
+- **Magic strings**: use named constants (`VALID_STATUSES` not `['ongoing', 'completed', 'paused']`).
 
 ## Rules
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
-## 5. Prefer Mature Components
-
-**Use established, battle-tested UI components when available.**
-
-- 优先使用业界成熟的组件库（如 shadcn/ui、Radix、Tamagui 等）
-- 优先使用 npm 上维护活跃、版本稳定的包
-- 避免重复造轮子：先查 npm 或 GitHub，确认无合适方案后再自研
-- 成熟组件的优势：样式统一、无障碍支持完善、bug 少、文档好
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+1. **Think first** — State assumptions explicitly. Ask when unclear. Present tradeoffs before picking silently.
+2. **Simplicity** — Minimum code. No speculative features, abstractions, or error handling for impossible cases.
+3. **Surgical changes** — Touch only what's required. Match existing style. Don't improve adjacent code.
+4. **Verify** — Define success criteria before starting. State a brief plan with checks for multi-step tasks.
+5. **Mature components** — Prefer shadcn/ui, Radix, stable npm packages over rolling your own.
