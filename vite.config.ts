@@ -11,6 +11,10 @@ export default defineConfig({
       {
         entry: 'electron/main.ts',
         vite: {
+          define: {
+            'process.env.NODE_ENV': '"production"',
+            'import.meta.env.MODE': '"production"',
+          },
           build: {
             outDir: 'dist-electron',
             rollupOptions: {

@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
 
-const isDev = process.env.NODE_ENV !== 'production' || !app.isPackaged
+const isDev = !import.meta.env.PROD && !app.isPackaged
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -17,7 +17,7 @@ function createWindow() {
     },
     show: false,
     titleBarStyle: 'default',
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
   })
 
   win.once('ready-to-show', () => {
@@ -26,7 +26,6 @@ function createWindow() {
 
   if (isDev) {
     win.loadURL('http://localhost:5173')
-    win.webContents.openDevTools()
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'))
   }

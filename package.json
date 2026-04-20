@@ -9,7 +9,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && electron-builder"
+    "electron:build": "NODE_ENV=production npm run build && electron-builder"
   },
   "dependencies": {
     "@types/dompurify": "^3.0.5",
