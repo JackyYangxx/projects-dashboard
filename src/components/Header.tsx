@@ -1,4 +1,5 @@
 import React from 'react'
+import TruncatedText from './TruncatedText'
 
 interface HeaderProps {
   title?: string
@@ -9,9 +10,13 @@ const Header: React.FC<HeaderProps> = ({ title = '项目概览' }) => {
     <header className="ml-64 h-16 bg-white/60 backdrop-blur-md border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-body">
-        <span className="text-on-surface-tertiary font-mono text-xs">precision-curator</span>
+        <span className="text-on-surface-tertiary font-mono text-xs">
+          <TruncatedText text="precision-curator" maxChars={20} />
+        </span>
         <span className="text-on-surface-tertiary">/</span>
-        <span className="text-on-surface-primary font-medium">{title}</span>
+        <span className="text-on-surface-primary font-medium">
+          <TruncatedText text={title} maxChars={15} />
+        </span>
       </div>
 
       {/* Search */}

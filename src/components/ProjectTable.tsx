@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Project } from '../types/index'
 import { STATUS_LABELS } from '../constants/project'
+import TruncatedText from './TruncatedText'
 
 interface ProjectTableProps {
   projects: Project[]
@@ -200,22 +201,30 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   }`}
                 >
                   <td className="px-4 py-3">
-                    <div>
-                      <p className="text-sm font-body font-medium text-on-surface-primary">
-                        {project.name}
+                    <TruncatedText
+                      text={project.name}
+                      maxChars={20}
+                      className="text-sm font-body font-medium text-on-surface-primary"
+                    />
+                    {project.tag && (
+                      <p className="text-xs font-body text-on-surface-tertiary mt-0.5">
+                        <TruncatedText text={project.tag} maxChars={15} />
                       </p>
-                      {project.tag && (
-                        <p className="text-xs font-body text-on-surface-tertiary mt-0.5">
-                          {project.tag}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-secondary">
-                    {project.productLine}
+                  <td className="px-4 py-3">
+                    <TruncatedText
+                      text={project.productLine || '-'}
+                      maxChars={12}
+                      className="text-sm font-body text-on-surface-secondary"
+                    />
                   </td>
-                  <td className="px-4 py-3 text-sm font-body text-on-surface-secondary">
-                    {project.leader || '-'}
+                  <td className="px-4 py-3">
+                    <TruncatedText
+                      text={project.leader || '-'}
+                      maxChars={10}
+                      className="text-sm font-body text-on-surface-secondary"
+                    />
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-2">

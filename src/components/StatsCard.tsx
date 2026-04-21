@@ -1,4 +1,5 @@
 import React from 'react'
+import TruncatedText from './TruncatedText'
 
 interface StatsCardProps {
   title: string
@@ -43,11 +44,11 @@ const StatsCard: React.FC<StatsCardProps> = ({
             {title}
           </p>
           <p className={`text-2xl font-heading font-bold tabular-nums ${isAccent ? 'text-white' : 'text-on-surface-primary'}`}>
-            {value}
+            <TruncatedText text={String(value)} maxChars={12} className="inline" />
           </p>
           {subtitle && (
             <p className={`text-xs font-body mt-1 ${isAccent ? 'text-white/70' : 'text-on-surface-tertiary'}`}>
-              {subtitle}
+              <TruncatedText text={subtitle} maxChars={20} />
             </p>
           )}
           {growth !== undefined && !isAccent && (

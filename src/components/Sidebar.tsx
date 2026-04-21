@@ -1,4 +1,5 @@
 import React from 'react'
+import TruncatedText from './TruncatedText'
 
 interface NavItem {
   label: string
@@ -57,7 +58,9 @@ const Sidebar: React.FC = () => {
                       {item.icon}
                     </span>
                   )}
-                  <span className={isActive ? 'font-medium' : ''}>{item.label}</span>
+                  <span className={isActive ? 'font-medium' : ''}>
+                    <TruncatedText text={item.label} maxChars={12} />
+                  </span>
                   {isActive && (
                     <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow-sm" />
                   )}
