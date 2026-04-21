@@ -195,7 +195,6 @@ const Dashboard: React.FC = () => {
               title="项目总数"
               value={totalCount}
               subtitle={`本周更新 ${thisWeekDueCount} 个项目`}
-              growth={12}
               icon="folder_open"
             />
             <StatsCard

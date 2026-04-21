@@ -10,14 +10,17 @@
     "dist-electron/**/*",
     "public/**/*"
   ],
+  "icon": "docs/app-icon",
   "mac": {
     "target": ["dmg"],
-    "category": "public.app-category.productivity"
+    "category": "public.app-category.productivity",
+    "icon": "docs/app-icon"
   },
   "win": {
     "target": ["dir"],
     "defaultArch": "x64",
-    "signAndEditExecutable": false
+    "signAndEditExecutable": false,
+    "icon": "docs/app-icon"
   },
   "nsis": {
     "oneClick": false,

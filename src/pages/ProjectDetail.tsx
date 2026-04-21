@@ -219,6 +219,13 @@ const ProjectDetail: React.FC = () => {
                 subProgress={project.subProgress}
                 onChange={handleProgressChange}
                 onSubProgressChange={handleSubProgressChange}
+                onReset={() => {
+                  updateProject(project.id, {
+                    progress: 0,
+                    subProgress: { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
+                    updatedAt: new Date().toISOString(),
+                  })
+                }}
                 lastUpdated={formatDate(project.updatedAt)}
                 readOnly={isReadOnly}
               />
@@ -410,141 +417,135 @@ const ProjectDetail: React.FC = () => {
             </div>
           )}
 
-          {/* Leader Section */}
-          {project.leader && (
-            <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-surface-base rounded-xl">
-              <span className="material-symbols-outlined text-primary-500">person</span>
-              <div>
-                <p className="text-xs font-body text-on-surface-tertiary">项目负责人</p>
-                <p className="text-sm font-body font-medium text-on-surface-primary">{project.leader}</p>
-              </div>
-            </div>
-          )}
+          {/* Row 3: Strategic Team (5 cols) + Milestones (7 cols) - Same height cards */}
+          <div className="col-span-12">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-12 lg:col-span-5">
+                <div className="bg-surface-elevated rounded-xl p-6 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-body font-medium text-on-surface-secondary">战略团队</h3>
+                    <span className="text-xs font-body text-on-surface-tertiary">
+                      {project.team.length} 名成员
+                    </span>
+                  </div>
 
-          {/* Row 3: Strategic Team (5 cols) + Milestones (7 cols) */}
-          <div className="col-span-12 lg:col-span-5">
-            <div className="bg-surface-elevated rounded-xl p-6 h-full">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-body font-medium text-on-surface-secondary">战略团队</h3>
-                <span className="text-xs font-body text-on-surface-tertiary">
-                  {project.team.length} 名成员
-                </span>
-              </div>
-
-              {project.team.length === 0 ? (
-                <div className="text-center py-8">
-                  <span className="material-symbols-outlined text-4xl text-on-surface-tertiary mb-2">
-                    group_off
-                  </span>
-                  <p className="text-sm font-body text-on-surface-tertiary">暂无团队成员</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {project.team.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center gap-3 p-3 bg-surface-base rounded-lg"
-                    >
-                      <img
-                        src={member.avatar}
-                        alt={member.name}
-                        className="w-10 h-10 rounded-full bg-surface-container"
-                        onError={(e) => {
-                          ;(e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-body font-medium text-on-surface-primary truncate">
-                          {member.name}
-                        </p>
-                        <p className="text-xs font-body text-on-surface-tertiary truncate">
-                          {member.role}
-                        </p>
+                  {project.team.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center py-4">
+                        <span className="material-symbols-outlined text-4xl text-on-surface-tertiary mb-2">
+                          group_off
+                        </span>
+                        <p className="text-sm font-body text-on-surface-tertiary">暂无团队成员</p>
                       </div>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors opacity-0 group-hover:opacity-100">
-                        <span className="material-symbols-outlined text-lg">more_vert</span>
-                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {!isReadOnly && (
-                <button
-                  onClick={() => setShowMemberModal(true)}
-                  className="mt-4 w-full py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-lg">add</span>
-                  添加成员
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="col-span-12 lg:col-span-7">
-            <div className="bg-surface-elevated rounded-xl p-6 h-full">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-body font-medium text-on-surface-secondary">里程碑</h3>
-                <div className="flex items-center gap-2">
-                  {!isReadOnly && (
-                    <button
-                      onClick={() => setShowMilestoneModal(true)}
-                      className="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg text-xs font-body font-medium hover:shadow-glow-sm transition-all flex items-center gap-1"
-                    >
-                      <span className="material-symbols-outlined text-base">add</span>
-                      添加里程碑
-                    </button>
-                  )}
-                  <span className="text-xs font-body text-on-surface-tertiary">
-                    {project.milestones.length} 个里程碑
-                  </span>
-                </div>
-              </div>
-
-              {project.milestones.length === 0 ? (
-                <div className="text-center py-8">
-                  <span className="material-symbols-outlined text-4xl text-on-surface-tertiary mb-2">
-                    timeline
-                  </span>
-                  <p className="text-sm font-body text-on-surface-tertiary">暂无里程碑</p>
-                </div>
-              ) : (
-                <div className="relative pl-6">
-                  {/* Vertical line */}
-                  <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-outline" />
-                  <div className="space-y-6">
-                    {project.milestones.map((milestone) => {
-                      const status = milestoneStatusStyles[milestone.status] || milestoneStatusStyles.pending
-                      return (
-                        <div key={milestone.id} className="relative">
-                          {/* Dot */}
-                          <div
-                            className={`absolute -left-[1.125rem] top-1 w-4 h-4 rounded-full ${status.dot} ring-2 ring-white`}
+                  ) : (
+                    <div className="flex-1 space-y-3">
+                      {project.team.map((member) => (
+                        <div
+                          key={member.id}
+                          className="flex items-center gap-3 p-3 bg-surface-base rounded-lg"
+                        >
+                          <img
+                            src={member.avatar}
+                            alt={member.name}
+                            className="w-10 h-10 rounded-full bg-surface-container"
+                            onError={(e) => {
+                              ;(e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`
+                            }}
                           />
-                          <div className="ml-4">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="text-sm font-body font-semibold text-on-surface-primary">
-                                {milestone.title}
-                              </h4>
-                              <span className={`text-xs font-body font-medium ${status.label}`}>
-                                {milestone.status === 'completed' ? '已完成' : milestone.status === 'delayed' ? '延期' : '进行中'}
-                              </span>
-                            </div>
-                            <p className="text-xs font-body text-on-surface-tertiary font-mono mb-1">
-                              {milestone.date}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-body font-medium text-on-surface-primary truncate">
+                              {member.name}
                             </p>
-                            {milestone.description && (
-                              <p className="text-xs font-body text-on-surface-secondary">
-                                {milestone.description}
-                              </p>
-                            )}
+                            <p className="text-xs font-body text-on-surface-tertiary truncate">
+                              {member.role}
+                            </p>
                           </div>
                         </div>
-                      )
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => setShowMemberModal(true)}
+                      className="mt-4 py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-lg">add</span>
+                      添加成员
+                    </button>
+                  )}
                 </div>
-              )}
+              </div>
+
+              <div className="col-span-12 lg:col-span-7">
+                <div className="bg-surface-elevated rounded-xl p-6 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-body font-medium text-on-surface-secondary">里程碑</h3>
+                    <div className="flex items-center gap-2">
+                      {!isReadOnly && (
+                        <button
+                          onClick={() => setShowMilestoneModal(true)}
+                          className="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg text-xs font-body font-medium hover:shadow-glow-sm transition-all flex items-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-base">add</span>
+                          添加里程碑
+                        </button>
+                      )}
+                      <span className="text-xs font-body text-on-surface-tertiary">
+                        {project.milestones.length} 个里程碑
+                      </span>
+                    </div>
+                  </div>
+
+                  {project.milestones.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center py-4">
+                        <span className="material-symbols-outlined text-4xl text-on-surface-tertiary mb-2">
+                          timeline
+                        </span>
+                        <p className="text-sm font-body text-on-surface-tertiary">暂无里程碑</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 relative pl-6">
+                      {/* Vertical line */}
+                      <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-outline" />
+                      <div className="space-y-6">
+                        {project.milestones.map((milestone) => {
+                          const status = milestoneStatusStyles[milestone.status] || milestoneStatusStyles.pending
+                          return (
+                            <div key={milestone.id} className="relative">
+                              {/* Dot */}
+                              <div
+                                className={`absolute -left-[1.125rem] top-1 w-4 h-4 rounded-full ${status.dot} ring-2 ring-white`}
+                              />
+                              <div className="ml-4">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="text-sm font-body font-semibold text-on-surface-primary">
+                                    {milestone.title}
+                                  </h4>
+                                  <span className={`text-xs font-body font-medium ${status.label}`}>
+                                    {milestone.status === 'completed' ? '已完成' : milestone.status === 'delayed' ? '延期' : '进行中'}
+                                  </span>
+                                </div>
+                                <p className="text-xs font-body text-on-surface-tertiary font-mono mb-1">
+                                  {milestone.date}
+                                </p>
+                                {milestone.description && (
+                                  <p className="text-xs font-body text-on-surface-secondary">
+                                    {milestone.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

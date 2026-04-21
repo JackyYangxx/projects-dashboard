@@ -6,6 +6,7 @@ interface ProgressSliderProps {
   subProgress: SubProgress
   onChange: (value: number) => void
   onSubProgressChange?: (key: keyof SubProgress, value: number) => void
+  onReset?: () => void
   lastUpdated?: string
   readOnly?: boolean
 }
@@ -22,6 +23,7 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
   subProgress,
   onChange,
   onSubProgressChange,
+  onReset,
   lastUpdated,
   readOnly = false,
 }) => {
@@ -128,6 +130,14 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
           <span className="text-xs font-mono text-on-surface-tertiary">
             更新: {lastUpdated}
           </span>
+        )}
+        {!readOnly && onReset && (
+          <button
+            onClick={onReset}
+            className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all"
+          >
+            重置
+          </button>
         )}
       </div>
 
