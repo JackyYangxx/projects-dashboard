@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'path'
+import fs from 'fs'
 
 const isDev = !import.meta.env.PROD && !app.isPackaged
 
@@ -14,10 +15,34 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
+      webSecurity: false, // Allow debugging in production
     },
     show: false,
     titleBarStyle: 'default',
     autoHideMenuBar: true,
+  })
+
+  // Force open devtools for debugging blank page issue
+  win.webContents.openDevTools({ mode: 'detach' })
+
+  console.log('[Main] __dirname:', __dirname)
+  console.log('[Main] isDev:', isDev)
+  console.log('[Main] app.isPackaged:', app.isPackaged)
+
+  // Capture console logs from renderer for debugging
+  win.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    const levels = ['verbose', 'info', 'warn', 'error']
+    const levelName = levels[level] || 'unknown'
+    console.log(`[Renderer ${levelName}] ${message}`, { line, sourceId })
+  })
+
+  // Catch renderer crashes
+  win.webContents.on('render-process-gone', (_event, details) => {
+    console.error('[Main] Renderer process gone:', details)
+  })
+
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+    console.error(`[Main] Failed to load: ${errorCode} - ${errorDescription}`)
   })
 
   win.once('ready-to-show', () => {
@@ -73,4 +98,11 @@ ipcMain.handle('get-app-version', () => {
 
 ipcMain.handle('get-platform', () => {
   return process.platform
+})
+
+ipcMain.handle('get-wasm-binary', () => {
+  const wasmPath = isDev
+    ? path.join(__dirname, '../dist/sql-wasm.wasm')
+    : path.join(__dirname, '../dist/sql-wasm.wasm')
+  return fs.readFileSync(wasmPath)
 })
