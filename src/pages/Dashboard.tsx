@@ -7,7 +7,7 @@ import StatsCard from '@/components/StatsCard'
 import ProjectTable from '@/components/ProjectTable'
 import { useProjectStore } from '@/store/projectStore'
 import { upsert } from '@/db/projectDao'
-import { STATUS_MAP, STATUS_LABELS, VALID_STATUSES, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
+import { STATUS_LABELS, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -85,14 +85,11 @@ const Dashboard: React.FC = () => {
             const leader = String(row['负责人'] || '').trim()
             if (!name || !leader) { skipCount++; continue }
 
-            const statusKey = STATUS_MAP[row['状态'] as keyof typeof STATUS_MAP]
-            if (!statusKey || !VALID_STATUSES.includes(statusKey)) { skipCount++; continue }
-
             const progress = Number(row['项目进展']) || 0
             const totalAmount = Number(row['总预算']) || 0
             const usedAmount = Number(row['已用预算']) || 0
 
-            upsert({ name, productLine: String(row['产品线'] || ''), leader, status: statusKey, progress, totalAmount, usedAmount })
+            upsert({ name, productLine: String(row['产品线'] || ''), leader, progress, totalAmount, usedAmount })
             successCount++
           }
 

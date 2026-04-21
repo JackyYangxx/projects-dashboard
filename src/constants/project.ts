@@ -19,8 +19,6 @@ export const IMPORT_REQUIRED_HEADERS = [
   '项目名称',
   '产品线',
   '负责人',
-  '状态',
-  '项目进展',
   '总预算',
   '已用预算',
 ] as const

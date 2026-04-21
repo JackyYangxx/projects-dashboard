@@ -231,7 +231,7 @@ export function upsert(projectData: {
   name: string
   productLine: string
   leader: string
-  status: Project['status']
+  status?: Project['status']
   progress: number
   totalAmount: number
   usedAmount: number
@@ -259,27 +259,21 @@ export function upsert(projectData: {
       ? [{ ...existingTeam[0], name: projectData.leader, avatar: generateAvatarUrl(projectData.leader) }]
       : [{ id: crypto.randomUUID(), name: projectData.leader, role: '负责人', avatar: generateAvatarUrl(projectData.leader) }]
 
-    db.run(
-      `UPDATE projects SET product_line = ?, status = ?, total_amount = ?, used_amount = ?,
-       progress = ?, leader = ?, team = ?, updated_at = ? WHERE id = ?`,
-      [
-        projectData.productLine,
-        projectData.status,
-        projectData.totalAmount,
-        projectData.usedAmount,
-        projectData.progress,
-        projectData.leader,
-        JSON.stringify(updatedTeam),
-        now,
-        existingId,
-      ]
-    )
+    const updates: string[] = ['product_line = ?', 'total_amount = ?', 'used_amount = ?', 'progress = ?', 'leader = ?', 'team = ?', 'updated_at = ?']
+    const values: SqlValue[] = [projectData.productLine, projectData.totalAmount, projectData.usedAmount, projectData.progress, projectData.leader, JSON.stringify(updatedTeam), now]
+    if (projectData.status !== undefined) {
+      updates.unshift('status = ?')
+      values.unshift(projectData.status)
+    }
+    updates.push('WHERE id = ?')
+    values.push(existingId)
+
+    db.run(`UPDATE projects SET ${updates.join(', ')}`, values)
     // Return updated data directly — no need to re-query
     return {
       ...findById(existingId)!,
       name: projectData.name,
       productLine: projectData.productLine,
-      status: projectData.status,
       leader: projectData.leader,
       progress: projectData.progress,
       totalAmount: projectData.totalAmount,
@@ -295,7 +289,7 @@ export function upsert(projectData: {
     const newProject = {
       name: projectData.name,
       productLine: projectData.productLine,
-      status: projectData.status,
+      status: projectData.status ?? 'paused',
       tag: '',
       totalAmount: projectData.totalAmount,
       usedAmount: projectData.usedAmount,
