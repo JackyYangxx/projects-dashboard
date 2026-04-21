@@ -67,6 +67,9 @@ declare global {
   interface Window {
     electronAPI?: {
       platform: string
+      getAppVersion?: () => Promise<string>
+      getPlatform?: () => Promise<string>
+      getWasmBinary?: () => Promise<Uint8Array>
     }
   }
 }

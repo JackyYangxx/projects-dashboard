@@ -5,4 +5,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getPlatform: () => ipcRenderer.invoke('get-platform'),
+  getWasmBinary: () => ipcRenderer.invoke('get-wasm-binary'),
 })

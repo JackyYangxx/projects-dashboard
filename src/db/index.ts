@@ -17,12 +17,21 @@ async function doInitDatabase(): Promise<Database> {
   if (db) return db
 
   console.log('[DB] Loading WASM...')
-  const wasmResponse = await fetch(new URL('./sql-wasm.wasm', window.location.href).href)
-  if (!wasmResponse.ok) {
-    throw new Error(`Failed to load WASM: ${wasmResponse.status} ${wasmResponse.statusText}`)
+
+  let wasmBinary: ArrayBuffer
+  if (window.electronAPI?.getWasmBinary) {
+    console.log('[DB] Using IPC to get WASM binary')
+    const binary = await window.electronAPI.getWasmBinary()
+    const uint8 = new Uint8Array(binary)
+    wasmBinary = uint8.buffer.slice(uint8.byteOffset, uint8.byteOffset + uint8.byteLength)
+    console.log('[DB] WASM loaded via IPC, binary size:', wasmBinary.byteLength)
+  } else {
+    console.log('[DB] Using fetch for WASM (dev mode)')
+    const wasmUrl = new URL('./sql-wasm.wasm', window.location.href).href
+    const wasmResponse = await fetch(wasmUrl)
+    wasmBinary = await wasmResponse.arrayBuffer()
+    console.log('[DB] WASM loaded via fetch, binary size:', wasmBinary.byteLength)
   }
-  const wasmBinary = await wasmResponse.arrayBuffer()
-  console.log('[DB] WASM loaded, binary size:', wasmBinary.byteLength)
 
   const SQL = await initSqlJs({ wasmBinary })
   console.log('[DB] SQL.js initialized')

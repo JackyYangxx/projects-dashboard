@@ -1,159 +1,143 @@
-# Bug 修复记录 - Precision Curator
+# Bugfix Record — Precision Curator
 
-**日期：** 2026-04-17
-**参与角色：** architect（架构审核）、tester（功能测试）、developer（开发修复）
+> 记录实际遇到的 bug、成因及解决方案，供后续参考。
 
 ---
 
-## 问题 #1：WASM 文件加载依赖外部 CDN
+## 1. 打包后 exe 空白页（loadURL 仍指向 localhost:5173）
 
-**严重程度：** 🔴 严重
+**现象：** Windows 上解压运行 exe 后，页面完全空白（连背景色都没有）。Network 面板可见 localhost:5173 请求。
 
-**问题描述：**
-控制台报错 WebAssembly 初始化失败，页面显示"项目总数 0"，数据库未加载。
+**排查过程：**
 
-**错误信息：**
-```
-wasm streaming compile failed: TypeError: Failed to execute 'compile' on 'WebAssembly': Incorrect response MIME type.
-falling back to ArrayBuffer instantiation
-failed to asynchronously prepare wasm: CompileError: expected magic word 00 61 73 6d, found 3c 21 44 4f
-```
+1. 检查 `dist-electron/main.js` — 发现是**开发版本**（未压缩、变量名未混淆、含 `localhost`）
+2. 确认 `electron-builder.json` 配置正确
+3. 发现 `vite-plugin-electron` 在 watch 模式下运行，当 `dist-electron/main.js` 被删除重建时，立即用开发配置覆盖了 production 构建
 
-**根本原因：**
-`locateFile: (file) => '/sql-wasm.wasm'` 依赖 sql.js 内部 fetch，在某些环境下路径解析错误，返回 HTML 而非 WASM 二进制。
+**根因：** `npm run electron:dev` 在后台以 watch 模式持续运行，当执行 `rm dist-electron/main.js && npm run build` 时，watch 进程检测到文件变化，用**开发构建配置**（`isDev = !app.isPackaged || process.env.NODE_ENV !== 'production'`）重建了 main.js。由于 `process.env.NODE_ENV` 在 vite-plugin-electron 的生产构建中没有正确替换为 `"production"`，导致 `isDev` 在打包后仍为 `true`，走了 `loadURL("http://localhost:5173")` 分支。
 
 **修复方案：**
-使用 `wasmBinary` + `fetch` 显式加载：
-```typescript
-const wasmResponse = await fetch('/sql-wasm.wasm')
-if (!wasmResponse.ok) {
-  throw new Error(`Failed to load WASM: ${wasmResponse.status}`)
+
+1. 在 `vite.config.ts` 中对 electron 主进程构建使用 `define` 替换 `process.env.NODE_ENV`：
+   ```ts
+   electron([
+     {
+       entry: 'electron/main.ts',
+       vite: {
+         define: {
+           'process.env.NODE_ENV': '"production"',
+           'import.meta.env.MODE': '"production"',
+         },
+         // ...
+       },
+     },
+   ])
+   ```
+
+2. 同时在 `package.json` 的 `electron:build` 脚本中显式传递：
+   ```json
+   "electron:build": "NODE_ENV=production npm run build && electron-builder"
+   ```
+
+3. 修改 `electron/main.ts` 使用 `import.meta.env.PROD`（Vite 编译时常量）：
+   ```ts
+   const isDev = !import.meta.env.PROD && !app.isPackaged
+   ```
+   或者直接只依赖 `app.isPackaged`：
+   ```ts
+   const isDev = !app.isPackaged
+   ```
+
+**验证方法：** 检查构建后的 `dist-electron/main.js`：
+- 正确：`0.89 kB`、单字母变量（`e`, `o`, `n` 等）、只有 `loadFile`、无 `localhost` 字符串
+- 错误：变量名未混淆（`electron`, `BrowserWindow`）、含 `localhost`、`loadURL`
+
+---
+
+## 2. asar 打包导致 HTML 相对资源路径失效
+
+**现象：** exe 打开空白页，但 localhost:5173 问题修复后仍无效。检查发现 `win-unpacked/resources/app.asar` 内包含所有文件。
+
+**分析：** Electron 的 asar 打包将所有文件压入虚拟文件系统。当 `index.html` 内通过 `./assets/index-xxx.js` 等相对路径引用资源时，Chromium 在解析 asar 内部文件时无法正确处理相对路径。
+
+**修复方案：** `asar: false`（不解包整个 app），所有文件直接放在文件系统上：
+
+```json
+{
+  "asar": false,
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "public/**/*"
+  ]
 }
-const wasmBinary = await wasmResponse.arrayBuffer()
-const SQL = await initSqlJs({ wasmBinary })
 ```
 
-**修复文件：** `src/db/index.ts`
-
-**提交：** `99fae8b`
+**验证方法：** 检查 `win-unpacked/resources/app/` 目录是否存在且包含 `dist/`、`dist-electron/`、`node_modules/` 等完整文件结构。
 
 ---
 
-## 问题 #2：initDatabase 时序问题（竞态条件）
+## 3. Windows 构建在 Apple Silicon Mac 上缺少 Wine/NSIS 支持
 
-**严重程度：** 🔴 严重
+**现象：** electron-builder 报错 `cannot execute wine64: bad CPU type in executable`。
 
-**问题描述：**
-数据库初始化和 seed 数据插入后，页面仍显示"项目总数 0"。控制台显示 seed 已完成（Final project count: 3），但查询返回 0 条记录。
+**根因：** Apple Silicon Mac 无法运行 x86_64 的 Wine 和 NSIS（makensis）二进制。electron-builder 的 Windows 打包依赖这两个工具做签名和安装程序生成。
 
-**根本原因：**
-多个组件同时调用 `initDatabase()` 时，创建了多个独立的 DB 实例。seed 数据插入到实例 A，但查询在实例 B 中执行（为空）。
+**绕过方案：** 使用 `dir` target（只打包不解包），跳过 NSIS 生成步骤：
 
-**修复方案：**
-使用共享 promise 确保所有调用使用同一个 DB 实例：
-```typescript
-let db: Database | null = null
-let dbPromise: Promise<Database> | null = null
-
-export async function initDatabase(): Promise<Database> {
-  if (dbPromise) return dbPromise
-  dbPromise = doInitDatabase()
-  return dbPromise
+```json
+"win": {
+  "target": ["dir"],
+  "defaultArch": "x64",
+  "signAndEditExecutable": false
 }
 ```
 
-**修复文件：** `src/db/index.ts`
+最终分发形式为 zip 压缩包，用户解压后直接运行 `.exe`。
 
 ---
 
-## 问题 #3：findAll() 类型转换错误
+## 4. 菜单栏和 DevTools 在打包后仍然可见
 
-**严重程度：** 🔴 严重
+**现象：** 打包后 exe 打开时，顶部菜单栏可见，DevTools 窗口自动弹出。
 
-**问题描述：**
-数据库返回的列名是 snake_case（`product_line`, `total_amount`），但 TypeScript 类型期望 camelCase（`productLine`, `totalAmount`）。查询结果类型不匹配。
+**根因：**
+- `autoHideMenuBar: false`（应为 `true`）
+- `win.webContents.openDevTools()` 无条件调用，打包后仍执行
 
-**修复方案：**
-使用显式字段映射替代通用类型转换：
-```typescript
-return results[0].values.map((row) => {
-  const columns = results[0].columns
-  const rowObj: Record<string, unknown> = {}
-  columns.forEach((col, i) => { rowObj[col] = row[i] })
-
-  return {
-    id: rowObj.id as string,
-    name: rowObj.name as string,
-    productLine: rowObj.product_line as string,
-    totalAmount: rowObj.total_amount as number,
-    // ... 其他字段
-  }
-})
+**修复：** `electron/main.ts` 中：
+```ts
+autoHideMenuBar: true,
+// ...
+if (isDev) {
+  win.loadURL('http://localhost:5173')
+} else {
+  // openDevTools() 移除，autoHideMenuBar 已设为 true
+}
 ```
 
-**修复文件：** `src/db/projectDao.ts`
-
 ---
 
-## 问题 #4：表单字段缺少 id/name 属性
+## 5. WASM 文件路径在打包后失效
 
-**严重程度：** 🟡 中等
+**现象：** 数据库初始化失败，WASM 文件加载 404。
 
-**问题描述：**
-控制台有 3 个表单字段缺少属性的警告。
+**根因：** `src/db/index.ts` 中使用绝对路径 `fetch('/sql-wasm.wasm')`。打包后 Electron 使用 `file://` 协议，绝对路径无法映射到 asar 或 unpacked 目录内的文件。
 
-**修复方案：**
-为表单字段添加 `id` 和 `name` 属性：
-- 搜索框：`id="search"`
-- 月份筛选：`id="monthFilter"`, `name="monthFilter"`
-- 状态筛选：`id="statusFilter"`, `name="statusFilter"`
-
-**修复文件：**
-- `src/components/Header.tsx`
-- `src/components/ProjectTable.tsx`
-
-**提交：** `745db6c`
-
----
-
-## 问题 #5：React Router v7 升级警告
-
-**严重程度：** 🟢 低
-
-**问题描述：**
-React Router 6 有两个 future flag 警告。
-
-**修复方案：**
-在 `BrowserRouter` 添加 future props：
-```tsx
-<BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+**修复：**
+```ts
+const wasmResponse = await fetch(new URL('./sql-wasm.wasm', window.location.href).href)
 ```
-
-**修复文件：** `src/App.tsx`
-
-**提交：** `745db6c`
+`window.location.href` 在 Electron 打包后为 `file://.../index.html`，配合 `new URL('./...', ...)` 可正确解析相对路径。
 
 ---
 
-## 验证结果
+## 总结
 
-| 验证项 | 结果 |
-|--------|------|
-| Dashboard 显示项目列表 | ✅ 3 个项目 |
-| 统计数据正确 | ✅ 项目总数、进行中、预算执行率 |
-| ProjectDetail 页面 | ✅ 完整显示 |
-| 控制台错误 | ✅ 无错误 |
-
----
-
-## 相关文件变更
-
-| 文件 | 变更 |
-|------|------|
-| `src/db/index.ts` | WASM 加载、共享 promise |
-| `src/db/projectDao.ts` | findAll 字段映射 |
-| `src/components/Header.tsx` | 搜索框 id |
-| `src/components/ProjectTable.tsx` | 筛选器 id/name |
-| `src/App.tsx` | React Router future flags |
-| `.mcp.json` | 新增 chrome-devtools MCP 配置 |
-| `doc/issues.md` | 问题追踪文档 |
+| # | 问题 | 根因 | 修复 |
+|---|---|---|---|
+| 1 | 打包后空白（localhost） | watch 模式覆盖了 production main.js | `define` 替换 + `NODE_ENV=production` 构建 |
+| 2 | asar 内相对路径失效 | Chromium 无法解析 asar 内相对 URL | `asar: false` |
+| 3 | Apple Silicon 无法 build Windows NSIS | x86_64 only 二进制 | `target: ["dir"]` 跳过 NSIS |
+| 4 | 菜单栏和 DevTools 可见 | 配置错误 | `autoHideMenuBar: true` + 移除 `openDevTools()` |
+| 5 | WASM 加载 404 | 绝对路径在 file:// 下失效 | 改用 `new URL('./...', window.location.href)` |
