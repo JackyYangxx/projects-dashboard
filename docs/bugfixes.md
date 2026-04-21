@@ -28,7 +28,6 @@
            'process.env.NODE_ENV': '"production"',
            'import.meta.env.MODE': '"production"',
          },
-         // ...
        },
      },
    ])
@@ -43,13 +42,9 @@
    ```ts
    const isDev = !import.meta.env.PROD && !app.isPackaged
    ```
-   或者直接只依赖 `app.isPackaged`：
-   ```ts
-   const isDev = !app.isPackaged
-   ```
 
 **验证方法：** 检查构建后的 `dist-electron/main.js`：
-- 正确：`0.89 kB`、单字母变量（`e`, `o`, `n` 等）、只有 `loadFile`、无 `localhost` 字符串
+- 正确：`~0.9 kB`、单字母变量（`e`, `o`, `n` 等）、只有 `loadFile`、无 `localhost` 字符串
 - 错误：变量名未混淆（`electron`, `BrowserWindow`）、含 `localhost`、`loadURL`
 
 ---
@@ -132,12 +127,54 @@ const wasmResponse = await fetch(new URL('./sql-wasm.wasm', window.location.href
 
 ---
 
-## 总结
+## 6. Windows 架构打包错误（arm64 vs x64）
 
-| # | 问题 | 根因 | 修复 |
-|---|---|---|---|
-| 1 | 打包后空白（localhost） | watch 模式覆盖了 production main.js | `define` 替换 + `NODE_ENV=production` 构建 |
-| 2 | asar 内相对路径失效 | Chromium 无法解析 asar 内相对 URL | `asar: false` |
-| 3 | Apple Silicon 无法 build Windows NSIS | x86_64 only 二进制 | `target: ["dir"]` 跳过 NSIS |
-| 4 | 菜单栏和 DevTools 可见 | 配置错误 | `autoHideMenuBar: true` + 移除 `openDevTools()` |
-| 5 | WASM 加载 404 | 绝对路径在 file:// 下失效 | 改用 `new URL('./...', window.location.href)` |
+**现象：** Windows x64 用户下载 zip 解压后 exe 无法启动，或启动后空白页。
+
+**根因：** 在 Apple Silicon Mac 上执行 `npx electron-builder --win` 时，未显式指定架构，默认使用当前机器的架构（arm64）作为 target 架构。导致打包出的 `win-unpacked` 目录内为 ARM64 二进制，在 x64 Windows 上无法运行。
+
+**修复：** 明确指定 x64 架构：
+```bash
+npx electron-builder --win --x64
+```
+
+**验证方法：** 检查 `win-unpacked/Precision Curator.exe` 文件属性，或任务管理器中查看进程架构。也可在 Windows 上查看日志输出的 `__dirname` 和 `isDev` 值确认打包配置。
+
+---
+
+## 经验总结：为什么空白页问题反复出现
+
+这是一个**多层级、跨工具链的问题**，每次只修了表面，没有验证打包产物：
+
+| 迭代 | 表面修复 | 遗漏的验证 |
+|------|----------|------------|
+| 1 | 关闭 asar | 没验证路径是否正确 |
+| 2 | 修 loadURL | 没停止 dev server，main.js 被覆盖 |
+| 3 | 关闭 DevTools | 调试代码没删干净 |
+| 4 | 打开 DevTools | 打包 arch 用错（arm64） |
+
+### 根因
+
+1. **工具链干扰**：`vite-plugin-electron` 的 watch 模式在后台持续运行，检测到文件变化后用开发配置覆盖 production 构建。
+2. **验证缺失**：没有检查打包产物的实际内容，直接交给用户测试，浪费迭代周期。
+3. **跨平台打包认知不足**：Apple Silicon Mac 无法打包 x64 Windows 应用，需要显式指定架构。
+
+### 教训
+
+- 每次打包后，**必须检查** `dist-electron/main.js` 的内容（大小、变量名、是否含 localhost）
+- 跨平台打包时，**明确指定目标架构**，不要依赖默认值
+- 发给用户前先本地解压运行验证，不要直接丢 zip 让用户当小白鼠
+
+---
+
+## 多平台分发架构
+
+当前 Release 包含三个构建产物：
+
+| 文件 | 平台 | 架构 | 适用场景 |
+|------|------|------|----------|
+| `Precision Curator-1.0.0-arm64.dmg` | macOS | ARM64 | Apple Silicon Mac |
+| `PrecisionCurator-1.0.0-win64.zip` | Windows | x64 | Intel/AMD 64位 Windows |
+| `PrecisionCurator-1.0.0-win-arm64.zip` | Windows | ARM64 | ARM Windows (Surface Pro X 等) |
+
+**注意**：在 macOS 上打包 Windows 应用时，必须使用 `--x64` 或 `--arm64` 显式指定目标架构，否则默认使用当前机器架构，导致另一架构 Windows 用户无法使用。
