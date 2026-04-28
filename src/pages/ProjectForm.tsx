@@ -47,6 +47,8 @@ const ProjectForm: React.FC = () => {
         milestones: [],
         timeline: [],
         subProgress: { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
+        repository: '',
+        branch: '',
       })
       navigate('/')
     } finally {

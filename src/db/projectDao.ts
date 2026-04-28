@@ -56,6 +56,8 @@ export function findAll(): Project[] {
       createdAt: rowObj.created_at as string,
       updatedAt: rowObj.updated_at as string,
       leader: rowObj.leader as string,
+      repository: rowObj.repository as string,
+      branch: rowObj.branch as string,
     }
   })
 }
@@ -94,6 +96,8 @@ export function findById(id: string): Project | undefined {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     leader: row.leader as string,
+    repository: row.repository as string,
+    branch: row.branch as string,
   }
 }
 
@@ -118,8 +122,8 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
   db.run(
     `INSERT INTO projects (
       id, name, product_line, status, tag, total_amount, used_amount,
-      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repository, branch, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       project.name,
@@ -137,6 +141,8 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
       JSON.stringify(project.milestones || []),
       JSON.stringify(project.timeline),
       project.leader,
+      project.repository || '',
+      project.branch || '',
       now,
       now,
     ]
@@ -211,6 +217,14 @@ export function update(id: string, updates: Partial<Project>): void {
   if (updates.leader !== undefined) {
     setClauses.push('leader = ?')
     values.push(updates.leader)
+  }
+  if (updates.repository !== undefined) {
+    setClauses.push('repository = ?')
+    values.push(updates.repository)
+  }
+  if (updates.branch !== undefined) {
+    setClauses.push('branch = ?')
+    values.push(updates.branch)
   }
 
   setClauses.push('updated_at = ?')
@@ -302,6 +316,8 @@ export function upsert(projectData: {
       milestones: [],
       timeline: [],
       leader: projectData.leader,
+      repository: '',
+      branch: '',
     }
     return create(newProject)
   }
