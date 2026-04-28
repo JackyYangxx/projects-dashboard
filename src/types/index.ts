@@ -59,6 +59,8 @@ export interface Project {
   milestones: Milestone[]
   timeline: TimelineEvent[]
   leader: string
+  repository: string
+  branch: string
   createdAt: string
   updatedAt: string
 }
