@@ -15,6 +15,8 @@ const ProjectForm: React.FC = () => {
     leader: '',
     totalAmount: 0,
     usedAmount: 0,
+    repository: '',
+    branch: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -47,8 +49,8 @@ const ProjectForm: React.FC = () => {
         milestones: [],
         timeline: [],
         subProgress: { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
-        repository: '',
-        branch: '',
+        repository: formData.repository,
+        branch: formData.branch,
       })
       navigate('/')
     } finally {
@@ -116,6 +118,28 @@ const ProjectForm: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, leader: e.target.value })}
               className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
               placeholder="输入负责人姓名"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">代码仓</label>
+            <input
+              type="text"
+              value={formData.repository}
+              onChange={(e) => setFormData({ ...formData, repository: e.target.value })}
+              className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+              placeholder="https://github.com/org/repo"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">分支</label>
+            <input
+              type="text"
+              value={formData.branch}
+              onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+              className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+              placeholder="main"
             />
           </div>
 
