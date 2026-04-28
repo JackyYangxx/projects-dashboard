@@ -289,10 +289,8 @@ export function upsert(projectData: {
       updates.push('branch = ?')
       values.push(projectData.branch)
     }
-    updates.push('WHERE id = ?')
-    values.push(existingId)
 
-    db.run(`UPDATE projects SET ${updates.join(', ')}`, values)
+    db.run(`UPDATE projects SET ${updates.join(', ')} WHERE id = ?`, [...values, existingId])
     // Return updated data directly — no need to re-query
     return {
       ...findById(existingId)!,
