@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
             const totalAmount = Number(row['总预算']) || 0
             const usedAmount = Number(row['已用预算']) || 0
 
-            upsert({ name, productLine: String(row['产品线'] || ''), leader, progress, totalAmount, usedAmount })
+            upsert({ name, productLine: String(row['产品线'] || ''), leader, progress, totalAmount, usedAmount, repository: String(row['代码仓'] || ''), branch: String(row['分支'] || '') })
             successCount++
           }
 
@@ -114,6 +114,8 @@ const Dashboard: React.FC = () => {
       '总预算': p.totalAmount,
       '已用预算': p.usedAmount,
       '预算执行率': p.totalAmount > 0 ? Math.round((p.usedAmount / p.totalAmount) * 100) : 0,
+      '代码仓': p.repository || '',
+      '分支': p.branch || '',
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)

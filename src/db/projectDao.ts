@@ -249,6 +249,8 @@ export function upsert(projectData: {
   progress: number
   totalAmount: number
   usedAmount: number
+  repository?: string
+  branch?: string
 }): Project {
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
@@ -279,6 +281,14 @@ export function upsert(projectData: {
       updates.unshift('status = ?')
       values.unshift(projectData.status)
     }
+    if (projectData.repository !== undefined) {
+      updates.push('repository = ?')
+      values.push(projectData.repository)
+    }
+    if (projectData.branch !== undefined) {
+      updates.push('branch = ?')
+      values.push(projectData.branch)
+    }
     updates.push('WHERE id = ?')
     values.push(existingId)
 
@@ -292,6 +302,8 @@ export function upsert(projectData: {
       progress: projectData.progress,
       totalAmount: projectData.totalAmount,
       usedAmount: projectData.usedAmount,
+      repository: projectData.repository || '',
+      branch: projectData.branch || '',
     }
   } else {
     const newTeam: TeamMember[] = [{
@@ -316,8 +328,8 @@ export function upsert(projectData: {
       milestones: [],
       timeline: [],
       leader: projectData.leader,
-      repository: '',
-      branch: '',
+      repository: projectData.repository || '',
+      branch: projectData.branch || '',
     }
     return create(newProject)
   }
