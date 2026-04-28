@@ -249,6 +249,13 @@ const ProjectDetail: React.FC = () => {
                         type="text"
                         value={repoEditRepository}
                         onChange={(e) => setRepoEditRepository(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setRepoEditRepository(project.repository || '')
+                            setRepoEditBranch(project.branch || '')
+                            setIsRepoEditing(false)
+                          }
+                        }}
                         className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
                         placeholder="https://github.com/org/repo"
                         autoFocus
@@ -260,6 +267,13 @@ const ProjectDetail: React.FC = () => {
                         type="text"
                         value={repoEditBranch}
                         onChange={(e) => setRepoEditBranch(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setRepoEditRepository(project.repository || '')
+                            setRepoEditBranch(project.branch || '')
+                            setIsRepoEditing(false)
+                          }
+                        }}
                         className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
                         placeholder="main"
                       />
