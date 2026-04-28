@@ -37,6 +37,9 @@ const ProjectDetail: React.FC = () => {
   const [newMilestoneDate, setNewMilestoneDate] = useState('')
   const [newMilestoneStatus, setNewMilestoneStatus] = useState<'pending' | 'completed' | 'delayed'>('pending')
   const [newMilestoneDescription, setNewMilestoneDescription] = useState('')
+  const [repoEditRepository, setRepoEditRepository] = useState('')
+  const [repoEditBranch, setRepoEditBranch] = useState('')
+  const [isRepoEditing, setIsRepoEditing] = useState(false)
 
   // Initialize budget edit states when entering edit mode
   const prevIsReadOnlyRef = useRef(isReadOnly)
@@ -58,6 +61,14 @@ const ProjectDetail: React.FC = () => {
       setNewMilestoneDescription('')
     }
   }, [showMilestoneModal])
+
+  // Initialize repo edit state when project loads
+  useEffect(() => {
+    if (project) {
+      setRepoEditRepository(project.repository || '')
+      setRepoEditBranch(project.branch || '')
+    }
+  }, [project])
 
   const handleAddMember = () => {
     if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
@@ -211,7 +222,88 @@ const ProjectDetail: React.FC = () => {
       {/* Main Content - Bento Grid */}
       <main className="max-w-[1600px] mx-auto p-6">
         <div className="grid grid-cols-12 gap-4">
-          {/* Row 1: Progress Tracking (8 cols) + Budget Stats (4 cols) */}
+          {/* Row 0: Repository Info Card */}
+          <div className="col-span-12">
+            <div className="bg-surface-elevated rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
+                  <span className="material-symbols-outlined">folder_copy</span>
+                  代码仓信息
+                </h3>
+                {!isReadOnly && !isRepoEditing && (
+                  <button
+                    onClick={() => setIsRepoEditing(true)}
+                    className="px-3 py-1.5 text-xs font-body font-medium text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                  >
+                    编辑
+                  </button>
+                )}
+              </div>
+
+              {isRepoEditing ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-body text-on-surface-tertiary mb-1.5">代码仓</label>
+                      <input
+                        type="text"
+                        value={repoEditRepository}
+                        onChange={(e) => setRepoEditRepository(e.target.value)}
+                        className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+                        placeholder="https://github.com/org/repo"
+                        autoFocus
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-body text-on-surface-tertiary mb-1.5">分支</label>
+                      <input
+                        type="text"
+                        value={repoEditBranch}
+                        onChange={(e) => setRepoEditBranch(e.target.value)}
+                        className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+                        placeholder="main"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setRepoEditRepository(project.repository || '')
+                        setRepoEditBranch(project.branch || '')
+                        setIsRepoEditing(false)
+                      }}
+                      className="px-3 py-1.5 border border-outline rounded-lg text-xs font-body text-on-surface-primary hover:bg-surface-container"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={() => {
+                        updateProject(project.id, { repository: repoEditRepository, branch: repoEditBranch, updatedAt: new Date().toISOString() })
+                        setIsRepoEditing(false)
+                      }}
+                      className="px-3 py-1.5 bg-primary-500 text-white rounded-lg text-xs font-body font-medium hover:bg-primary-600"
+                    >
+                      保存
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm font-body text-on-surface-primary">
+                  {project.repository || project.branch ? (
+                    <span>
+                      {project.repository && <span className="font-mono">{project.repository}</span>}
+                      {project.repository && project.branch && <span className="text-on-surface-tertiary mx-1">@</span>}
+                      {project.branch && <span className="font-mono">{project.branch}</span>}
+                    </span>
+                  ) : (
+                    <span className="text-on-surface-tertiary">未设置代码仓</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Row 1: Repository Info - ABOVE this */}
           <div className="col-span-12 lg:col-span-8">
             <div className="bg-surface-elevated rounded-xl p-6 h-full">
               <ProgressSlider
