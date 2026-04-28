@@ -22,3 +22,8 @@ export const IMPORT_REQUIRED_HEADERS = [
   '总预算',
   '已用预算',
 ] as const
+
+export const IMPORT_OPTIONAL_HEADERS = [
+  '代码仓',
+  '分支',
+] as const
