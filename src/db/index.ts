@@ -80,7 +80,7 @@ async function doInitDatabase(): Promise<Database> {
           `INSERT INTO projects (
             id, name, product_line, status, tag, total_amount, used_amount,
             progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repository, branch, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             crypto.randomUUID(),
             project.name,

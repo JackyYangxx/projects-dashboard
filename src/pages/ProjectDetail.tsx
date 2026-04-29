@@ -48,6 +48,8 @@ const ProjectDetail: React.FC = () => {
       // Transitioned from read-only to edit mode - echo the current values
       setBudgetEditTotal(String(project.totalAmount))
       setBudgetEditUsed(String(project.usedAmount))
+      // Auto-enter repo edit mode
+      setIsRepoEditing(true)
     }
     prevIsReadOnlyRef.current = isReadOnly
   }, [isReadOnly, project?.totalAmount, project?.usedAmount])

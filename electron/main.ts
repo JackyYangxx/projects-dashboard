@@ -19,7 +19,7 @@ function createWindow() {
     show: false,
     titleBarStyle: 'default',
     autoHideMenuBar: true,
-    fullscreen: true,
+    center: true,
   })
 
   win.once('ready-to-show', () => {

@@ -1,0 +1,15 @@
+/* Fira Code */
+@font-face {
+  font-family: 'Fira Code';
+  font-style: normal;
+  font-weight: 400 700;
+  src: url('/fonts/fira-code.woff2') format('woff2');
+}
+
+/* Fira Sans */
+@font-face {
+  font-family: 'Fira Sans';
+  font-style: normal;
+  font-weight: 300 700;
+  src: url('/fonts/fira-sans.woff2') format('woff2');
+}
