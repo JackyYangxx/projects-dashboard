@@ -251,6 +251,14 @@ export function upsert(projectData: {
   usedAmount: number
   repository?: string
   branch?: string
+  tag?: string
+  subProgress?: Project['subProgress']
+  notes?: string
+  noteHistory?: Project['noteHistory']
+  team?: Project['team']
+  scope?: Project['scope']
+  milestones?: Project['milestones']
+  timeline?: Project['timeline']
 }): Project {
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
@@ -275,8 +283,8 @@ export function upsert(projectData: {
       ? [{ ...existingTeam[0], name: projectData.leader, avatar: generateAvatarUrl(projectData.leader) }]
       : [{ id: crypto.randomUUID(), name: projectData.leader, role: '负责人', avatar: generateAvatarUrl(projectData.leader) }]
 
-    const updates: string[] = ['product_line = ?', 'total_amount = ?', 'used_amount = ?', 'progress = ?', 'leader = ?', 'team = ?', 'updated_at = ?']
-    const values: SqlValue[] = [projectData.productLine, projectData.totalAmount, projectData.usedAmount, projectData.progress, projectData.leader, JSON.stringify(updatedTeam), now]
+    const updates: string[] = ['product_line = ?', 'total_amount = ?', 'used_amount = ?', 'progress = ?', 'leader = ?', 'team = ?', 'updated_at = ?', 'tag = ?', 'sub_progress = ?', 'notes = ?', 'note_history = ?', 'scope = ?', 'milestones = ?', 'timeline = ?']
+    const values: SqlValue[] = [projectData.productLine, projectData.totalAmount, projectData.usedAmount, projectData.progress, projectData.leader, JSON.stringify(updatedTeam), now, projectData.tag ?? '', JSON.stringify(projectData.subProgress ?? { architecture: 0, uiux: 0, engineering: 0, qa: 0 }), projectData.notes ?? '', JSON.stringify(projectData.noteHistory ?? []), JSON.stringify(projectData.scope ?? []), JSON.stringify(projectData.milestones ?? []), JSON.stringify(projectData.timeline ?? [])]
     if (projectData.status !== undefined) {
       updates.unshift('status = ?')
       values.unshift(projectData.status)
@@ -302,6 +310,13 @@ export function upsert(projectData: {
       usedAmount: projectData.usedAmount,
       repository: projectData.repository || '',
       branch: projectData.branch || '',
+      tag: projectData.tag ?? '',
+      subProgress: projectData.subProgress ?? { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
+      notes: projectData.notes ?? '',
+      noteHistory: projectData.noteHistory ?? [],
+      scope: projectData.scope ?? [],
+      milestones: projectData.milestones ?? [],
+      timeline: projectData.timeline ?? [],
     }
   } else {
     const newTeam: TeamMember[] = [{
@@ -314,17 +329,17 @@ export function upsert(projectData: {
       name: projectData.name,
       productLine: projectData.productLine,
       status: projectData.status ?? 'paused',
-      tag: '',
+      tag: projectData.tag ?? '',
       totalAmount: projectData.totalAmount,
       usedAmount: projectData.usedAmount,
       progress: projectData.progress,
-      subProgress: { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
-      notes: '',
-      noteHistory: [],
+      subProgress: projectData.subProgress ?? { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
+      notes: projectData.notes ?? '',
+      noteHistory: projectData.noteHistory ?? [],
       team: newTeam,
-      scope: [],
-      milestones: [],
-      timeline: [],
+      scope: projectData.scope ?? [],
+      milestones: projectData.milestones ?? [],
+      timeline: projectData.timeline ?? [],
       leader: projectData.leader,
       repository: projectData.repository || '',
       branch: projectData.branch || '',

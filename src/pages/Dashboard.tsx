@@ -89,7 +89,29 @@ const Dashboard: React.FC = () => {
             const totalAmount = Number(row['总预算']) || 0
             const usedAmount = Number(row['已用预算']) || 0
 
-            upsert({ name, productLine: String(row['产品线'] || ''), leader, progress, totalAmount, usedAmount, repository: String(row['代码仓'] || ''), branch: String(row['分支'] || '') })
+            upsert({
+              name,
+              productLine: String(row['产品线'] || ''),
+              leader,
+              progress,
+              totalAmount,
+              usedAmount,
+              repository: String(row['代码仓'] || ''),
+              branch: String(row['分支'] || ''),
+              tag: String(row['标签'] || ''),
+              subProgress: {
+                architecture: Number(row['进展_架构']) || 0,
+                uiux: Number(row['进展_UIUX']) || 0,
+                engineering: Number(row['进展_工程']) || 0,
+                qa: Number(row['进展_QA']) || 0,
+              },
+              notes: String(row['备注'] || ''),
+              noteHistory: row['备注历史'] ? JSON.parse(String(row['备注历史'])) : [],
+              team: row['团队成员'] ? JSON.parse(String(row['团队成员'])) : [],
+              scope: row['范围项'] ? JSON.parse(String(row['范围项'])) : [],
+              milestones: row['里程碑'] ? JSON.parse(String(row['里程碑'])) : [],
+              timeline: row['时间线'] ? JSON.parse(String(row['时间线'])) : [],
+            })
             successCount++
           }
 
@@ -116,6 +138,17 @@ const Dashboard: React.FC = () => {
       '预算执行率': p.totalAmount > 0 ? Math.round((p.usedAmount / p.totalAmount) * 100) : 0,
       '代码仓': p.repository || '',
       '分支': p.branch || '',
+      '标签': p.tag,
+      '进展_架构': p.subProgress.architecture,
+      '进展_UIUX': p.subProgress.uiux,
+      '进展_工程': p.subProgress.engineering,
+      '进展_QA': p.subProgress.qa,
+      '备注': p.notes,
+      '备注历史': JSON.stringify(p.noteHistory),
+      '团队成员': JSON.stringify(p.team),
+      '范围项': JSON.stringify(p.scope),
+      '里程碑': JSON.stringify(p.milestones),
+      '时间线': JSON.stringify(p.timeline),
     }))
 
     const ws = XLSX.utils.json_to_sheet(exportData)
