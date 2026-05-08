@@ -10,6 +10,16 @@ npm run electron:dev  # Full Electron + Vite (use this for development)
 npm run electron:build # Build + package
 ```
 
+## Release Build
+
+**Required outputs (3 total):**
+- macOS: arm64 DMG only
+- Windows: x64 ZIP + arm64 ZIP
+
+**Build command:** `npx electron-builder --mac --win`
+
+**Note:** NSIS installer (`.exe` portable) not available on macOS — requires Windows or Linux host.
+
 ## Architecture
 
 **Electron processes:**

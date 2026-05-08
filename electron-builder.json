@@ -12,14 +12,29 @@
   ],
   "icon": "docs/app-icon",
   "mac": {
-    "target": ["dmg"],
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["arm64"]
+      }
+    ],
     "category": "public.app-category.productivity",
     "icon": "docs/app-icon"
   },
   "win": {
-    "target": ["dir"],
+    "target": [
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
     "defaultArch": "x64",
     "signAndEditExecutable": false,
+    "icon": "docs/app-icon"
+  },
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "category": "Utility",
     "icon": "docs/app-icon"
   },
   "nsis": {
