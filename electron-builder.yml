@@ -1,0 +1,27 @@
+appId: com.precisioncurator.app
+productName: Precision Curator
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+
+win:
+  target:
+    - target: zip
+      arch:
+        - x64
+  icon: docs/app-icon
+  signAndEditExecutable: false
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  icon: docs/app-icon
+
+publish: null
