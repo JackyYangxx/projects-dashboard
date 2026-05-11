@@ -15,6 +15,10 @@ const ProjectDetail: React.FC = () => {
   const project = id ? getProjectById(id) : undefined
 
   const currentIndex = project ? filteredProjectIds.indexOf(project.id) : -1
+  // displayIndex is 1-based (for user-facing counter), validated to be within bounds
+  const displayIndex = (currentIndex >= 0 && currentIndex < filteredProjectIds.length)
+    ? currentIndex + 1
+    : 0
   const prevId = currentIndex > 0 ? filteredProjectIds[currentIndex - 1] : undefined
   const nextId = currentIndex >= 0 && currentIndex < filteredProjectIds.length - 1 ? filteredProjectIds[currentIndex + 1] : undefined
 
@@ -840,7 +844,7 @@ const ProjectDetail: React.FC = () => {
       <PrevNextNav
         prevId={prevId}
         nextId={nextId}
-        currentIndex={currentIndex >= 0 ? currentIndex + 1 : 0}
+        currentIndex={displayIndex}
         total={filteredProjectIds.length}
         onPrev={() => prevId && navigate(`/project/${prevId}`)}
         onNext={() => nextId && navigate(`/project/${nextId}`)}

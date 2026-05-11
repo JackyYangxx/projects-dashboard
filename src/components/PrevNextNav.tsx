@@ -42,7 +42,7 @@ const PrevNextNav: React.FC<PrevNextNavProps> = ({
       </button>
 
       <div className="font-mono tabular-nums text-sm text-on-surface-secondary">
-        <span className="font-heading font-semibold text-on-surface-primary">{currentIndex + 1}</span>
+        <span className="font-heading font-semibold text-on-surface-primary">{currentIndex}</span>
         <span className="mx-1">/</span>
         <span>{total}</span>
       </div>
