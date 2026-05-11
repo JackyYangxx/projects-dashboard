@@ -1,99 +1,137 @@
-# Precision Curator - 实现总结
+# Precision Curator - 项目变更日志
 
-**项目名称：** Precision Curator（精准策展人）
-**项目类型：** Electron 桌面应用
-**实现日期：** 2026-04-16
-**状态：** ✅ 已完成
+**当前版本：** 1.0.2
+**最后更新：** 2026-05-08
 
 ---
 
-## 一、执行过程
+## 版本历史
 
-### 1.1 使用的方法论
+### v1.0.2 (2026-05-08)
 
-本项目采用 **Subagent-Driven Development** 模式进行实现：
+**功能增强**
 
-- **核心思想：** 将任务分配给专门的 subagent，每个任务独立执行
-- **审核流程：** 每个任务完成后需要经过 Spec Compliance Review 和 Code Quality Review
-- **优势：** 上下文隔离，避免状态污染，支持并行任务分配
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| F1 | 导出功能增强：包含项目详细内容（repository, branch, subProgress, notes, team, scope, milestones, timeline） | ✅ | `src/pages/Dashboard.tsx` |
+| F2 | 导入无限制：支持完整字段导入，upsert 保留未填字段 | ✅ | `src/pages/Dashboard.tsx` |
 
-### 1.2 任务分配
-
-| Task ID | 任务名称 | 执行者 | 状态 |
-|---------|---------|--------|------|
-| Task 1 | 配置 sql.js 数据库和初始化脚本 | controller | ✅ |
-| Task 2 | 创建 TypeScript 类型定义 | controller | ✅ |
-| Task 3 | 初始化 Electron + React + Vite + TypeScript + Tailwind 项目 | implementer-task-3 | ✅ |
-| Task 4 | 构建 ProjectDetail 页面 | implementer-task-4 | ✅ |
-| Task 5 | 配置 Electron 主进程和预加载脚本 | controller | ✅ |
-| Task 6 | 构建公共 UI 组件 | implementer-task-6 | ✅ |
-| Task 7 | 实现 Zustand store | implementer-task-7 | ✅ |
-| Task 8 | 添加预置演示数据 | controller | ✅ |
-| Task 9 | 构建 Dashboard 页面 | implementer-task-9 | ✅ |
-
-### 1.3 Git 提交记录
-
-| Commit | 描述 |
-|--------|------|
-| `89cde0a` | Initial commit: Precision Curator project foundation |
-| `fbdf250` | Add .gitignore and clean initial commit |
-| `87db632` | feat: add sql.js database layer |
-| `ab12974` | feat: add Zustand store for project management |
-| `19b43d1` | feat: add seed data and auto-load on init |
-| `81f9cd6` | feat: add all public UI components |
-| `cff1115` | feat: add Dashboard page |
-| `e9ee0a4` | feat: enhance Electron configuration |
+**提交：** `cc4a76b` feat: export detailed project info including subProgress, notes, team, scope, milestones and timeline
 
 ---
 
-## 二、项目结构
+### v1.0.1 (2026-04-28)
 
-```
-precision-curator/
-├── electron/
-│   ├── main.ts           # Electron 主进程
-│   └── preload.ts        # 预加载脚本
-├── src/
-│   ├── components/       # 公共 UI 组件
-│   │   ├── Sidebar.tsx       # 侧边栏导航
-│   │   ├── Header.tsx        # 顶部栏
-│   │   ├── StatsCard.tsx     # 统计卡片
-│   │   ├── ProjectTable.tsx  # 项目表格
-│   │   ├── ProgressSlider.tsx # 进度滑块
-│   │   └── RichTextEditor.tsx # 富文本编辑器
-│   ├── pages/
-│   │   ├── Dashboard.tsx     # 项目仪表盘
-│   │   └── ProjectDetail.tsx # 项目详情页
-│   ├── store/
-│   │   └── projectStore.ts   # Zustand 状态管理
-│   ├── db/
-│   │   ├── index.ts          # 数据库初始化
-│   │   └── projectDao.ts    # 数据访问对象
-│   ├── data/
-│   │   └── seedData.ts      # 预置演示数据
-│   ├── types/
-│   │   └── index.ts         # TypeScript 类型定义
-│   ├── styles/
-│   │   └── globals.css       # 全局样式
-│   ├── App.tsx              # 应用入口
-│   └── main.tsx             # React 渲染入口
-├── public/
-├── doc/
-│   ├── design.md           # 设计文档
-│   └── implementation-summary.md # 本总结
-├── index.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── tailwind.config.js
-├── postcss.config.js
-├── electron-builder.json
-└── .gitignore
-```
+**功能增强**
+
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| R1 | 项目详情页新增代码仓信息字段（repository, branch） | ✅ | `src/pages/ProjectDetail.tsx`, `src/pages/ProjectForm.tsx`, `src/db/projectDao.ts`, `src/types/index.ts`, `src/constants/project.ts`, `src/data/seedData.ts` |
+| R2 | Excel 导入导出支持 repository 和 branch 字段 | ✅ | `src/pages/Dashboard.tsx` |
+| R3 | 项目详情页代码仓信息自动进入编辑模式 | ✅ | `src/pages/ProjectDetail.tsx` |
+
+**Bug 修复**
+
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| B1 | ESC 键无法取消代码仓编辑输入 | ✅ | `src/pages/ProjectDetail.tsx` |
+
+**提交：** `S83-S84`, `62-73`
 
 ---
 
-## 三、技术栈
+### v1.0.0 (2026-04-21)
+
+**功能增强**
+
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| I1 | 导入规则简化：必填字段从 7 项缩减为 5 项（移除状态和项目进展） | ✅ | `src/constants/project.ts`, `src/pages/Dashboard.tsx` |
+| I2 | 预算执行率由计算得出，不再导入 | ✅ | `src/pages/Dashboard.tsx` |
+| I3 | upsert 函数支持部分字段更新 | ✅ | `src/db/projectDao.ts` |
+
+**提交：** `2026-04-21` import-validation-design
+
+---
+
+### v0.9.0 (2026-04-18)
+
+**功能增强**
+
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| F1 | 项目笔记仅在编辑状态下显示 | ✅ | `src/pages/ProjectDetail.tsx` |
+| F2 | 里程碑支持编辑模式输入（Dialog 表单） | ✅ | `src/pages/ProjectDetail.tsx` |
+| F3 | 预算统计编辑模式直接显示文本框 | ✅ | `src/pages/ProjectDetail.tsx` |
+| F4 | 移除 Timeline 组件 | ✅ | `src/pages/ProjectDetail.tsx` |
+
+**Bug 修复**
+
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| B1 | 点击列表编辑按钮应跳转编辑状态（`?edit=true`） | ✅ | `src/pages/Dashboard.tsx`, `src/pages/ProjectDetail.tsx` |
+| B2 | 预算统计在编辑状态下没有正确回显数值 | ✅ | `src/pages/ProjectDetail.tsx` |
+| B3 | 笔记历史未正确解析 Markdown 格式（使用 marked + DOMPurify） | ✅ | `src/pages/ProjectDetail.tsx` |
+| B4 | isReadOnly 状态在切换后被 URL 参数覆盖 | ✅ | `src/pages/ProjectDetail.tsx` |
+| B5 | 笔记历史没有默认展开最新记录 | ✅ | `src/pages/ProjectDetail.tsx` |
+| B6 | 战略团队添加成员按钮在查看模式下可见 | ✅ | `src/pages/ProjectDetail.tsx` |
+
+**提交：** `d9df988`, `f66a113`, `901920c`, `c6cc07f`, `f9f77a3`, `a6e64f5`
+
+---
+
+### v0.8.0 (2026-04-17)
+
+**功能增强**
+
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| D1 | Dashboard 无限滚动（Intersection Observer） | ✅ | `src/components/ProjectTable.tsx` |
+| D2 | 行点击跳转只读详情页 | ✅ | `src/components/ProjectTable.tsx`, `src/pages/ProjectDetail.tsx` |
+| D3 | 子进度条可独立拖拽 | ✅ | `src/components/ProgressSlider.tsx` |
+| D4 | 预算卡片内联编辑 | ✅ | `src/pages/ProjectDetail.tsx` |
+| D5 | 笔记历史手风琴 UI（最新默认展开） | ✅ | `src/pages/ProjectDetail.tsx` |
+| D6 | 富文本编辑器替换为 Tiptap | ✅ | `src/components/TipTapEditor.tsx` |
+| D7 | 团队添加成员弹窗（DiceBear 头像） | ✅ | `src/pages/ProjectDetail.tsx` |
+| D8 | 策展范围替换为里程碑组件 | ✅ | `src/pages/ProjectDetail.tsx` |
+| D9 | React Router future flags 添加 | ✅ | `src/App.tsx` |
+
+**Bug 修复**
+
+| # | 描述 | 状态 | 变更文件 |
+|---|------|------|----------|
+| B1 | WASM 数据库初始化失败（使用 wasmBinary + fetch） | ✅ | `src/db/index.ts` |
+| B2 | 表单字段缺少 id/name 属性（搜索框、筛选器） | ✅ | `src/components/Header.tsx`, `src/pages/Dashboard.tsx` |
+| B3 | 新增项目按钮缺少 onClick 处理程序 | ✅ | `src/pages/ProjectForm.tsx`, `src/pages/Dashboard.tsx` |
+
+**代码质量规则（已沉淀）**
+
+1. **手风琴默认展开最新项** — 新条目 append 到数组末尾时，`expandedId = array[array.length - 1].id`
+2. **Arrow Rotation 方向** — 折叠(`collapsed`): `rotate(-90deg)`; 展开(`expanded`): `rotate(0deg)`
+3. **IntersectionObserver Dependencies** — 不要将 `isLoadingMore` 放入 deps 数组，使用 ref 代替
+4. **内联编辑状态管理** — `editingField` + `editValue` 模式
+5. **只读模式穿透** — 所有可编辑组件支持 `readOnly` prop
+
+**提交：** `95b7939`, `270d27f`, `710c016`, `b00a7e3`, `4963bce`, `29e3bc3`, `79f3d75`
+
+---
+
+### v0.5.0 (2026-04-16)
+
+**初始版本**
+
+- Electron + React + Vite + TypeScript + Tailwind 项目脚手架
+- sql.js (SQLite in WASM) 数据库层
+- Zustand 状态管理
+- Dashboard 首页（侧边栏、顶部栏、统计卡片、项目表格）
+- ProjectDetail 详情页（进度滑块、预算统计、富文本编辑器、团队、策展范围）
+- 预置 3 个示例项目
+
+**提交：** `89cde0a`, `fbdf250`, `87db632`, `ab12974`, `19b43d1`, `81f9cd6`, `cff1115`, `e9ee0a4`
+
+---
+
+## 技术栈
 
 | 层级 | 技术选型 | 版本 |
 |-----|---------|------|
@@ -105,167 +143,80 @@ precision-curator/
 | 状态管理 | Zustand | 4.x |
 | 本地存储 | sql.js | 1.x |
 | 语言 | TypeScript | 5.x |
+| Excel 处理 | xlsx (SheetJS) | latest |
 
 ---
 
-## 四、功能特性
+## 架构
 
-### 4.1 Dashboard 页面 (`/`)
-
-- 固定左侧侧边栏（256px），仅包含"项目概览"导航
-- 顶部栏：面包屑、搜索框
-- 统计卡片区：
-  - 项目总数（带增长率）
-  - 进行中项目数（带本周更新数）
-  - 全局预算执行率（带进度条）
-- 项目表格：
-  - 月份/状态下拉筛选器
-  - 表格列：项目名称、产品线、负责人、项目进展（进度条）、预算执行率（进度条）、状态、操作
-  - 无限滚动加载
-
-### 4.2 ProjectDetail 页面 (`/project/:id`)
-
-- 全宽布局，无侧边栏
-- 顶部导航栏：返回按钮、项目名称、状态标签
-- 支持 `?edit=true` URL 参数进入编辑模式
-- Bento 网格布局：
-  - 进度跟踪区：可拖动滑块 + 子进度卡片
-  - 预算统计面板：总金额、已使用、执行率（编辑模式直接输入）
-  - 项目笔记：仅编辑模式显示
-  - 战略团队：查看模式只读，编辑模式可添加成员
-  - 里程碑：查看模式列表展示，编辑模式可添加新里程碑
-  - 策展范围
-
-### 4.3 数据管理
-
-- sql.js SQLite WebAssembly 存储
-- Zustand 状态管理与数据库同步
-- 预置 3 个示例项目数据
-
----
-
-## 五、设计系统
-
-### 5.1 颜色系统
-
-- `surface-base`: #F7F6F3（背景）
-- `surface-container`: #EFEDE8（容器）
-- `surface-elevated`: #FFFFFF（悬浮）
-- `on-surface-primary`: #1A1A1A（主文字）
-- `on-surface-secondary`: #6B6B6B（次要文字）
-- `on-surface-tertiary`: #9E9E9E（辅助文字）
-- `primary-500`: #5B7FA6（强调色）
-
-### 5.2 字体
-
-- 标题/数字：Manrope
-- 正文/标签：Inter
-
----
-
-## 六、初步结果
-
-### 6.1 构建验证
-
-```bash
-npm run build  # ✅ 成功
+```
+precision-curator/
+├── electron/
+│   ├── main.ts           # Electron 主进程（窗口管理、IPC、单例锁）
+│   └── preload.ts        # 预加载脚本（contextBridge API）
+├── src/
+│   ├── components/       # 公共 UI 组件
+│   │   ├── Sidebar.tsx       # 侧边栏导航
+│   │   ├── Header.tsx        # 顶部栏
+│   │   ├── StatsCard.tsx     # 统计卡片
+│   │   ├── ProjectTable.tsx  # 项目表格（无限滚动）
+│   │   ├── ProgressSlider.tsx # 进度滑块（主+子进度）
+│   │   └── TipTapEditor.tsx  # 富文本编辑器
+│   ├── pages/
+│   │   ├── Dashboard.tsx     # 项目仪表盘（导入/导出）
+│   │   ├── ProjectDetail.tsx # 项目详情页（查看/编辑）
+│   │   └── ProjectForm.tsx   # 新增项目表单
+│   ├── store/
+│   │   └── projectStore.ts   # Zustand store
+│   ├── db/
+│   │   ├── index.ts         # 数据库初始化
+│   │   └── projectDao.ts    # CRUD + upsert
+│   ├── data/
+│   │   └── seedData.ts      # 预置数据（3 个项目）
+│   ├── constants/
+│   │   └── project.ts       # 常量（STATUS_MAP, IMPORT_REQUIRED_HEADERS 等）
+│   ├── types/
+│   │   └── index.ts         # TypeScript 类型定义
+│   └── styles/
+│       └── globals.css      # 全局样式 + 动画
+├── docs/
+│   ├── implementation-summary.md  # 本文档
+│   ├── ui-design-system.md        # 设计系统
+│   └── archive/                    # 历史文档
+└── public/
+    └── sql-wasm.wasm              # SQLite WASM 文件
 ```
 
-产物：
-- `dist/` - React 应用构建产物
-- `dist-electron/` - Electron 主进程和预加载脚本
+---
 
-### 6.2 运行方式
+## 数据模型
 
-```bash
-# 开发模式
-npm run dev
-
-# Electron 开发模式
-npm run electron:dev
-
-# 生产构建
-npm run build
-npm run electron:build
+```typescript
+interface Project {
+  id: string
+  name: string
+  productLine: string
+  status: 'ongoing' | 'completed' | 'paused'
+  tag: string
+  totalAmount: number
+  usedAmount: number
+  progress: number
+  subProgress: SubProgress
+  notes: string
+  noteHistory: NoteHistory[]
+  team: TeamMember[]
+  scope: ScopeItem[]
+  milestones: Milestone[]
+  timeline: TimelineEvent[]
+  leader: string
+  repository: string
+  branch: string
+  createdAt: string
+  updatedAt: string
+}
 ```
-
-### 6.3 窗口配置
-
-- 默认尺寸：1400 x 900
-- 最小尺寸：1280 x 800
-- Context Isolation: 启用
-- Node Integration: 禁用
-
----
-
-## 七、后续工作
-
-以下功能可在后续迭代中实现：
-
-1. ~~**CRUD 弹窗**~~：✅ 已实现独立表单页面 `/project/new`
-2. ~~**团队成员管理**~~：✅ 已在 ProjectDetail 中实现
-3. ~~**里程碑管理**~~：✅ 已在 ProjectDetail 中实现
-4. **搜索功能**：Dashboard 搜索框的实际实现
-5. **策展范围管理**：添加/编辑策展范围的完整功能
-6. **数据持久化**：将 sql.js 数据保存到本地文件
-7. **打包发布**：使用 electron-builder 生成 macOS .dmg 和 Windows .exe
-
----
-
-## 九、迭代记录 (2026-04-18)
-
-### 本次更新内容
-
-**Bug 修复：**
-| Issue | 描述 | 修复方案 |
-|-------|------|----------|
-| #6 | 点击列表编辑按钮应跳转到编辑状态 | Dashboard handleEdit 导航到 `?edit=true` |
-| #7 | 预算统计在编辑状态下没有正确回显数值 | 使用 useEffect 监听 isReadOnly 变化初始化 budgetEditTotal/budgetEditUsed |
-| #8 | 笔记历史未正确解析 Markdown 格式 | 使用 marked + DOMPurify 解析 |
-| #9 | isReadOnly 状态在切换后被 URL 参数覆盖 | useEffect + 空依赖在挂载时读取一次 URL 参数 |
-| #10 | 笔记历史没有默认展开 | useEffect 在 project.noteHistory 加载后展开最新记录 |
-| #11 | 添加成员按钮在查看模式下可见 | 添加 `!isReadOnly &&` 条件渲染 |
-
-**功能实现：**
-| Feature | 描述 | 状态 |
-|---------|------|------|
-| #1 | 项目笔记仅在编辑状态下显示 | ✅ |
-| #2 | 里程碑支持编辑模式输入 | ✅ Dialog 表单 |
-| #3 | 预算统计编辑模式直接显示文本框 | ✅ |
-| #4 | 移除 Timeline 组件 | ✅ |
-
-**代码优化：**
-- Sidebar 简化：移除多余导航项，仅保留"项目概览"
-- Header 简化：移除通知/设置/用户图标
-- ProjectTable：移除总金额/已使用列，添加项目进展列
-- ProjectForm：移除标签/进度字段，添加负责人字段
-- 代码质量：删除死代码 Timeline.tsx，统一 getBudgetRate 返回类型
-
----
-
----
-
-## 八、修复记录 (2026-04-17)
-
-### Bug Fix #4: 新增项目按钮缺少点击处理程序
-
-**问题：** Dashboard 页面的"新增项目"按钮缺少 onClick 事件，点击无响应
-
-**修复方案：** 实现独立表单页面 `/project/new`
-
-**变更文件：**
-| 文件 | 操作 |
-|------|------|
-| `src/pages/ProjectForm.tsx` | 新建 - 项目表单页面 |
-| `src/App.tsx` | 修改 - 添加 `/project/new` 路由 |
-| `src/pages/Dashboard.tsx` | 修改 - 按钮添加 `onClick={() => navigate('/project/new')}` |
-
-**验证结果：** ✅ 通过 Playwright 自动化测试
-- 点击"新增项目" → 跳转 `/project/new` ✅
-- 填写表单提交 → 创建项目并跳转 Dashboard ✅
-- 新项目在列表中可见 ✅
 
 ---
 
 *文档生成时间：2026-04-16*
-*最后更新：2026-04-17*
+*最后更新：2026-05-08*

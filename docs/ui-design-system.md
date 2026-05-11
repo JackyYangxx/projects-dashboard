@@ -362,6 +362,25 @@ className="bg-warning/10 text-warning border border-warning/20"
 | 1.0.0 | 2026-04-17 | 初始版本 - 企业蓝灰配色 |
 | 2.0.0 | 2026-04-17 | 科技风升级 - 浅色+流动渐变+紫色强调 |
 
+## 十二、UI 审查记录
+
+**审查日期：** 2026-04-17
+**审查范围：** Dashboard 首页所有组件
+
+### 已修复问题（P0/P1 全部解决）
+
+| 组件 | 问题 | 修复方案 |
+|------|------|----------|
+| ProjectTable | 删除操作无确认 | 添加 `window.confirm()` 确认对话框 |
+| Header | 图标按钮缺 aria-label | 所有按钮添加 `aria-label` |
+| ProjectTable | 分页 ellipsis 缺 aria-label | 添加 `aria-label="更多页码"` |
+| Sidebar | 激活状态无视觉指示 | 使用渐变背景 + 白色文字 |
+| Header | 搜索框无 focus ring | 添加 `focus:ring-2 focus:ring-primary-500/20` |
+| StatsCard | 进度条动画可能抖动 | 改用 `transition-[width] duration-500 ease-out` |
+| Dashboard | 无空状态设计 | 添加空状态图标和提示文案 |
+
+详细审查报告已归档至 `docs/archive/ui-review-dashboard.md`。
+
 ---
 
 *文档生成: Claude Code + ui-ux-pro-max Design Intelligence*
