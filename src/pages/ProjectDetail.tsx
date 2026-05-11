@@ -5,13 +5,18 @@ import DOMPurify from 'dompurify'
 import { useProjectStore } from '@/store/projectStore'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
+import PrevNextNav from '@/components/PrevNextNav'
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { getProjectById, updateProject } = useProjectStore()
+  const { getProjectById, updateProject, filteredProjectIds } = useProjectStore()
   const project = id ? getProjectById(id) : undefined
+
+  const currentIndex = project ? filteredProjectIds.indexOf(project.id) : -1
+  const prevId = currentIndex > 0 ? filteredProjectIds[currentIndex - 1] : undefined
+  const nextId = currentIndex >= 0 && currentIndex < filteredProjectIds.length - 1 ? filteredProjectIds[currentIndex + 1] : undefined
 
   const [isReadOnly, setIsReadOnly] = useState(true)
   // Only set initial isReadOnly from URL on first mount, not on subsequent renders
@@ -832,6 +837,14 @@ const ProjectDetail: React.FC = () => {
           </div>
         </div>
       )}
+      <PrevNextNav
+        prevId={prevId}
+        nextId={nextId}
+        currentIndex={currentIndex >= 0 ? currentIndex + 1 : 0}
+        total={filteredProjectIds.length}
+        onPrev={() => prevId && navigate(`/project/${prevId}`)}
+        onNext={() => nextId && navigate(`/project/${nextId}`)}
+      />
     </div>
   )
 }
