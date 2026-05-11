@@ -8,6 +8,7 @@ interface ProjectStore {
   projects: Project[]
   isLoading: boolean
   error: string | null
+  filteredProjectIds: string[]
 
   // Actions
   loadProjects: () => Promise<void>
@@ -16,6 +17,7 @@ interface ProjectStore {
   deleteProject: (id: string) => Promise<void>
   getProjectById: (id: string) => Project | undefined
   addNoteHistory: (projectId: string, content: string) => Promise<void>
+  setFilteredProjectIds: (ids: string[]) => void
 }
 
 export const useProjectStore = zustandCreate<ProjectStore>((set, get) => ({
@@ -23,6 +25,7 @@ export const useProjectStore = zustandCreate<ProjectStore>((set, get) => ({
   projects: [],
   isLoading: false,
   error: null,
+  filteredProjectIds: [],
 
   loadProjects: async () => {
     set({ isLoading: true, error: null })
@@ -108,4 +111,6 @@ export const useProjectStore = zustandCreate<ProjectStore>((set, get) => ({
       set({ error: err instanceof Error ? err.message : 'Failed to add note history', isLoading: false })
     }
   },
+
+  setFilteredProjectIds: (ids) => set({ filteredProjectIds: ids }),
 }))
