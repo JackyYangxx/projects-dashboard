@@ -11,11 +11,22 @@ import { STATUS_LABELS, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
-  const { projects, isLoading, loadProjects } = useProjectStore()
+  const { projects, isLoading, loadProjects, setFilteredProjectIds } = useProjectStore()
 
   useEffect(() => {
     loadProjects()
   }, [loadProjects])
+
+  // Set initial filtered project IDs when projects load
+  useEffect(() => {
+    if (projects.length > 0) {
+      setFilteredProjectIds(projects.map(p => p.id))
+    }
+  }, [projects, setFilteredProjectIds])
+
+  const handleFilteredProjectsChange = (ids: string[]) => {
+    setFilteredProjectIds(ids)
+  }
 
   // Calculate stats
   const totalCount = projects.length
@@ -274,6 +285,7 @@ const Dashboard: React.FC = () => {
               onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onFilteredProjectsChange={handleFilteredProjectsChange}
             />
           )}
         </main>

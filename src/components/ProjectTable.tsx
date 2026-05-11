@@ -8,6 +8,7 @@ interface ProjectTableProps {
   onEdit?: (project: Project) => void
   onDelete?: (project: Project) => void
   onView?: (project: Project) => void
+  onFilteredProjectsChange?: (ids: string[]) => void
 }
 
 const MONTHS = ['全部', '一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
@@ -20,6 +21,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   onEdit,
   onDelete,
   onView,
+  onFilteredProjectsChange,
 }) => {
   const [monthFilter, setMonthFilter] = React.useState('全部')
   const [statusFilter, setStatusFilter] = React.useState('全部')
@@ -54,6 +56,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
     setFilteredProjects(result)
     setVisibleCount(INITIAL_PAGE_SIZE)
+    onFilteredProjectsChange?.(result.map(p => p.id))
   }, [projects, monthFilter, statusFilter])
 
   React.useEffect(() => {
