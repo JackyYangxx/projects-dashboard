@@ -231,7 +231,7 @@ const ProjectDetail: React.FC = () => {
       </nav>
 
       {/* Main Content - Bento Grid */}
-      <main className="max-w-[1600px] mx-auto p-6">
+      <main className="max-w-[1600px] mx-auto p-6 pb-20">
         <div className="grid grid-cols-12 gap-4">
           {/* Row 0: Repository Info Card */}
           <div className="col-span-12">
