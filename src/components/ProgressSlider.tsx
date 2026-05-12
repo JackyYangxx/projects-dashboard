@@ -1,5 +1,6 @@
 import React from 'react'
 import type { SubProgress } from '../types/index'
+import Icon from './Icon'
 
 interface ProgressSliderProps {
   value: number
@@ -185,9 +186,7 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
             className="bg-white rounded-xl p-3 flex items-center gap-3 border border-outline transition-all duration-150 hover:shadow-elevated hover:border-primary-200"
           >
             <div className="w-9 h-9 bg-gradient-to-br from-primary-50 to-accent-50 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-100">
-              <span className="material-symbols-outlined text-accent-500 text-base">
-                {item.icon}
-              </span>
+              <Icon name={item.icon} className="text-accent-500 text-base" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-body text-on-surface-secondary">{item.label}</p>
