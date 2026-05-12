@@ -1,4 +1,5 @@
 import React from 'react'
+import Icon from './Icon'
 import TruncatedText from './TruncatedText'
 
 interface HeaderProps {
@@ -22,9 +23,7 @@ const Header: React.FC<HeaderProps> = ({ title = '项目概览' }) => {
       {/* Search */}
       <div className="flex-1 max-w-md ml-4">
         <div className="relative group">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-tertiary text-lg transition-colors group-focus-within:text-primary-500">
-            search
-          </span>
+          <Icon name="search" size={24} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-tertiary transition-colors group-focus-within:text-primary-500" />
           <input
             type="text"
             id="search"
