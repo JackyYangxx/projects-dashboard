@@ -12,13 +12,12 @@ npm run electron:build # Build + package
 
 ## Release Build
 
-**Required outputs (3 total):**
-- macOS: arm64 DMG only
-- Windows: x64 ZIP + arm64 ZIP
+**Required output:**
+- Windows: x64 ZIP only
 
-**Build command:** `npx electron-builder --mac --win`
+**Build command:** `npx electron-builder --win --x64`
 
-**Note:** NSIS installer (`.exe` portable) not available on macOS — requires Windows or Linux host.
+**Note:** macOS builds not required — development happens on macOS but release is Windows-only.
 
 ## Architecture
 
