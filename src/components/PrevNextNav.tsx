@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import Icon from './Icon'
 
 interface PrevNextNavProps {
   prevId?: string
@@ -37,7 +38,7 @@ const PrevNextNav: React.FC<PrevNextNavProps> = ({
         disabled={!prevId}
         className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-surface-base text-on-surface-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:text-on-surface-tertiary"
       >
-        <span className="material-symbols-outlined text-xl">chevron_left</span>
+        <Icon name="chevron_left" />
         <span className="font-body text-sm font-medium">Prev</span>
       </button>
 
@@ -53,7 +54,7 @@ const PrevNextNav: React.FC<PrevNextNavProps> = ({
         className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors hover:bg-surface-base text-on-surface-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:text-on-surface-tertiary"
       >
         <span className="font-body text-sm font-medium">Next</span>
-        <span className="material-symbols-outlined text-xl">chevron_right</span>
+        <Icon name="chevron_right" />
       </button>
     </div>
   )
