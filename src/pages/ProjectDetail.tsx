@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useProjectStore } from '@/store/projectStore'
+import Icon from './Icon'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
 import PrevNextNav from '@/components/PrevNextNav'
@@ -188,7 +189,7 @@ const ProjectDetail: React.FC = () => {
           className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
           title="返回仪表盘"
         >
-          <span className="material-symbols-outlined text-xl">arrow_back</span>
+          <Icon name="arrow_back" />
         </button>
         <div className="h-5 w-px bg-outline" />
         <div className="flex items-center gap-3">
@@ -238,7 +239,7 @@ const ProjectDetail: React.FC = () => {
             <div className="bg-surface-elevated rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
-                  <span className="material-symbols-outlined">folder_copy</span>
+                  <Icon name="folder_copy" />
                   代码仓信息
                 </h3>
                 {!isReadOnly && !isRepoEditing && (
@@ -425,7 +426,7 @@ const ProjectDetail: React.FC = () => {
                   <span className="text-xs font-body text-white/60">执行率</span>
                   {budgetSaving ? (
                     <span className="flex items-center gap-1 text-xs font-body text-white/70">
-                      <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                      <Icon name="progress_activity" spin />
                       保存中...
                     </span>
                   ) : (
@@ -460,9 +461,7 @@ const ProjectDetail: React.FC = () => {
                     <span className="text-xs font-body text-on-surface-tertiary">
                       {project.noteHistory.length} 条记录
                     </span>
-                    <span className="material-symbols-outlined text-base text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
-                      expand_more
-                    </span>
+                    <Icon name="chevron_left" />
                   </div>
                 </div>
                 {expandedHistoryId && (
@@ -482,9 +481,7 @@ const ProjectDetail: React.FC = () => {
                           <span className="text-xs font-mono text-on-surface-tertiary">
                             {formatDate(entry.createdAt)}
                           </span>
-                          <span className="material-symbols-outlined text-sm text-on-surface-tertiary transition-transform duration-200" style={{ transform: expandedHistoryId === entry.id ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
-                            expand_more
-                          </span>
+                          <Icon name="chevron_left" />
                         </div>
                         {expandedHistoryId === entry.id && (
                           <div
@@ -588,7 +585,7 @@ const ProjectDetail: React.FC = () => {
                       onClick={() => setShowMemberModal(true)}
                       className="mt-4 py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
                     >
-                      <span className="material-symbols-outlined text-lg">add</span>
+                      <Icon name="add" />
                       添加成员
                     </button>
                   )}
@@ -605,7 +602,7 @@ const ProjectDetail: React.FC = () => {
                           onClick={() => setShowMilestoneModal(true)}
                           className="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg text-xs font-body font-medium hover:shadow-glow-sm transition-all flex items-center gap-1"
                         >
-                          <span className="material-symbols-outlined text-base">add</span>
+                          <Icon name="add" />
                           添加里程碑
                         </button>
                       )}
