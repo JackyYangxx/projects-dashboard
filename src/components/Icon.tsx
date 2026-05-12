@@ -16,6 +16,10 @@ import {
   Plus,
   FolderOpen,
   ArrowLeft,
+  SearchX,
+  Users,
+  Clock,
+  X,
   LucideIcon
 } from 'lucide-react'
 
@@ -36,6 +40,10 @@ const iconMap = {
   add: Plus,
   folder_open: FolderOpen,
   arrow_back: ArrowLeft,
+  search_off: SearchX,
+  group_off: Users,
+  timeline: Clock,
+  close: X,
 } as const
 
 export type IconName = keyof typeof iconMap

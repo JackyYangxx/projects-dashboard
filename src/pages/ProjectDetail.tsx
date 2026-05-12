@@ -117,9 +117,7 @@ const ProjectDetail: React.FC = () => {
     return (
       <div className="min-h-screen bg-surface-base flex items-center justify-center">
         <div className="text-center">
-          <span className="material-symbols-outlined text-6xl text-on-surface-tertiary mb-4">
-            search_off
-          </span>
+          <Icon name="search_off" size={48} className="text-on-surface-tertiary mb-4" />
           <h2 className="text-xl font-heading font-semibold text-on-surface-primary mb-2">
             项目不存在
           </h2>
@@ -209,9 +207,7 @@ const ProjectDetail: React.FC = () => {
                 : 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-sm'
             }`}
           >
-            <span className="material-symbols-outlined text-base">
-              {isReadOnly ? 'edit' : 'visibility'}
-            </span>
+            <Icon name={isReadOnly ? 'edit' : 'visibility'} />
             {isReadOnly ? '编辑' : '查看'}
           </button>
           <span
@@ -546,9 +542,7 @@ const ProjectDetail: React.FC = () => {
                   {project.team.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center">
                       <div className="text-center py-4">
-                        <span className="material-symbols-outlined text-4xl text-on-surface-tertiary mb-2">
-                          group_off
-                        </span>
+                        <Icon name="group_off" size={24} className="text-on-surface-tertiary mb-2" />
                         <p className="text-sm font-body text-on-surface-tertiary">暂无团队成员</p>
                       </div>
                     </div>
@@ -615,9 +609,7 @@ const ProjectDetail: React.FC = () => {
                   {project.milestones.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center">
                       <div className="text-center py-4">
-                        <span className="material-symbols-outlined text-4xl text-on-surface-tertiary mb-2">
-                          timeline
-                        </span>
+                        <Icon name="timeline" size={24} className="text-on-surface-tertiary mb-2" />
                         <p className="text-sm font-body text-on-surface-tertiary">暂无里程碑</p>
                       </div>
                     </div>
@@ -681,7 +673,7 @@ const ProjectDetail: React.FC = () => {
                 onClick={() => setShowMemberModal(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
               >
-                <span className="material-symbols-outlined text-xl">close</span>
+                <Icon name="close" className="text-xl" />
               </button>
             </div>
             <div className="p-6 space-y-5">
@@ -759,7 +751,7 @@ const ProjectDetail: React.FC = () => {
                 onClick={() => setShowMilestoneModal(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
               >
-                <span className="material-symbols-outlined text-xl">close</span>
+                <Icon name="close" className="text-xl" />
               </button>
             </div>
             <div className="p-6 space-y-5">
