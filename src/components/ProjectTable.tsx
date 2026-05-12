@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Project } from '../types/index'
 import { STATUS_LABELS } from '../constants/project'
+import Icon from './Icon'
 import TruncatedText from './TruncatedText'
 
 interface ProjectTableProps {
@@ -189,7 +190,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               <tr>
                 <td colSpan={7} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
                   <div className="flex flex-col items-center gap-2">
-                    <span className="material-symbols-outlined text-4xl text-on-surface-tertiary">inbox</span>
+                    <Icon name="inbox" className="text-4xl text-on-surface-tertiary" />
                     <span>暂无项目数据</span>
                   </div>
                 </td>
@@ -265,21 +266,21 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         aria-label={`查看 ${project.name}`}
                         className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-base">visibility</span>
+                        <Icon name="visibility" className="text-base" />
                       </button>
                       <button
                         onClick={() => onEdit?.(project)}
                         aria-label={`编辑 ${project.name}`}
                         className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-base">edit</span>
+                        <Icon name="edit" className="text-base" />
                       </button>
                       <button
                         onClick={() => handleDelete(project)}
                         aria-label={`删除 ${project.name}`}
                         className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-error/10 hover:text-error transition-all duration-150 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-base">delete</span>
+                        <Icon name="delete" className="text-base" />
                       </button>
                     </div>
                   </td>
@@ -294,7 +295,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       <div ref={sentinelRef} className="px-4 py-3 border-t border-outline bg-gradient-to-r from-surface-base to-white/50">
         {isLoadingMore ? (
           <div className="flex items-center justify-center gap-2 py-2">
-            <span className="material-symbols-outlined text-lg text-primary-500 animate-spin">progress_activity</span>
+            <Icon name="progress_activity" className="text-lg text-primary-500" spin />
             <span className="text-sm font-body text-on-surface-secondary">加载更多...</span>
           </div>
         ) : hasMore ? (
