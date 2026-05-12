@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '@/store/projectStore'
 import type { Project } from '@/types'
 import { generateAvatarUrl } from '@/utils/avatar'
+import Icon from '@/components/Icon'
 
 const ProjectForm: React.FC = () => {
   const navigate = useNavigate()
@@ -65,7 +66,7 @@ const ProjectForm: React.FC = () => {
           onClick={() => navigate('/')}
           className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
         >
-          <span className="material-symbols-outlined text-xl">arrow_back</span>
+          <span className="material-symbols-outlined text-xl"><Icon name="arrow_back" /></span>
         </button>
         <h1 className="text-base font-heading font-semibold text-on-surface-primary">新增项目</h1>
       </nav>
