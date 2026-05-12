@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    font-family: 'Fira Sans', sans-serif;
+    font-family: 'Microsoft YaHei', '微软雅黑', 'PingFang SC', 'Microsoft Sans Serif', system-ui, sans-serif;
     scroll-behavior: smooth;
   }
 
