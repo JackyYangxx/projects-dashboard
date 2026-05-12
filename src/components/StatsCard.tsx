@@ -1,6 +1,6 @@
 import React from 'react'
 import TruncatedText from './TruncatedText'
-import Icon from './Icon'
+import Icon, { IconName } from './Icon'
 
 interface StatsCardProps {
   title: string
@@ -9,7 +9,7 @@ interface StatsCardProps {
   growth?: number
   progress?: number
   progressLabel?: string
-  icon?: string
+  icon?: IconName
   variant?: 'default' | 'accent'
 }
 
@@ -58,14 +58,14 @@ const StatsCard: React.FC<StatsCardProps> = ({
                 growth >= 0 ? 'text-success' : 'text-error'
               }`}
             >
-              <Icon name={growth >= 0 ? 'TrendingUp' : 'TrendingDown'} className="text-sm" />
+              <Icon name={growth >= 0 ? 'trending_up' : 'trending_down'} className="text-sm" />
               <span>{Math.abs(growth)}%</span>
               <span className="text-on-surface-tertiary">较上月</span>
             </div>
           )}
           {growth !== undefined && isAccent && (
             <div className="flex items-center gap-1 mt-2 text-xs font-body font-medium text-white/90">
-              <Icon name="TrendingUp" className="text-sm" />
+              <Icon name="trending_up" className="text-sm" />
               <span>{Math.abs(growth)}%</span>
               <span className="text-white/70">较上月</span>
             </div>

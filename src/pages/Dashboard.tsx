@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Icon from './Icon'
+import Icon from '@/components/Icon'
 import * as XLSX from 'xlsx'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
@@ -212,25 +212,25 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleImport}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
               >
-                <Icon name="upload_file" />
+                <Icon name="upload_file" size={16} />
                 导入
               </button>
 
               <button
                 onClick={handleExport}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
               >
-                <Icon name="download" />
+                <Icon name="download" size={16} />
                 导出
               </button>
 
               <button
                 onClick={() => navigate('/project/new')}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer shadow-lg shadow-primary-500/20"
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer shadow-lg shadow-primary-500/20"
               >
-                <Icon name="add" />
+                <Icon name="add" size={16} />
                 新增项目
               </button>
             </div>

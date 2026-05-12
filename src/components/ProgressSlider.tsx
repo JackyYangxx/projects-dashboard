@@ -1,6 +1,6 @@
 import React from 'react'
 import type { SubProgress } from '../types/index'
-import Icon from './Icon'
+import Icon, { IconName } from './Icon'
 
 interface ProgressSliderProps {
   value: number
@@ -12,7 +12,7 @@ interface ProgressSliderProps {
   readOnly?: boolean
 }
 
-const subProgressItems = [
+const subProgressItems: { key: keyof SubProgress; label: string; icon: IconName }[] = [
   { key: 'architecture' as const, label: '底层架构', icon: 'account_tree' },
   { key: 'uiux' as const, label: 'UI-UX设计', icon: 'palette' },
   { key: 'engineering' as const, label: '工程开发', icon: 'code' },

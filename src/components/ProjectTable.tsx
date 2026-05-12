@@ -264,23 +264,23 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       <button
                         onClick={() => onView?.(project)}
                         aria-label={`查看 ${project.name}`}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
                       >
-                        <Icon name="visibility" className="text-base" />
+                        <Icon name="visibility" size={15} />
                       </button>
                       <button
                         onClick={() => onEdit?.(project)}
                         aria-label={`编辑 ${project.name}`}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
                       >
-                        <Icon name="edit" className="text-base" />
+                        <Icon name="edit" size={15} />
                       </button>
                       <button
                         onClick={() => handleDelete(project)}
                         aria-label={`删除 ${project.name}`}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-error/10 hover:text-error transition-all duration-150 cursor-pointer"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-error/10 hover:text-error transition-all duration-150 cursor-pointer"
                       >
-                        <Icon name="delete" className="text-base" />
+                        <Icon name="delete" size={15} />
                       </button>
                     </div>
                   </td>

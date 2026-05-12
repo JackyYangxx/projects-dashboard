@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Search,
   TrendingUp,
+  TrendingDown,
   Inbox,
   Eye,
   Pencil,
@@ -20,13 +21,20 @@ import {
   Users,
   Clock,
   X,
-  LucideIcon
+  LucideIcon,
+  MoreHorizontal,
+  Wallet,
+  GitBranch,
+  Palette,
+  Code,
+  ClipboardCheck,
 } from 'lucide-react'
 
 const iconMap = {
   dashboard: LayoutDashboard,
   search: Search,
   trending_up: TrendingUp,
+  trending_down: TrendingDown,
   inbox: Inbox,
   visibility: Eye,
   edit: Pencil,
@@ -44,6 +52,12 @@ const iconMap = {
   group_off: Users,
   timeline: Clock,
   close: X,
+  pending_actions: MoreHorizontal,
+  account_balance_wallet: Wallet,
+  account_tree: GitBranch,
+  palette: Palette,
+  code: Code,
+  fact_check: ClipboardCheck,
 } as const
 
 export type IconName = keyof typeof iconMap
