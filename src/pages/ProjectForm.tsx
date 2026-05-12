@@ -66,7 +66,7 @@ const ProjectForm: React.FC = () => {
           onClick={() => navigate('/')}
           className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
         >
-          <span className="material-symbols-outlined text-xl"><Icon name="arrow_back" /></span>
+          <Icon name="arrow_back" className="text-xl" />
         </button>
         <h1 className="text-base font-heading font-semibold text-on-surface-primary">新增项目</h1>
       </nav>
