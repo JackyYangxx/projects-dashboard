@@ -1,4 +1,5 @@
 import React from 'react'
+import Icon from './Icon'
 import TruncatedText from './TruncatedText'
 
 interface NavItem {
@@ -47,16 +48,11 @@ const Sidebar: React.FC = () => {
                 >
                   {isActive && (
                     <>
-                      {/* Glow effect on icon */}
-                      <span className="material-symbols-outlined text-lg leading-none text-white">
-                        {item.icon}
-                      </span>
+                      <Icon name="dashboard" size={24} className="text-white" />
                     </>
                   )}
                   {!isActive && (
-                    <span className="material-symbols-outlined text-lg leading-none">
-                      {item.icon}
-                    </span>
+                    <Icon name="dashboard" size={24} />
                   )}
                   <span className={isActive ? 'font-medium' : ''}>
                     <TruncatedText text={item.label} maxChars={12} />
