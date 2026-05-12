@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Icon from './Icon'
 import * as XLSX from 'xlsx'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
@@ -213,7 +214,7 @@ const Dashboard: React.FC = () => {
                 onClick={handleImport}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-lg">upload_file</span>
+                <Icon name="upload_file" />
                 导入
               </button>
 
@@ -221,7 +222,7 @@ const Dashboard: React.FC = () => {
                 onClick={handleExport}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-lg">download</span>
+                <Icon name="download" />
                 导出
               </button>
 
@@ -229,7 +230,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/project/new')}
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer shadow-lg shadow-primary-500/20"
               >
-                <span className="material-symbols-outlined text-lg">add</span>
+                <Icon name="add" />
                 新增项目
               </button>
             </div>
@@ -263,16 +264,14 @@ const Dashboard: React.FC = () => {
           {isLoading ? (
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline shadow-card">
               <div className="relative">
-                <span className="material-symbols-outlined text-4xl text-primary-400 animate-spin">
-                  progress_activity
-                </span>
+                <Icon name="progress_activity" spin />
               </div>
               <span className="text-sm font-body text-on-surface-secondary">加载中...</span>
             </div>
           ) : projects.length === 0 ? (
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline border-dashed shadow-card">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-100 to-accent-100 flex items-center justify-center">
-                <span className="material-symbols-outlined text-3xl text-primary-500">folder_open</span>
+                <Icon name="folder_open" />
               </div>
               <div className="text-center">
                 <p className="text-sm font-body text-on-surface-secondary mb-1">暂无项目</p>
