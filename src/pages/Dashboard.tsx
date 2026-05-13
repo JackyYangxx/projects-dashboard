@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '@/components/Icon'
 import * as XLSX from 'xlsx'
@@ -13,10 +13,24 @@ import { STATUS_LABELS, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const { projects, isLoading, loadProjects, setFilteredProjectIds } = useProjectStore()
+  const [showImportMenu, setShowImportMenu] = useState(false)
 
   useEffect(() => {
     loadProjects()
   }, [loadProjects])
+
+  // Close import menu when clicking outside
+  useEffect(() => {
+    if (!showImportMenu) return
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.import-menu-container')) {
+        setShowImportMenu(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showImportMenu])
 
   // Set initial filtered project IDs when projects load
   useEffect(() => {
@@ -138,6 +152,38 @@ const Dashboard: React.FC = () => {
     input.click()
   }
 
+  const handleDownloadTemplate = () => {
+    const requiredHeaders = ['项目名称', '产品线', '负责人', '总预算', '已用预算']
+    const optionalHeaders = ['代码仓', '分支']
+
+    // Build header row with * suffix for required fields
+    const headerRow = [
+      ...requiredHeaders.map(h => `${h}*`),
+      ...optionalHeaders
+    ]
+
+    // Build sample row with placeholder values
+    const sampleRow = [
+      '示例项目', '示例产品线', '张三', 100000, 50000,
+      '', ''
+    ]
+
+    const wsData = [headerRow, sampleRow]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    // Apply gray background to required field cells in sample row (column B-G, row 2)
+    // B=1, C=2, D=3, E=4, F=5, G=6 (0-indexed)
+    for (let col = 0; col < 5; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 1, c: col })
+      if (!ws[cellRef]) ws[cellRef] = {}
+      ws[cellRef].s = { fill: { fgColor: { rgb: 'E0E0E0' } } }
+    }
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, '导入模版')
+    XLSX.writeFile(wb, '导入模版.xlsx')
+  }
+
   const handleExport = () => {
     const exportData = projects.map(p => ({
       '项目名称': p.name,
@@ -210,13 +256,33 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleImport}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
-              >
-                <Icon name="upload_file" size={16} />
-                导入
-              </button>
+              <div className="relative import-menu-container">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowImportMenu(!showImportMenu) }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
+                >
+                  <Icon name="upload_file" size={16} />
+                  导入
+                  <Icon name="expand_more" size={16} className="ml-0.5" />
+                </button>
+                {showImportMenu && (
+                  <div className="absolute top-full left-0 mt-1 bg-white border border-outline rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                    <button
+                      onClick={() => { handleImport(); setShowImportMenu(false) }}
+                      className="w-full px-4 py-2 text-left text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-all duration-200 flex items-center gap-2"
+                    >
+                      <Icon name="upload_file" size={16} />
+                      导入项目
+                    </button>
+                    <button
+                      onClick={() => { handleDownloadTemplate(); setShowImportMenu(false) }}
+                      className="w-full px-4 py-2 text-left text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-all duration-200 flex items-center gap-2"
+                    >
+                      下载导入模版
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <button
                 onClick={handleExport}
