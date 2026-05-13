@@ -26,7 +26,7 @@ const Sidebar: React.FC = () => {
           <span className="font-heading font-semibold text-on-surface-primary text-sm">
             Precision Curator
           </span>
-          <span className="text-[10px] font-mono text-on-surface-tertiary">v1.0.0</span>
+          <span className="text-[10px] font-mono text-on-surface-tertiary">v1.0.4</span>
         </div>
       </div>
 
