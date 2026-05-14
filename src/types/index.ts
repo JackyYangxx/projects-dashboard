@@ -65,6 +65,38 @@ export interface Project {
   updatedAt: string
 }
 
+export interface CodeReview {
+  id: string
+  projectId: string
+  repository: string
+  branch: string
+  severity: 'critical' | 'warning' | 'suggestion'
+  title: string
+  description: string
+  filePath?: string
+  lineRange?: string
+  aiTrace: string
+  createdAt: string
+}
+
+export interface MCPService {
+  id: string
+  name: string
+  url: string
+  authHeader?: string
+  enabled: boolean
+  createdAt: string
+}
+
+export interface Skill {
+  id: string
+  name: string
+  description?: string
+  content: string
+  enabled: boolean
+  createdAt: string
+}
+
 declare global {
   interface Window {
     electronAPI?: {
