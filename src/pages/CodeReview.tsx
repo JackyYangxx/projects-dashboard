@@ -1,9 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '@/store/projectStore'
 import { useCodeReviewStore } from '@/store/codeReviewStore'
 import Icon from '@/components/Icon'
+import ProjectSelector from '@/components/ProjectSelector'
+import ReviewProgress from '@/components/ReviewProgress'
+import MRReviewTabs from '@/components/MRReviewTabs'
 import MCPConfigPanel from '@/components/MCPConfigPanel'
+import { exportToExcel } from '@/utils/excel'
+import type { MRReviewRecord } from '@/types'
 
 // ── LLM Config Panel ─────────────────────────────────────────
 
@@ -34,7 +39,7 @@ function LLMConfigPanel() {
   }
 
   return (
-    <div className="border border-outline rounded-xl p-4">
+    <div className="bg-surface-elevated border border-outline rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-heading text-sm font-medium">LLM 配置</h3>
         <button
@@ -119,8 +124,8 @@ function LLMConfigPanel() {
 
 function SkillPanel() {
   const { skills, loadSkills, addSkill, toggleSkill, removeSkill } = useCodeReviewStore()
-  const [showForm, setShowForm] = React.useState(false)
-  const [form, setForm] = React.useState({ name: '', description: '', content: '' })
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ name: '', description: '', content: '' })
 
   useEffect(() => { loadSkills() }, [])
 
@@ -132,7 +137,7 @@ function SkillPanel() {
   }
 
   return (
-    <div className="border border-outline rounded-xl p-4">
+    <div className="bg-surface-elevated border border-outline rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-heading text-sm font-medium">Skills</h3>
         <button
@@ -201,156 +206,49 @@ function SkillPanel() {
   )
 }
 
-// ── Stream Output ─────────────────────────────────────────────
-
-function StreamOutput() {
-  const { streamEvents, isReviewing } = useCodeReviewStore()
-  const bottomRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (isReviewing) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [streamEvents, isReviewing])
-
-  return (
-    <div className="bg-surface-elevated border border-outline rounded-xl p-4 min-h-[200px] max-h-[400px] overflow-auto">
-      {streamEvents.length === 0 && !isReviewing && (
-        <span className="text-sm text-on-surface-tertiary">点击「开始评审」后，AI 输出将显示在这里...</span>
-      )}
-      {streamEvents.map((ev, i) => {
-        if (ev.type === 'chunk') return <span key={i}>{ev.content}</span>
-        if (ev.type === 'tool_call') return (
-          <div key={i} className="mt-2 p-2 bg-accent-500/10 rounded text-xs font-mono">
-            🔧 调用工具: {ev.toolName} | 参数: {JSON.stringify(ev.toolArgs)}
-          </div>
-        )
-        if (ev.type === 'tool_result') return (
-          <div key={i} className="mt-1 p-2 bg-outline rounded text-xs font-mono text-on-surface-tertiary">
-            → 结果: {typeof ev.toolResult === 'string' ? ev.toolResult : JSON.stringify(ev.toolResult)}
-          </div>
-        )
-        return null
-      })}
-      {isReviewing && streamEvents.length > 0 && <span className="animate-pulse">▌</span>}
-      <div ref={bottomRef} />
-    </div>
-  )
-}
-
-// ── Issue List ────────────────────────────────────────────────
-
-function IssueList() {
-  const { reviewRecords, deleteReviewRecord, currentProjectId } = useCodeReviewStore()
-  const [filter, setFilter] = React.useState<'all' | 'critical' | 'warning' | 'suggestion'>('all')
-
-  useEffect(() => {
-    if (currentProjectId) {
-      useCodeReviewStore.getState().loadReviewRecords(currentProjectId)
-    }
-  }, [currentProjectId])
-
-  const filtered = filter === 'all' ? reviewRecords : reviewRecords.filter(r => r.severity === filter)
-
-  const severityCounts = {
-    all: reviewRecords.length,
-    critical: reviewRecords.filter(r => r.severity === 'critical').length,
-    warning: reviewRecords.filter(r => r.severity === 'warning').length,
-    suggestion: reviewRecords.filter(r => r.severity === 'suggestion').length,
-  }
-
-  return (
-    <div>
-      <div className="flex gap-2 mb-3">
-        {(['all', 'critical', 'warning', 'suggestion'] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-              filter === f
-                ? f === 'critical' ? 'bg-red-500 text-white'
-                  : f === 'warning' ? 'bg-yellow-500 text-white'
-                  : f === 'suggestion' ? 'bg-blue-500 text-white'
-                  : 'bg-primary-500 text-white'
-                : 'bg-surface-secondary text-on-surface-secondary'
-            }`}
-          >
-            {f === 'all' ? '全部' : f === 'critical' ? '严重' : f === 'warning' ? '警告' : '建议'} ({severityCounts[f]})
-          </button>
-        ))}
-      </div>
-      <div className="space-y-2">
-        {filtered.map(record => (
-          <div key={record.id} className="border border-outline rounded-xl p-4">
-            <div className="flex items-start gap-2">
-              <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
-                record.severity === 'critical' ? 'bg-red-500'
-                  : record.severity === 'warning' ? 'bg-yellow-500'
-                  : 'bg-blue-500'
-              }`} />
-              <div className="flex-1">
-                <div className="font-medium text-sm">{record.title}</div>
-                <div className="text-xs text-on-surface-secondary mt-1">{record.description}</div>
-                {record.filePath && (
-                  <div className="text-xs font-mono text-on-surface-tertiary mt-1">
-                    {record.filePath}{record.lineRange ? `:${record.lineRange}` : ''}
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => deleteReviewRecord(record.id)}
-                className="text-xs text-red-500 hover:underline"
-              >
-                删除
-              </button>
-            </div>
-          </div>
-        ))}
-        {filtered.length === 0 && (
-          <div className="text-sm text-on-surface-tertiary">暂无问题记录</div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── Main Page ─────────────────────────────────────────────────
 
 export default function CodeReview() {
   const navigate = useNavigate()
-  const { projects } = useProjectStore()
-  const { loadLLMConfigs, loadMCPServices, loadSkills, isReviewing, reviewError, llmConfigs } = useCodeReviewStore()
-  const [selectedProjectId, setSelectedProjectId] = React.useState('')
-  const [branch, setBranch] = React.useState('')
-  const [configOpen, setConfigOpen] = React.useState(true)
+  const { loadLLMConfigs, loadMCPs, loadSkills, isReviewing, reviewProgress, mrReviewRecords, selectedProjectIds, selectProjects, startBatchReview, clearAllReviewData } = useCodeReviewStore()
+  const [configOpen, setConfigOpen] = useState(true)
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   useEffect(() => {
     loadLLMConfigs()
-    loadMCPServices()
+    loadMCPs()
     loadSkills()
   }, [])
 
-  const selectedProject = projects.find(p => p.id === selectedProjectId)
-  const hasEnabledLLM = llmConfigs.some(c => c.enabled)
-
   const handleStartReview = () => {
-    if (!selectedProjectId) return
-    useCodeReviewStore.getState().startReview(
-      selectedProjectId,
-      selectedProject?.repository || '',
-      selectedProject?.branch || branch
-    )
+    if (selectedProjectIds.length === 0) return
+    startBatchReview(selectedProjectIds)
+  }
+
+  const handleExport = () => {
+    exportToExcel(mrReviewRecords)
+  }
+
+  const handleClearData = () => {
+    if (mrReviewRecords.length === 0) return
+    exportToExcel(mrReviewRecords)
+    clearAllReviewData()
+    setShowClearConfirm(false)
+  }
+
+  // Group records by project
+  const recordsByProject = new Map<string, MRReviewRecord[]>()
+  for (const record of mrReviewRecords) {
+    const list = recordsByProject.get(record.projectName) || []
+    list.push(record)
+    recordsByProject.set(record.projectName, list)
   }
 
   return (
     <div className="min-h-screen bg-surface-base">
       {/* Top Navigation Bar */}
       <nav className="h-14 bg-surface-elevated border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
-        <button
-          onClick={() => navigate('/')}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
-          title="返回仪表盘"
-        >
+        <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors" title="返回仪表盘">
           <Icon name="arrow_back" />
         </button>
         <div className="h-5 w-px bg-outline" />
@@ -359,86 +257,82 @@ export default function CodeReview() {
 
       {/* Main Content */}
       <main className="max-w-[1600px] mx-auto p-6 pb-20">
-        <p className="text-sm text-on-surface-secondary mb-6">
-          对项目代码仓库进行 AI 辅助评审，自动发现问题并记录
-        </p>
-
-        {/* Config panel */}
+        {/* Config Section */}
         <div className="border-b border-outline pb-4 mb-4">
-          <button
-            onClick={() => setConfigOpen(!configOpen)}
-            className="flex items-center gap-2 text-sm font-medium mb-3"
-          >
+          <button onClick={() => setConfigOpen(!configOpen)} className="flex items-center gap-2 text-sm font-medium mb-3">
             <Icon name="settings" size={20} />
             LLM / MCP / Skill 配置
             <Icon name={configOpen ? 'expand_less' : 'expand_more'} size={20} />
           </button>
           {configOpen && (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <LLMConfigPanel />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <MCPConfigPanel />
-                <SkillPanel />
-              </div>
+              <MCPConfigPanel />
+              <SkillPanel />
             </div>
           )}
         </div>
 
-        {/* Review settings */}
-        <div className="border border-outline rounded-xl p-4 space-y-4 mb-4">
-          <h3 className="font-heading text-sm font-medium">评审设置</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-on-surface-secondary mb-1">选择项目</label>
-              <select
-                value={selectedProjectId}
-                onChange={e => {
-                  setSelectedProjectId(e.target.value)
-                  const proj = projects.find(p => p.id === e.target.value)
-                  if (proj) setBranch(proj.branch)
-                }}
-                className="w-full px-3 py-2 border border-outline rounded-lg text-sm"
-              >
-                <option value="">-- 选择项目 --</option>
-                {projects.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-on-surface-secondary mb-1">分支</label>
-              <input
-                value={branch}
-                onChange={e => setBranch(e.target.value)}
-                className="w-full px-3 py-2 border border-outline rounded-lg text-sm"
-                placeholder="分支名"
-              />
-            </div>
-          </div>
+        {/* Project Selection */}
+        <div className="mb-4">
+          <h3 className="font-heading text-sm font-medium mb-3">评审项目选择</h3>
+          <ProjectSelector selectedIds={selectedProjectIds} onChange={selectProjects} />
           <button
             onClick={handleStartReview}
-            disabled={!selectedProjectId || !hasEnabledLLM || isReviewing}
-            className="px-6 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl font-medium text-sm disabled:opacity-50"
+            disabled={selectedProjectIds.length === 0 || isReviewing}
+            className="mt-4 px-6 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl font-medium text-sm disabled:opacity-50"
           >
             {isReviewing ? '评审中...' : '开始评审'}
           </button>
-          {reviewError && (
-            <div className="text-sm text-red-500">{reviewError}</div>
-          )}
         </div>
 
-        {/* Streaming output */}
-        <div className="mb-4">
-          <h3 className="font-heading text-sm font-medium mb-3">评审输出</h3>
-          <StreamOutput />
-        </div>
+        {/* Review Progress */}
+        {reviewProgress && (
+          <div className="mb-4">
+            <ReviewProgress
+              currentProject={reviewProgress.projectName}
+              currentMR={reviewProgress.mrTitle}
+              progress={reviewProgress.progress}
+              completedCount={reviewProgress.completed}
+              totalCount={reviewProgress.total}
+            />
+          </div>
+        )}
 
-        {/* Issue list */}
-        <div>
-          <h3 className="font-heading text-sm font-medium mb-3">问题记录</h3>
-          <IssueList />
-        </div>
+        {/* MR Review Results */}
+        {mrReviewRecords.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-heading text-sm font-medium">评审结果</h3>
+              <div className="flex gap-2">
+                <button onClick={handleExport} className="flex items-center gap-1 px-3 py-1.5 bg-surface-secondary rounded-lg text-xs text-primary-500 hover:bg-surface-container">
+                  <Icon name="download" size={14} />
+                  导出 Excel
+                </button>
+                <button onClick={() => setShowClearConfirm(true)} className="flex items-center gap-1 px-3 py-1.5 bg-surface-secondary rounded-lg text-xs text-red-500 hover:bg-surface-container">
+                  <Icon name="delete" size={14} />
+                  清理数据
+                </button>
+              </div>
+            </div>
+            <MRReviewTabs recordsByProject={recordsByProject} onViewOnline={(url) => window.open(url, '_blank')} />
+          </div>
+        )}
       </main>
+
+      {/* Clear Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-surface-elevated rounded-xl p-6 max-w-sm">
+            <h3 className="text-lg font-heading font-semibold mb-2">确认清理</h3>
+            <p className="text-sm text-on-surface-secondary mb-4">清理前会先导出 Excel，确定要清理吗？</p>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowClearConfirm(false)} className="px-4 py-2 bg-surface-secondary rounded-lg text-sm">取消</button>
+              <button onClick={handleClearData} className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm">确认清理</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
