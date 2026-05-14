@@ -10,6 +10,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: '项目概览', icon: 'dashboard', path: '/' },
+  { label: '代码评审', icon: 'code', path: '/code-review' },
 ]
 
 const Sidebar: React.FC = () => {
