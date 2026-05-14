@@ -105,5 +105,14 @@ declare global {
       getPlatform?: () => Promise<string>
       getWasmBinary?: () => Promise<Uint8Array>
     }
+    mcpAPI?: {
+      listTools: (params: { url: string; authHeader?: string }) => Promise<unknown>
+      invokeTool: (params: { url: string; authHeader?: string; toolName: string; toolArgs: Record<string, unknown> }) => Promise<unknown>
+    }
+    secureStore?: {
+      get: (key: string) => Promise<unknown>
+      set: (key: string, value: unknown) => Promise<void>
+      delete: (key: string) => Promise<void>
+    }
   }
 }
