@@ -209,7 +209,7 @@ function SkillPanel() {
 
 export default function CodeReview() {
   const navigate = useNavigate()
-  const { loadLLMConfigs, loadMCPs, loadSkills, isReviewing, reviewProgress, mrReviewRecords, selectedProjectIds, selectProjects, startBatchReview, clearAllReviewData } = useCodeReviewStore()
+  const { loadLLMConfigs, loadMCPs, loadSkills, isReviewing, reviewProgress, mrReviewRecords, selectedProjectIds, selectProjects, startBatchReview, clearAllReviewData, reviewError } = useCodeReviewStore()
   const [configOpen, setConfigOpen] = useState(true)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
@@ -283,6 +283,9 @@ export default function CodeReview() {
           >
             {isReviewing ? '评审中...' : '开始评审'}
           </button>
+          {reviewError && (
+            <div className="mt-2 text-sm text-red-500">{reviewError}</div>
+          )}
         </div>
 
         {/* Review Progress */}
