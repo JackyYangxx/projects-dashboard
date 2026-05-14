@@ -107,6 +107,47 @@ async function doInitDatabase(): Promise<Database> {
     )
   `)
 
+  // Create llm_config table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS llm_config (
+      id TEXT PRIMARY KEY,
+      model_name TEXT NOT NULL,
+      model_url TEXT NOT NULL,
+      api_key TEXT NOT NULL,
+      enabled INTEGER DEFAULT 1,
+      created_at TEXT
+    )
+  `)
+
+  // Create mr_review_records table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS mr_review_records (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      project_name TEXT NOT NULL,
+      mr_id TEXT NOT NULL,
+      mr_title TEXT NOT NULL,
+      mr_url TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      issues TEXT DEFAULT '[]',
+      reviewed_at TEXT,
+      created_at TEXT
+    )
+  `)
+
+  // Create review_reports table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS review_reports (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      project_ids TEXT NOT NULL,
+      total_mr_count INTEGER DEFAULT 0,
+      total_issue_count INTEGER DEFAULT 0,
+      issues_preview TEXT DEFAULT '',
+      created_at TEXT
+    )
+  `)
+
   // Load seed data if database is empty
   if (!seeded) {
     const result = db.exec('SELECT COUNT(*) as count FROM projects')

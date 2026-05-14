@@ -97,6 +97,51 @@ export interface Skill {
   createdAt: string
 }
 
+export interface LLMConfig {
+  id: string
+  modelName: string
+  modelUrl: string
+  apiKey: string
+  enabled: boolean
+  createdAt: string
+}
+
+export interface MRReviewRecord {
+  id: string
+  projectId: string
+  projectName: string
+  mrId: string
+  mrTitle: string
+  mrUrl: string
+  status: 'pending' | 'reviewing' | 'completed' | 'failed'
+  issues: Array<{
+    severity: 'critical' | 'warning' | 'suggestion'
+    title: string
+    description: string
+    filePath?: string
+    lineRange?: string
+  }>
+  reviewedAt: string
+  createdAt: string
+}
+
+export interface ReviewReport {
+  id: string
+  name: string
+  projectIds: string
+  totalMrCount: number
+  totalIssueCount: number
+  issuesPreview: string
+  createdAt: string
+}
+
+export interface MCPConfig {
+  name: string
+  endpoint: string
+  authHeader?: string
+  tools: string[]
+}
+
 declare global {
   interface Window {
     electronAPI?: {
