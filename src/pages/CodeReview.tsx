@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useProjectStore } from '@/store/projectStore'
 import { useCodeReviewStore } from '@/store/codeReviewStore'
 import Icon from '@/components/Icon'
 import ProjectSelector from '@/components/ProjectSelector'

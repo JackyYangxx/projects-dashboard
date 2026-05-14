@@ -1,6 +1,4 @@
-import React from 'react'
 import { useProjectStore } from '@/store/projectStore'
-import Icon from './Icon'
 
 interface Props {
   selectedIds: string[]

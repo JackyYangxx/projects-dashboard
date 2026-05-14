@@ -1,5 +1,6 @@
 import React from 'react'
-import Icon from './Icon'
+import { useNavigate, useLocation } from 'react-router-dom'
+import Icon, { type IconName } from './Icon'
 import TruncatedText from './TruncatedText'
 
 interface NavItem {
@@ -14,7 +15,8 @@ const navItems: NavItem[] = [
 ]
 
 const Sidebar: React.FC = () => {
-  const [activePath, setActivePath] = React.useState('/')
+  const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 bg-white/80 backdrop-blur-md flex flex-col z-20 border-r border-outline shadow-sm">
@@ -35,11 +37,11 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 px-3 py-4">
         <ul className="space-y-1">
           {navItems.map((item) => {
-            const isActive = activePath === item.path
+            const isActive = location.pathname === item.path
             return (
               <li key={item.path}>
                 <button
-                  onClick={() => setActivePath(item.path)}
+                  onClick={() => navigate(item.path)}
                   aria-current={isActive ? 'page' : undefined}
                   className={`w-full relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body transition-all duration-200 cursor-pointer ${
                     isActive
@@ -47,14 +49,7 @@ const Sidebar: React.FC = () => {
                       : 'text-on-surface-secondary hover:bg-surface-hover hover:text-on-surface-primary'
                   }`}
                 >
-                  {isActive && (
-                    <>
-                      <Icon name="dashboard" size={24} className="text-white" />
-                    </>
-                  )}
-                  {!isActive && (
-                    <Icon name="dashboard" size={24} />
-                  )}
+                  <Icon name={item.icon as IconName} size={24} className={isActive ? 'text-white' : undefined} />
                   <span className={isActive ? 'font-medium' : ''}>
                     <TruncatedText text={item.label} maxChars={12} />
                   </span>

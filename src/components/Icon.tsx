@@ -30,6 +30,7 @@ import {
   Code,
   Settings,
   ClipboardCheck,
+  ExternalLink,
 } from 'lucide-react'
 
 const iconMap = {
@@ -64,6 +65,7 @@ const iconMap = {
   code: Code,
   fact_check: ClipboardCheck,
   settings: Settings,
+  open_in_new: ExternalLink,
 } as const
 
 export type IconName = keyof typeof iconMap
