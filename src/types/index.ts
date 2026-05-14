@@ -84,6 +84,7 @@ export interface MCPService {
   name: string
   url: string
   authHeader?: string
+  tools: string[]
   enabled: boolean
   createdAt: string
 }

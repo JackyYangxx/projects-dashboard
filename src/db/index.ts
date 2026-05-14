@@ -73,6 +73,7 @@ async function doInitDatabase(): Promise<Database> {
       name TEXT NOT NULL,
       url TEXT NOT NULL,
       auth_header TEXT DEFAULT '',
+      tools TEXT DEFAULT '[]',
       enabled INTEGER DEFAULT 1,
       created_at TEXT
     )

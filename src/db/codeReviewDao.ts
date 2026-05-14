@@ -52,9 +52,9 @@ export function insertMCPService(svc: MCPService): void {
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
   db.run(
-    `INSERT INTO mcp_services (id, name, url, auth_header, enabled, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [svc.id, svc.name, svc.url, svc.authHeader || '', svc.enabled ? 1 : 0, svc.createdAt]
+    `INSERT INTO mcp_services (id, name, url, auth_header, tools, enabled, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [svc.id, svc.name, svc.url, svc.authHeader || '', JSON.stringify(svc.tools || []), svc.enabled ? 1 : 0, svc.createdAt]
   )
 }
 
@@ -68,8 +68,9 @@ export function getAllMCPServices(): MCPService[] {
     name: row[1] as string,
     url: row[2] as string,
     authHeader: row[3] as string,
-    enabled: row[4] === 1,
-    createdAt: row[5] as string,
+    tools: JSON.parse(row[4] as string || '[]'),
+    enabled: row[5] === 1,
+    createdAt: row[6] as string,
   }))
 }
 
@@ -81,6 +82,7 @@ export function updateMCPService(id: string, updates: Partial<MCPService>): void
   if (updates.name !== undefined) { fields.push('name = ?'); vals.push(updates.name) }
   if (updates.url !== undefined) { fields.push('url = ?'); vals.push(updates.url) }
   if (updates.authHeader !== undefined) { fields.push('auth_header = ?'); vals.push(updates.authHeader) }
+  if (updates.tools !== undefined) { fields.push('tools = ?'); vals.push(JSON.stringify(updates.tools)) }
   if (updates.enabled !== undefined) { fields.push('enabled = ?'); vals.push(updates.enabled ? 1 : 0) }
   if (fields.length === 0) return
   vals.push(id)
