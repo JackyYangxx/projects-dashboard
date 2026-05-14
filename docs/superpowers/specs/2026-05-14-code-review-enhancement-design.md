@@ -30,16 +30,35 @@
 4. AI 实时分析代码问题，通过 StreamOutput 显示进度（当前正在评审的 MR）
 5. 评审完成后，所有问题存入数据库，显示问题列表
 
+### MCP 配置改为富文本
+
+MCP 配置改为支持直接粘贴 JSON 配置文件的富文本框：
+
+```json
+{
+  "name": "内部 GitLab MCP",
+  "endpoint": "https://git.internal.com/api/mcp",
+  "authHeader": "Bearer xxx",
+  "tools": ["listMRs", "getMRDetails"]
+}
+```
+
+用户粘贴完整的 MCP 配置文件，系统解析出：
+- `name` - 显示名称
+- `endpoint` - MCP 服务地址
+- `authHeader` - 认证信息
+- `tools` - 可用工具列表
+
 ### MCP 工具定义
 
-需要 MCP 服务实现以下两个工具：
+MCP 服务需要实现以下两个标准工具：
 
 **工具 1: listMRs**
-- 输入：项目仓库地址、分支（可选）
+- 输入：仓库地址（repository）、分支（branch，可选）
 - 输出：MR 列表 `[{ id, title, url, state, author, createdAt }]`
 
 **工具 2: getMRDetails**
-- 输入：MR ID 或完整 MR URL
+- 输入：MR ID 或完整 MR URL、仓库地址
 - 输出：MR 详情 `{ id, title, url, state, diff, filesChanged, commits }`
 
 ### 数据库变更
@@ -130,6 +149,7 @@ CREATE TABLE review_reports (
 | `MRReviewTabs` | 按项目 tab 切换，显示各项目问题 |
 | `IssueList` | 问题列表，支持筛选和导出 |
 | `ReportGenerator` | 生成汇总报告 |
+| `MCPConfigPanel` | 富文本 MCP 配置输入 |
 
 ### API 变更
 
