@@ -66,6 +66,47 @@ async function doInitDatabase(): Promise<Database> {
   `)
   console.log('[DB] Table created')
 
+  // Create mcp_services table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS mcp_services (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      url TEXT NOT NULL,
+      auth_header TEXT DEFAULT '',
+      enabled INTEGER DEFAULT 1,
+      created_at TEXT
+    )
+  `)
+
+  // Create skills table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS skills (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      content TEXT NOT NULL,
+      enabled INTEGER DEFAULT 1,
+      created_at TEXT
+    )
+  `)
+
+  // Create code_reviews table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS code_reviews (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      repository TEXT NOT NULL,
+      branch TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      file_path TEXT DEFAULT '',
+      line_range TEXT DEFAULT '',
+      ai_trace TEXT DEFAULT '',
+      created_at TEXT
+    )
+  `)
+
   // Load seed data if database is empty
   if (!seeded) {
     const result = db.exec('SELECT COUNT(*) as count FROM projects')
