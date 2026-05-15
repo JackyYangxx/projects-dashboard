@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import JSZip from 'jszip'
 import { useCodeReviewStore } from '@/store/codeReviewStore'
 import { useProjectStore } from '@/store/projectStore'
 import Icon from '@/components/Icon'
@@ -156,6 +157,46 @@ function SkillPanel() {
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const parseSkillFromZip = async (file: File): Promise<{ name: string; description?: string; content: string } | null> => {
+    try {
+      const zip = await JSZip.loadAsync(file)
+      const txtFile = zip.file(/\.txt$/) || zip.file(/\.md$/)
+      if (!txtFile) return null
+
+      const content = await txtFile.async('string')
+      const name = file.name.replace(/\.zip$/i, '')
+
+      return {
+        name,
+        description: `从 ${file.name} 导入`,
+        content: content.trim(),
+      }
+    } catch (err) {
+      console.error('[Skill] Failed to parse zip:', file.name, err)
+      return null
+    }
+  }
+
+  const handleBatchImport = async () => {
+    if (checkedFiles.length === 0) return
+
+    let successCount = 0
+    for (const index of checkedFiles) {
+      const file = selectedFiles[index]
+      const skillData = await parseSkillFromZip(file)
+      if (skillData) {
+        addSkill({ ...skillData, enabled: true })
+        successCount++
+      }
+    }
+
+    setSelectedFiles([])
+    setCheckedFiles([])
+    if (successCount > 0) {
+      alert(`成功导入 ${successCount} 个 Skill`)
+    }
   }
 
   const handleAdd = () => {
