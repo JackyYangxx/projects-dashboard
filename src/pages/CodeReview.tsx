@@ -127,6 +127,7 @@ function SkillPanel() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', content: '' })
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  // Will be used in drag-drop UI in Task 4
   const [isDragging, setIsDragging] = useState(false)
   const [checkedFiles, setCheckedFiles] = useState<number[]>([])
 
@@ -149,7 +150,7 @@ function SkillPanel() {
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : []
+    const files = e.target.files ? Array.from(e.target.files).filter(f => f.name.endsWith('.zip')) : []
     setSelectedFiles(prev => [...prev, ...files])
   }
 
