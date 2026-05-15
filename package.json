@@ -1,6 +1,6 @@
 {
   "name": "precision-curator",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "author": "Precision Curator",
   "description": "Precision Curator - Electron desktop app for project management",
   "main": "dist-electron/main.js",
@@ -13,8 +13,10 @@
   },
   "dependencies": {
     "@types/dompurify": "^3.0.5",
+    "@types/jszip": "^3.4.0",
     "dompurify": "^3.4.0",
     "electron-store": "^11.0.2",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.14.0",
     "marked": "^18.0.1",
     "react": "^18.3.1",
