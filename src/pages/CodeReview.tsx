@@ -178,6 +178,14 @@ function SkillPanel() {
     }
   }
 
+  const toggleChecked = (index: number) => {
+    if (checkedFiles.includes(index)) {
+      setCheckedFiles(checkedFiles.filter(i => i !== index))
+    } else {
+      setCheckedFiles([...checkedFiles, index])
+    }
+  }
+
   const handleBatchImport = async () => {
     if (checkedFiles.length === 0) return
 
@@ -248,13 +256,7 @@ function SkillPanel() {
                     <input
                       type="checkbox"
                       checked={checkedFiles.includes(index)}
-                      onChange={() => {
-                        if (checkedFiles.includes(index)) {
-                          setCheckedFiles(checkedFiles.filter(i => i !== index))
-                        } else {
-                          setCheckedFiles([...checkedFiles, index])
-                        }
-                      }}
+                      onChange={() => toggleChecked(index)}
                     />
                     <span className="text-sm">{file.name}</span>
                     <span className="text-xs text-on-surface-tertiary">({(file.size / 1024).toFixed(1)} KB)</span>
