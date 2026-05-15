@@ -43,7 +43,6 @@ export default function ProjectSelector({ selectedIds, onChange }: Props) {
               />
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">项目名称</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">产品线</th>
             <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">仓库地址</th>
           </tr>
         </thead>
@@ -59,7 +58,6 @@ export default function ProjectSelector({ selectedIds, onChange }: Props) {
                 />
               </td>
               <td className="px-4 py-3 text-sm font-medium text-on-surface-primary">{project.name}</td>
-              <td className="px-4 py-3 text-sm text-on-surface-secondary">{project.productLine}</td>
               <td className="px-4 py-3 text-sm text-on-surface-tertiary font-mono truncate max-w-[300px]">
                 {project.repository || '-'}
               </td>

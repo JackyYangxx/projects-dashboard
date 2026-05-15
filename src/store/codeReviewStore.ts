@@ -8,6 +8,7 @@ import {
   insertMRReviewRecord, getAllMRReviewRecords, getMRReviewRecordsByProject,
   deleteMRReviewRecord, deleteAllMRReviewRecords,
 } from '@/db/codeReviewDao'
+import { useProjectStore } from './projectStore'
 
 export type ReviewStreamEvent =
   | { type: 'chunk'; content: string }
@@ -249,6 +250,11 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
       return
     }
 
+    if (!window.mcpAPI) {
+      set({ isReviewing: false, reviewError: 'MCP API 不可用，请在 Electron 环境中运行' })
+      return
+    }
+
     const enabledLLMs = llmConfigs.filter(c => c.enabled)
     if (enabledLLMs.length === 0) {
       set({ isReviewing: false, reviewError: '请配置并启用 LLM' })
@@ -262,8 +268,6 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
     const skillContent = enabledSkills.map(s => s.content).join('\n\n')
     const systemPrompt = `You are an expert code reviewer specializing in MR code review.${skillContent ? '\n\n' + skillContent : ''}`
 
-    // Access projects from projectStore - we need to import it
-    const { useProjectStore } = await import('./projectStore')
     const projects = useProjectStore.getState().projects
 
     for (const projectId of projectIds) {

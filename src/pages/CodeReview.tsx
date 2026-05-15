@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCodeReviewStore } from '@/store/codeReviewStore'
+import { useProjectStore } from '@/store/projectStore'
 import Icon from '@/components/Icon'
 import ProjectSelector from '@/components/ProjectSelector'
 import ReviewProgress from '@/components/ReviewProgress'
@@ -217,6 +218,7 @@ export default function CodeReview() {
     loadLLMConfigs()
     loadMCPs()
     loadSkills()
+    useProjectStore.getState().loadProjects()
   }, [])
 
   const handleStartReview = () => {
