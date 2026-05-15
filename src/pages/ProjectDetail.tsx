@@ -347,14 +347,14 @@ const ProjectDetail: React.FC = () => {
           </div>
 
           <div className="col-span-12 lg:col-span-4">
-            <div className="bg-primary-500 rounded-xl p-6 h-full flex flex-col justify-between">
+            <div className="bg-white border border-outline rounded-xl p-6 h-full flex flex-col justify-between shadow-card">
               <div>
-                <h3 className="text-sm font-body font-medium text-white/70 mb-4">预算统计</h3>
+                <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">预算统计</h3>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs font-body text-white/60 mb-1">总金额</p>
+                    <p className="text-xs font-body text-on-surface-tertiary mb-1">总金额</p>
                     {isReadOnly ? (
-                      <p className="text-2xl font-heading font-bold text-white">
+                      <p className="text-2xl font-heading font-bold text-on-surface-primary">
                         {formatCurrency(project.totalAmount)}
                       </p>
                     ) : (
@@ -378,15 +378,15 @@ const ProjectDetail: React.FC = () => {
                             setBudgetEditTotal(String(project.totalAmount))
                           }
                         }}
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-2xl font-heading font-bold text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        className="w-full bg-surface-base border border-outline rounded-lg px-3 py-1 text-2xl font-heading font-bold text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500/30"
                         placeholder="0"
                       />
                     )}
                   </div>
                   <div>
-                    <p className="text-xs font-body text-white/60 mb-1">已使用</p>
+                    <p className="text-xs font-body text-on-surface-tertiary mb-1">已使用</p>
                     {isReadOnly ? (
-                      <p className="text-xl font-heading font-semibold text-white">
+                      <p className="text-xl font-heading font-semibold text-on-surface-primary">
                         {formatCurrency(project.usedAmount)}
                       </p>
                     ) : (
@@ -410,7 +410,7 @@ const ProjectDetail: React.FC = () => {
                             setBudgetEditUsed(String(project.usedAmount))
                           }
                         }}
-                        className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-xl font-heading font-semibold text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        className="w-full bg-surface-base border border-outline rounded-lg px-3 py-1 text-xl font-heading font-semibold text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500/30"
                         placeholder="0"
                       />
                     )}
@@ -419,19 +419,19 @@ const ProjectDetail: React.FC = () => {
               </div>
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-body text-white/60">执行率</span>
+                  <span className="text-xs font-body text-on-surface-tertiary">执行率</span>
                   {budgetSaving ? (
-                    <span className="flex items-center gap-1 text-xs font-body text-white/70">
+                    <span className="flex items-center gap-1 text-xs font-body text-on-surface-secondary">
                       <Icon name="progress_activity" spin />
                       保存中...
                     </span>
                   ) : (
-                    <span className="text-lg font-heading font-bold text-white">{budgetPercent}%</span>
+                    <span className="text-lg font-heading font-bold text-on-surface-primary">{budgetPercent}%</span>
                   )}
                 </div>
-                <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-surface-hover rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-white rounded-full transition-all"
+                    className="h-full bg-primary-500 rounded-full transition-all"
                     style={{ width: `${budgetPercent}%` }}
                   />
                 </div>

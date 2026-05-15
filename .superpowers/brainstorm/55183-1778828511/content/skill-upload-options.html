@@ -1,0 +1,93 @@
+<h2>Skill 上传设计方案</h2>
+<p class="subtitle">当前是单文件上传，用户需要支持批量上传多个 Skill ZIP 包</p>
+
+<h3>方案 A：多文件选择（推荐）</h3>
+<div class="mockup">
+  <div class="mockup-header">方案 A：多文件选择</div>
+  <div class="mockup-body">
+    <div style="border: 2px dashed #8B5CF6; border-radius: 8px; padding: 24px; text-align: center; background: #1a1a2e;">
+      <div style="font-size: 32px; margin-bottom: 8px;">📦</div>
+      <p style="color: #a0a0a0; margin: 0;">点击或拖拽文件到此处</p>
+      <p style="color: #666; font-size: 12px; margin: 8px 0 0;">支持 .zip 文件，可同时选择多个</p>
+    </div>
+    <div style="margin-top: 16px; background: #1a1a2e; border-radius: 8px; padding: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333;">
+        <span>📄 code-review-skill.zip</span>
+        <span style="color: #8B5CF6;">✓ 已选中</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333;">
+        <span>📄 security-check-skill.zip</span>
+        <span style="color: #8B5CF6;">✓ 已选中</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+        <span>📄 performance-skill.zip</span>
+        <span style="color: #8B5CF6;">✓ 已选中</span>
+      </div>
+    </div>
+    <button class="mock-button" style="width: 100%; margin-top: 12px; background: #8B5CF6;">批量导入 3 个 Skill</button>
+  </div>
+</div>
+
+<h3>方案 B：列表追加模式</h3>
+<div class="mockup">
+  <div class="mockup-header">方案 B：每次上传追加到列表</div>
+  <div class="mockup-body">
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+      <input class="mock-input" style="flex: 1;" placeholder="选择文件..." readonly>
+      <button class="mock-button" style="background: #3B82F6;">浏览...</button>
+    </div>
+    <div style="background: #1a1a2e; border-radius: 8px; padding: 8px;">
+      <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333;">
+        <span>code-review-skill <span style="color: #666;">(3.2KB)</span></span>
+        <button style="color: #ef4444; font-size: 12px;">移除</button>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333;">
+        <span>security-check-skill <span style="color: #666;">(5.1KB)</span></span>
+        <button style="color: #ef4444; font-size: 12px;">移除</button>
+      </div>
+      <div style="display: flex; justify-content: space-between; padding: 8px;">
+        <span>performance-skill <span style="color: #666;">(2.8KB)</span></span>
+        <button style="color: #ef4444; font-size: 12px;">移除</button>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <button class="mock-button" style="flex: 1; background: #3B82F6;">添加</button>
+      <button class="mock-button" style="flex: 1; background: #8B5CF6;">导入全部</button>
+    </div>
+  </div>
+</div>
+
+<h3>方案 C：简化模式（保持现状）</h3>
+<div class="mockup">
+  <div class="mockup-header">方案 C：仅更改上传按钮文案</div>
+  <div class="mockup-body">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button class="mock-button" style="background: #3B82F6;">+ 上传 Skill</button>
+      <span style="color: #666; font-size: 12px;">提示：按住 Cmd/Ctrl 可多选</span>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>多文件选择（推荐）</h3>
+      <p>拖拽区域 + 多文件选中，视觉清晰，一目了然</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>列表追加模式</h3>
+      <p>每次选择追加到列表，可单独移除，灵活度高</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>简化模式</h3>
+      <p>最小改动，仅支持多选文件</p>
+    </div>
+  </div>
+</div>

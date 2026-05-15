@@ -315,7 +315,6 @@ const Dashboard: React.FC = () => {
               value={ongoingCount}
               subtitle={`占总项目的 ${totalCount > 0 ? Math.round((ongoingCount / totalCount) * 100) : 0}%`}
               icon="pending_actions"
-              variant="accent"
             />
             <StatsCard
               title="预算执行率"

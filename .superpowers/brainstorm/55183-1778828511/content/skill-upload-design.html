@@ -1,0 +1,80 @@
+<h2>Skill 批量上传设计 - 方案 A</h2>
+<p class="subtitle">多文件选择 + 拖拽区域，用户体验最清晰</p>
+
+<h3>组件状态</h3>
+<div class="mockup">
+  <div class="mockup-header">上传区域状态</div>
+  <div class="mockup-body">
+    <div style="border: 2px dashed #8B5CF6; border-radius: 8px; padding: 32px; text-align: center; background: #1a1a2e;">
+      <div style="font-size: 40px; margin-bottom: 12px;">📦</div>
+      <p style="color: #e0e0e0; margin: 0; font-size: 16px;">点击或拖拽 ZIP 文件到此处</p>
+      <p style="color: #888; font-size: 13px; margin: 8px 0 0;">支持多文件同时选择</p>
+    </div>
+  </div>
+</div>
+
+<h3>已选文件列表</h3>
+<div class="mockup">
+  <div class="mockup-body">
+    <div style="background: #121220; border-radius: 8px; overflow: hidden;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #333;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <input type="checkbox" checked>
+          <span>📄 code-review-skill.zip</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="color: #666; font-size: 12px;">3.2 KB</span>
+          <button style="color: #ef4444; font-size: 14px;">✕</button>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #333;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <input type="checkbox" checked>
+          <span>📄 security-check-skill.zip</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="color: #666; font-size: 12px;">5.1 KB</span>
+          <button style="color: #ef4444; font-size: 14px;">✕</button>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #1a1a2e;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <input type="checkbox">
+          <span style="color: #888;">📄 performance-skill.zip</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="color: #666; font-size: 12px;">2.8 KB</span>
+          <button style="color: #ef4444; font-size: 14px;">✕</button>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 16px;">
+      <button class="mock-button" style="flex: 1; background: #3B82F6;">添加更多</button>
+      <button class="mock-button" style="flex: 2; background: #8B5CF6;">导入选中 (2)</button>
+    </div>
+  </div>
+</div>
+
+<h3>导入成功反馈</h3>
+<div class="mockup">
+  <div class="mockup-body">
+    <div style="background: #0a2e1a; border: 1px solid #22c55e; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 24px;">✓</span>
+      <div>
+        <p style="margin: 0; color: #22c55e; font-weight: 500;">导入成功</p>
+        <p style="margin: 4px 0 0; color: #888; font-size: 13px;">2 个 Skill 已添加到列表</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>功能要点</h3>
+  <ul style="color: #ccc; line-height: 1.8;">
+    <li>支持点击或拖拽上传，可多选文件</li>
+    <li>文件列表显示名称和大小，可单独移除</li>
+    <li>可勾选要导入的文件，实现选择性导入</li>
+    <li>导入后解析 ZIP 包提取 prompt 内容</li>
+    <li>显示成功/失败状态反馈</li>
+  </ul>
+</div>
