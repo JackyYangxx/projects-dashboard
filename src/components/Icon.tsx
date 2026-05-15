@@ -28,7 +28,9 @@ import {
   GitBranch,
   Palette,
   Code,
+  Settings,
   ClipboardCheck,
+  ExternalLink,
 } from 'lucide-react'
 
 const iconMap = {
@@ -46,6 +48,7 @@ const iconMap = {
   chevron_right: ChevronRight,
   chevron_down: ChevronDown,
   expand_more: ChevronDown,
+  expand_less: ChevronDown,
   upload_file: Upload,
   download: Download,
   add: Plus,
@@ -61,6 +64,8 @@ const iconMap = {
   palette: Palette,
   code: Code,
   fact_check: ClipboardCheck,
+  settings: Settings,
+  open_in_new: ExternalLink,
 } as const
 
 export type IconName = keyof typeof iconMap

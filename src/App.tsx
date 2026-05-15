@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import Dashboard from '@/pages/Dashboard'
 import ProjectDetail from '@/pages/ProjectDetail'
 import ProjectForm from '@/pages/ProjectForm'
+import CodeReview from '@/pages/CodeReview'
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -43,6 +44,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/project/new" element={<ProjectForm />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/code-review" element={<CodeReview />} />
         </Routes>
       </HashRouter>
     </ErrorBoundary>

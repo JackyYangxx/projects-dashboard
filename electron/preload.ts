@@ -7,3 +7,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlatform: () => ipcRenderer.invoke('get-platform'),
   getWasmBinary: () => ipcRenderer.invoke('get-wasm-binary'),
 })
+
+contextBridge.exposeInMainWorld('mcpAPI', {
+  listTools: (params: { url: string; authHeader?: string }) =>
+    ipcRenderer.invoke('mcp:list-tools', params),
+  invokeTool: (params: { url: string; authHeader?: string; toolName: string; toolArgs: Record<string, unknown> }) =>
+    ipcRenderer.invoke('mcp:invoke-tool', params),
+})
+
+contextBridge.exposeInMainWorld('secureStore', {
+  get: (key: string) => ipcRenderer.invoke('store:get', key),
+  set: (key: string, value: unknown) => ipcRenderer.invoke('store:set', key, value),
+  delete: (key: string) => ipcRenderer.invoke('store:delete', key),
+})

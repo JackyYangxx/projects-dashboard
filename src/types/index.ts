@@ -65,6 +65,84 @@ export interface Project {
   updatedAt: string
 }
 
+export interface CodeReview {
+  id: string
+  projectId: string
+  repository: string
+  branch: string
+  severity: 'critical' | 'warning' | 'suggestion'
+  title: string
+  description: string
+  filePath?: string
+  lineRange?: string
+  aiTrace: string
+  createdAt: string
+}
+
+export interface MCPService {
+  id: string
+  name: string
+  url: string
+  authHeader?: string
+  tools: string[]
+  enabled: boolean
+  createdAt: string
+}
+
+export interface Skill {
+  id: string
+  name: string
+  description?: string
+  content: string
+  enabled: boolean
+  createdAt: string
+}
+
+export interface LLMConfig {
+  id: string
+  modelName: string
+  modelUrl: string
+  apiKey: string
+  enabled: boolean
+  createdAt: string
+}
+
+export interface MRReviewRecord {
+  id: string
+  projectId: string
+  projectName: string
+  mrId: string
+  mrTitle: string
+  mrUrl: string
+  status: 'pending' | 'reviewing' | 'completed' | 'failed'
+  issues: Array<{
+    severity: 'critical' | 'warning' | 'suggestion'
+    title: string
+    description: string
+    filePath?: string
+    lineRange?: string
+  }>
+  reviewedAt: string
+  createdAt: string
+}
+
+export interface ReviewReport {
+  id: string
+  name: string
+  projectIds: string
+  totalMrCount: number
+  totalIssueCount: number
+  issuesPreview: string
+  createdAt: string
+}
+
+export interface MCPConfig {
+  name: string
+  endpoint: string
+  authHeader?: string
+  tools: string[]
+}
+
 declare global {
   interface Window {
     electronAPI?: {
@@ -72,6 +150,15 @@ declare global {
       getAppVersion?: () => Promise<string>
       getPlatform?: () => Promise<string>
       getWasmBinary?: () => Promise<Uint8Array>
+    }
+    mcpAPI?: {
+      listTools: (params: { url: string; authHeader?: string }) => Promise<unknown>
+      invokeTool: (params: { url: string; authHeader?: string; toolName: string; toolArgs: Record<string, unknown> }) => Promise<unknown>
+    }
+    secureStore?: {
+      get: (key: string) => Promise<unknown>
+      set: (key: string, value: unknown) => Promise<void>
+      delete: (key: string) => Promise<void>
     }
   }
 }
