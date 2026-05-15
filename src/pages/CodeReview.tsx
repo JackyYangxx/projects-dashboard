@@ -219,31 +219,71 @@ function SkillPanel() {
       </div>
       {showForm && (
         <div className="space-y-2 mb-3">
-          <input
-            placeholder="Skill 名称"
-            value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            className="w-full px-3 py-2 border border-outline rounded-lg text-sm"
-          />
-          <input
-            placeholder="描述（可选）"
-            value={form.description}
-            onChange={e => setForm({ ...form, description: e.target.value })}
-            className="w-full px-3 py-2 border border-outline rounded-lg text-sm"
-          />
-          <textarea
-            placeholder="Skill 内容（prompt 文本）"
-            value={form.content}
-            rows={6}
-            onChange={e => setForm({ ...form, content: e.target.value })}
-            className="w-full px-3 py-2 border border-outline rounded-lg text-sm font-mono"
-          />
-          <button
-            onClick={handleAdd}
-            className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm"
+          {/* Drag-drop zone */}
+          <div
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              isDragging ? 'border-primary-500 bg-primary-500/10' : 'border-outline hover:border-primary-500'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
           >
-            保存
-          </button>
+            <input
+              type="file"
+              accept=".zip"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              id="skill-zip-upload"
+            />
+            <label htmlFor="skill-zip-upload" className="cursor-pointer">
+              <div className="text-2xl mb-2">📦</div>
+              <p className="text-sm text-on-surface-secondary">点击或拖拽 ZIP 文件到此处</p>
+              <p className="text-xs text-on-surface-tertiary mt-1">支持多文件同时选择</p>
+            </label>
+          </div>
+
+          {/* File list */}
+          {selectedFiles.length > 0 && (
+            <div className="bg-surface-secondary rounded-lg p-3 space-y-2">
+              <div className="flex justify-between items-center text-xs text-on-surface-tertiary mb-2">
+                <span>已选择 {selectedFiles.length} 个文件</span>
+                <button onClick={() => setSelectedFiles([])} className="text-primary-500 hover:underline">清空</button>
+              </div>
+              {selectedFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={checkedFiles.includes(index)}
+                      onChange={() => {
+                        if (checkedFiles.includes(index)) {
+                          setCheckedFiles(checkedFiles.filter(i => i !== index))
+                        } else {
+                          setCheckedFiles([...checkedFiles, index])
+                        }
+                      }}
+                    />
+                    <span className="text-sm">{file.name}</span>
+                    <span className="text-xs text-on-surface-tertiary">({(file.size / 1024).toFixed(1)} KB)</span>
+                  </div>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    移除
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={handleBatchImport}
+                disabled={checkedFiles.length === 0}
+                className="w-full mt-3 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm disabled:opacity-50"
+              >
+                导入选中 ({checkedFiles.length})
+              </button>
+            </div>
+          )}
         </div>
       )}
       <ul className="space-y-2">
