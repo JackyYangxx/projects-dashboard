@@ -162,7 +162,7 @@ function SkillPanel() {
   const parseSkillFromZip = async (file: File): Promise<{ name: string; description?: string; content: string } | null> => {
     try {
       const zip = await JSZip.loadAsync(file)
-      const txtFile = zip.file(/\.txt$/) || zip.file(/\.md$/)
+      const txtFile = zip.file(/\.txt$/i) || zip.file(/\.md$/i)
       if (!txtFile) return null
 
       const content = await txtFile.async('string')
