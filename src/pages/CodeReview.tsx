@@ -157,6 +157,7 @@ function SkillPanel() {
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+    setCheckedFiles(prev => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i))
   }
 
   const parseSkillFromZip = async (file: File): Promise<{ name: string; description?: string; content: string } | null> => {
@@ -248,7 +249,7 @@ function SkillPanel() {
             <div className="bg-surface-secondary rounded-lg p-3 space-y-2">
               <div className="flex justify-between items-center text-xs text-on-surface-tertiary mb-2">
                 <span>已选择 {selectedFiles.length} 个文件</span>
-                <button onClick={() => setSelectedFiles([])} className="text-primary-500 hover:underline">清空</button>
+                <button onClick={() => { setSelectedFiles([]); setCheckedFiles([]) }} className="text-primary-500 hover:underline">清空</button>
               </div>
               {selectedFiles.map((file, index) => (
                 <div key={index} className="flex items-center justify-between py-1">
