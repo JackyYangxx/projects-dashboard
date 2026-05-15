@@ -33,7 +33,7 @@ function LLMConfigPanel() {
     if (!form.modelUrl || !form.apiKey) return
     setTesting(true)
     setTestResult(null)
-    const result = await testLLMConfig(form.modelUrl, form.apiKey)
+    const result = await testLLMConfig(form.modelUrl, form.apiKey, form.modelName)
     setTestResult(result)
     setTesting(false)
   }
@@ -126,8 +126,36 @@ function SkillPanel() {
   const { skills, loadSkills, addSkill, toggleSkill, removeSkill } = useCodeReviewStore()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', content: '' })
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+  const [checkedFiles, setCheckedFiles] = useState<number[]>([])
 
   useEffect(() => { loadSkills() }, [])
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.zip'))
+    setSelectedFiles(prev => [...prev, ...files])
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : []
+    setSelectedFiles(prev => [...prev, ...files])
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleAdd = () => {
     if (!form.name || !form.content) return
