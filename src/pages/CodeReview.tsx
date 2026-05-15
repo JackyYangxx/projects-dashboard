@@ -126,9 +126,7 @@ function LLMConfigPanel() {
 function SkillPanel() {
   const { skills, loadSkills, addSkill, toggleSkill, removeSkill } = useCodeReviewStore()
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name: '', description: '', content: '' })
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  // Will be used in drag-drop UI in Task 4
   const [isDragging, setIsDragging] = useState(false)
   const [checkedFiles, setCheckedFiles] = useState<number[]>([])
 
@@ -198,13 +196,6 @@ function SkillPanel() {
     if (successCount > 0) {
       alert(`成功导入 ${successCount} 个 Skill`)
     }
-  }
-
-  const handleAdd = () => {
-    if (!form.name || !form.content) return
-    addSkill({ ...form, enabled: true })
-    setForm({ name: '', description: '', content: '' })
-    setShowForm(false)
   }
 
   return (
