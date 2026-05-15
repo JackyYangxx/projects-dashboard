@@ -34,7 +34,7 @@ interface CodeReviewStore {
   updateLLMConfig: (id: string, updates: Partial<LLMConfig>) => void
   toggleLLMConfig: (id: string, enabled: boolean) => void
   removeLLMConfig: (id: string) => void
-  testLLMConfig: (url: string, apiKey: string) => Promise<{ success: boolean; message: string }>
+  testLLMConfig: (url: string, apiKey: string, modelName?: string) => Promise<{ success: boolean; message: string }>
 
   // MCP
   mcps: MCPService[]
@@ -127,7 +127,7 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
     set(state => ({ llmConfigs: state.llmConfigs.filter(c => c.id !== id) }))
   },
 
-  testLLMConfig: async (url, apiKey) => {
+  testLLMConfig: async (url: string, apiKey: string, modelName?: string): Promise<{ success: boolean; message: string }> => {
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -136,7 +136,7 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'claude',
+          model: modelName || 'claude',
           max_tokens: 10,
           messages: [{ role: 'user', content: 'Hi' }],
         }),

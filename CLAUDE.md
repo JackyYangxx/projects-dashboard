@@ -15,7 +15,12 @@ npm run electron:build # Build + package
 **Required output:**
 - Windows: x64 ZIP only
 
-**Build command:** `npx electron-builder --win --x64`
+**Build command:** 
+```bash
+rm -rf dist dist-electron && npm run build && npx electron-builder --win --x64
+```
+
+> **Important:** Always clean dist/ and dist-electron/ before building — stale files cause missing code issues.
 
 **Note:** macOS builds not required — development happens on macOS but release is Windows-only.
 
