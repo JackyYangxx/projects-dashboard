@@ -42,6 +42,13 @@ export interface TimelineEvent {
   isCompleted: boolean
 }
 
+export interface BudgetSource {
+  id: string
+  projectId: string
+  name: string
+  amount: number
+}
+
 export interface Project {
   id: string
   name: string
