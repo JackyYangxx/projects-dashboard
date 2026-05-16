@@ -379,8 +379,11 @@ const ProjectDetail: React.FC = () => {
           </div>
 
           <div className="col-span-12 lg:col-span-4">
-            <div className="bg-white border border-outline rounded-xl p-6 h-full flex flex-col shadow-card">
-              <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">预算统计</h3>
+            <div className="bg-surface-elevated rounded-xl p-6 h-full flex flex-col shadow-card">
+              <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2 mb-4">
+                <Icon name="account_balance_wallet" size={18} />
+                预算统计
+              </h3>
               {isReadOnly ? (
                 <div className="flex-1 space-y-2">
                   {budgetSources.map((source) => (
@@ -702,7 +705,7 @@ const ProjectDetail: React.FC = () => {
                 onClick={() => setShowMemberModal(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
               >
-                <Icon name="close" className="text-xl" />
+                <Icon name="close" />
               </button>
             </div>
             <div className="p-6 space-y-5">
@@ -780,7 +783,7 @@ const ProjectDetail: React.FC = () => {
                 onClick={() => setShowMilestoneModal(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
               >
-                <Icon name="close" className="text-xl" />
+                <Icon name="close" />
               </button>
             </div>
             <div className="p-6 space-y-5">
