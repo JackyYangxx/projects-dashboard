@@ -7,6 +7,8 @@ import Icon from '@/components/Icon'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
 import PrevNextNav from '@/components/PrevNextNav'
+import type { BudgetSource } from '@/types'
+import { getAllBudgetSources, insertBudgetSource, updateBudgetSource, deleteBudgetSource } from '@/db/budgetSourceDao'
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -31,9 +33,6 @@ const ProjectDetail: React.FC = () => {
   const [showMemberModal, setShowMemberModal] = useState(false)
   const [newMemberName, setNewMemberName] = useState('')
   const [newMemberRole, setNewMemberRole] = useState('')
-  const [budgetEditTotal, setBudgetEditTotal] = useState('')
-  const [budgetEditUsed, setBudgetEditUsed] = useState('')
-  const [budgetSaving, setBudgetSaving] = useState(false)
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null)
   // Initialize expandedHistoryId when project loads (expand latest note history)
   useEffect(() => {
@@ -50,19 +49,17 @@ const ProjectDetail: React.FC = () => {
   const [repoEditRepository, setRepoEditRepository] = useState('')
   const [repoEditBranch, setRepoEditBranch] = useState('')
   const [isRepoEditing, setIsRepoEditing] = useState(false)
+  const [budgetSources, setBudgetSources] = useState<BudgetSource[]>([])
 
   // Initialize budget edit states when entering edit mode
   const prevIsReadOnlyRef = useRef(isReadOnly)
   useEffect(() => {
     if (prevIsReadOnlyRef.current && !isReadOnly && project) {
-      // Transitioned from read-only to edit mode - echo the current values
-      setBudgetEditTotal(String(project.totalAmount))
-      setBudgetEditUsed(String(project.usedAmount))
       // Auto-enter repo edit mode
       setIsRepoEditing(true)
     }
     prevIsReadOnlyRef.current = isReadOnly
-  }, [isReadOnly, project?.totalAmount, project?.usedAmount])
+  }, [isReadOnly, project])
 
   // Reset milestone form state when modal closes
   useEffect(() => {
@@ -81,6 +78,41 @@ const ProjectDetail: React.FC = () => {
       setRepoEditBranch(project.branch || '')
     }
   }, [project])
+
+  // Load budget sources when project changes
+  useEffect(() => {
+    if (project) {
+      const sources = getAllBudgetSources(project.id)
+      setBudgetSources(sources)
+    }
+  }, [project])
+
+  const addBudgetSource = () => {
+    if (!project) return
+    const newSource = insertBudgetSource({
+      id: '',
+      projectId: project.id,
+      label: '新来源',
+      amount: 0,
+      usedAmount: 0,
+    })
+    setBudgetSources([...budgetSources, newSource])
+  }
+
+  const updateSource = (id: string, updates: Partial<BudgetSource>) => {
+    updateBudgetSource(id, updates)
+    setBudgetSources(budgetSources.map(s => s.id === id ? { ...s, ...updates } : s))
+  }
+
+  const removeSource = (id: string) => {
+    if (budgetSources.length <= 1) return
+    deleteBudgetSource(id)
+    setBudgetSources(budgetSources.filter(s => s.id !== id))
+  }
+
+  const totalBudget = budgetSources.reduce((sum, s) => sum + s.amount, 0)
+  const totalUsed = budgetSources.reduce((sum, s) => sum + s.usedAmount, 0)
+  const budgetPercent = totalBudget > 0 ? Math.round((totalUsed / totalBudget) * 100) : 0
 
   const handleAddMember = () => {
     if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
@@ -149,10 +181,6 @@ const ProjectDetail: React.FC = () => {
   const handleNotesChange = (html: string) => {
     updateProject(project.id, { notes: html, updatedAt: new Date().toISOString() })
   }
-
-  const budgetPercent = project.totalAmount > 0
-    ? Math.round((project.usedAmount / project.totalAmount) * 100)
-    : 0
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-CN', {
@@ -347,87 +375,73 @@ const ProjectDetail: React.FC = () => {
           </div>
 
           <div className="col-span-12 lg:col-span-4">
-            <div className="bg-white border border-outline rounded-xl p-6 h-full flex flex-col justify-between shadow-card">
-              <div>
-                <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">预算统计</h3>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs font-body text-on-surface-tertiary mb-1">总金额</p>
-                    {isReadOnly ? (
-                      <p className="text-2xl font-heading font-bold text-on-surface-primary">
-                        {formatCurrency(project.totalAmount)}
-                      </p>
-                    ) : (
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={budgetEditTotal}
-                        onChange={(e) => setBudgetEditTotal(e.target.value)}
-                        onFocus={() => setBudgetEditTotal(String(project.totalAmount))}
-                        onBlur={() => {
-                          const val = Number(budgetEditTotal)
-                          if (!isNaN(val) && val >= 0) {
-                            setBudgetSaving(true)
-                            updateProject(project.id, { totalAmount: val, updatedAt: new Date().toISOString() })
-                            setTimeout(() => setBudgetSaving(false), 600)
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setBudgetEditTotal(String(project.totalAmount))
-                          }
-                        }}
-                        className="w-full bg-surface-base border border-outline rounded-lg px-3 py-1 text-2xl font-heading font-bold text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500/30"
-                        placeholder="0"
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-xs font-body text-on-surface-tertiary mb-1">已使用</p>
-                    {isReadOnly ? (
-                      <p className="text-xl font-heading font-semibold text-on-surface-primary">
-                        {formatCurrency(project.usedAmount)}
-                      </p>
-                    ) : (
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={budgetEditUsed}
-                        onChange={(e) => setBudgetEditUsed(e.target.value)}
-                        onFocus={() => setBudgetEditUsed(String(project.usedAmount))}
-                        onBlur={() => {
-                          const val = Number(budgetEditUsed)
-                          if (!isNaN(val) && val >= 0 && val <= project.totalAmount) {
-                            setBudgetSaving(true)
-                            updateProject(project.id, { usedAmount: val, updatedAt: new Date().toISOString() })
-                            setTimeout(() => setBudgetSaving(false), 600)
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setBudgetEditUsed(String(project.usedAmount))
-                          }
-                        }}
-                        className="w-full bg-surface-base border border-outline rounded-lg px-3 py-1 text-xl font-heading font-semibold text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500/30"
-                        placeholder="0"
-                      />
-                    )}
-                  </div>
+            <div className="bg-white border border-outline rounded-xl p-6 h-full flex flex-col shadow-card">
+              <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">预算统计</h3>
+              {isReadOnly ? (
+                <div className="flex-1 space-y-2">
+                  {budgetSources.map((source) => (
+                    <div key={source.id} className="flex items-center justify-between">
+                      <span className="text-sm font-body text-on-surface-primary">{source.label}</span>
+                      <span className="text-sm font-heading font-semibold text-on-surface-primary">
+                        {formatCurrency(source.usedAmount)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-body text-on-surface-tertiary">执行率</span>
-                  {budgetSaving ? (
-                    <span className="flex items-center gap-1 text-xs font-body text-on-surface-secondary">
-                      <Icon name="progress_activity" spin />
-                      保存中...
-                    </span>
-                  ) : (
-                    <span className="text-lg font-heading font-bold text-on-surface-primary">{budgetPercent}%</span>
-                  )}
+              ) : (
+                <div className="flex-1 space-y-3">
+                  {budgetSources.map((source) => (
+                    <div key={source.id} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={source.label}
+                        onChange={(e) => updateSource(source.id, { label: e.target.value })}
+                        className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+                      />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={source.usedAmount}
+                        onChange={(e) => updateSource(source.id, { usedAmount: Number(e.target.value) || 0 })}
+                        className="w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
+                      />
+                      <button
+                        onClick={() => removeSource(source.id)}
+                        disabled={budgetSources.length <= 1}
+                        className="w-8 h-8 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Icon name="delete" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={addBudgetSource}
+                    className="w-full py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Icon name="add" />
+                    添加来源
+                  </button>
+                </div>
+              )}
+              <div className="mt-6 pt-4 border-t border-outline">
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  <div>
+                    <p className="text-xs font-body text-on-surface-tertiary">总金额</p>
+                    <p className="text-lg font-heading font-bold text-on-surface-primary">
+                      {formatCurrency(totalBudget)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-body text-on-surface-tertiary">已使用</p>
+                    <p className="text-lg font-heading font-bold text-on-surface-primary">
+                      {formatCurrency(totalUsed)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-body text-on-surface-tertiary">执行率</p>
+                    <p className="text-lg font-heading font-bold text-primary-500">{budgetPercent}%</p>
+                  </div>
                 </div>
                 <div className="w-full h-2 bg-surface-hover rounded-full overflow-hidden">
                   <div
