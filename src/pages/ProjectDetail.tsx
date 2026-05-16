@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -110,9 +110,13 @@ const ProjectDetail: React.FC = () => {
     setBudgetSources(budgetSources.filter(s => s.id !== id))
   }
 
-  const totalBudget = budgetSources.reduce((sum, s) => sum + s.amount, 0)
-  const totalUsed = budgetSources.reduce((sum, s) => sum + s.usedAmount, 0)
-  const budgetPercent = totalBudget > 0 ? Math.round((totalUsed / totalBudget) * 100) : 0
+  const handleSourceLabelChange = (id: string, label: string) => updateSource(id, { label })
+  const handleSourceAmountChange = (id: string, amount: number) => updateSource(id, { amount })
+  const handleSourceUsedAmountChange = (id: string, usedAmount: number) => updateSource(id, { usedAmount })
+
+  const totalBudget = useMemo(() => budgetSources.reduce((sum, s) => sum + s.amount, 0), [budgetSources])
+  const totalUsed = useMemo(() => budgetSources.reduce((sum, s) => sum + s.usedAmount, 0), [budgetSources])
+  const budgetPercent = useMemo(() => totalBudget > 0 ? Math.round((totalUsed / totalBudget) * 100) : 0, [totalBudget, totalUsed])
 
   const handleAddMember = () => {
     if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
@@ -392,12 +396,12 @@ const ProjectDetail: React.FC = () => {
                 <div className="flex-1 space-y-3">
                   {budgetSources.map((source) => (
                     <div key={source.id} className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="flex items-center gap-2 flex-1">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
                         <input
                           type="text"
                           value={source.label}
-                          onChange={(e) => updateSource(source.id, { label: e.target.value })}
-                          className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 min-w-0"
+                          onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
+                          className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
                         />
                         <button
                           onClick={() => removeSource(source.id)}
@@ -413,7 +417,7 @@ const ProjectDetail: React.FC = () => {
                           inputMode="numeric"
                           pattern="[0-9]*"
                           value={source.amount}
-                          onChange={(e) => updateSource(source.id, { amount: Number(e.target.value) || 0 })}
+                          onChange={(e) => handleSourceAmountChange(source.id, Number(e.target.value) || 0)}
                           className="w-20 sm:w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
                         />
                         <input
@@ -421,7 +425,7 @@ const ProjectDetail: React.FC = () => {
                           inputMode="numeric"
                           pattern="[0-9]*"
                           value={source.usedAmount}
-                          onChange={(e) => updateSource(source.id, { usedAmount: Number(e.target.value) || 0 })}
+                          onChange={(e) => handleSourceUsedAmountChange(source.id, Number(e.target.value) || 0)}
                           className="w-20 sm:w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
                         />
                       </div>
