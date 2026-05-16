@@ -22,7 +22,12 @@ coordinator → tester: "Write E2E test cases from spec"
 planner → writes → docs/superpowers/tasks/{date}-{feature}-tasklist.md
 tester → writes → docs/superpowers/tests/{date}-{feature}-test-cases.md
     ↓
-[Task list + Test cases complete]
+tester submits test cases to checker: "Review test cases"
+    ↓
+[checker APPROVE] → test cases approved
+[checker REQUEST_CHANGES] → tester revises → re-review
+    ↓
+[Task list + Test cases approved]
     ↓
 coordinator → dever-1, dever-2, ...: "Implement assigned tasks"
     ↓
@@ -37,9 +42,11 @@ dever-N commits → tester: "Test Task"
     ↓
 tester runs E2E test for Task
     ↓
-[if issue] tester → coordinator: "Issue found in Task, assign to responsible dever-N"
-coordinator → responsible dever-N: "Fix issue, notify tester when fixed"
-dever-N fixes → tester re-tests
+[if issue] tester → coordinator: "Issue found in Task"
+coordinator → responsible dever-N: "Fix issue"
+    ↓
+[if responsible dever-N unknown] → spawn new dever-K to fix
+dever-K or responsible dever-N fixes → tester re-tests
     ↓
 [all tests pass] tester → coordinator: "Task verified"
     ↓
@@ -69,4 +76,5 @@ coordinator → user: "Ready for acceptance"
 5. **Dever commits ONLY after checker approval**
 6. **One dever per task** — Each task spawns a dedicated `dever-{N}` instance
 7. **Tester assigns issues to the responsible dever** — coordinator routes the assignment
-8. **The assigned dever fixes until tester closes the issue**
+8. **Fallback: spawn new dever** — If responsible dever cannot be identified, spawn `dever-K` to fix
+9. **All issues must be resolved** — Feature only ready for acceptance when ALL issues are closed

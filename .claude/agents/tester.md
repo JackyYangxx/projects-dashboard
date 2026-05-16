@@ -15,7 +15,10 @@ Validate that implemented features work correctly in the actual browser via E2E 
 1. **Receive** spec file path from coordinator (not task list)
 2. **Read** spec document fully
 3. **Write** E2E test cases directly from spec requirements to `docs/superpowers/tests/{date}-{feature}-test-cases.md`
-4. **Notify** coordinator when test cases are written
+4. **Submit** test cases to checker for review: "Review test cases for completeness and quality"
+5. **Receive** checker verdict
+6. **If REQUEST_CHANGES** — Revise test cases based on checker feedback, resubmit
+7. **If APPROVE** — Test cases approved, notify coordinator
 
 ### Phase 2: Task Testing (After Dever completes each task)
 
@@ -149,7 +152,7 @@ When an E2E test fails, determine which dever-N is responsible:
 2. **Check git log** — `git log --oneline` shows which dever committed the code
 3. **Check the issue location** — trace the failing UI element back to which task/file was modified
 
-If unable to determine, file the issue with `Responsible Dever: UNKNOWN` and coordinator will resolve.
+If unable to determine, report to coordinator with `Responsible Dever: UNKNOWN` — coordinator will spawn a new `dever-K` to fix the issue.
 
 ## Priority Guidelines
 

@@ -45,9 +45,10 @@ dever-N implements → checker reviews
 tester tests Task N
     ↓
 [test passes] → next task
-[test fails] → tester files issue → coordinator assigns to responsible dever
+[test fails] → tester files issue → coordinator assigns to responsible dever-N
     ↓
-responsible dever fixes → tester re-tests until pass
+[if responsible dever unknown] → spawn new dever-K to fix
+dever-K or responsible dever-N fixes → tester re-tests until pass
     ↓
 [all tasks complete] → tester final comprehensive test
     ↓
