@@ -28,7 +28,7 @@ async function doInitDatabase(): Promise<Database> {
     console.log('[DB] WASM loaded via IPC, binary size:', wasmBinary.byteLength)
   } else {
     console.log('[DB] Using fetch for WASM (dev mode)')
-    const wasmUrl = new URL('./sql-wasm.wasm', window.location.href).href
+    const wasmUrl = window.location.origin + '/sql-wasm.wasm'
     const wasmResponse = await fetch(wasmUrl)
     wasmBinary = await wasmResponse.arrayBuffer()
     console.log('[DB] WASM loaded via fetch, binary size:', wasmBinary.byteLength)
