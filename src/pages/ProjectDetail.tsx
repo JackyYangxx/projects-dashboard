@@ -235,7 +235,7 @@ const ProjectDetail: React.FC = () => {
                 : 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-sm'
             }`}
           >
-            <Icon name={isReadOnly ? 'edit' : 'visibility'} />
+            <Icon name={isReadOnly ? 'edit' : 'visibility'} size={15} />
             {isReadOnly ? '编辑' : '查看'}
           </button>
           <span
