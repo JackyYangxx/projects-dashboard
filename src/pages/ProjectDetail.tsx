@@ -402,6 +402,14 @@ const ProjectDetail: React.FC = () => {
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
+                        value={source.amount}
+                        onChange={(e) => updateSource(source.id, { amount: Number(e.target.value) || 0 })}
+                        className="w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
+                      />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={source.usedAmount}
                         onChange={(e) => updateSource(source.id, { usedAmount: Number(e.target.value) || 0 })}
                         className="w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
