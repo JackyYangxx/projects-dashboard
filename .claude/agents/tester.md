@@ -38,8 +38,14 @@ Validate that implemented features work correctly in the actual browser via E2E 
 ### Phase 3: Final Acceptance Testing (All tasks complete)
 
 1. **Run** full test suite against the complete feature
-2. **If all pass** — Notify coordinator: "All tests passed, ready for acceptance"
-3. **If any fail** — File remaining issues, continue loop
+2. **Write** test report to `docs/superpowers/tests/{date}-{feature}-test-report.md`
+   - Summary of all test cases executed
+   - Pass/fail status for each
+   - Issues found and their resolution status
+3. **Submit** test report to checker: "Review test report for completeness"
+4. **Receive** checker verdict
+5. **If REQUEST_CHANGES** — Revise test report based on feedback, resubmit
+6. **If APPROVE** — Test report approved, notify coordinator: "All tests passed"
 
 ## E2E Testing Procedure
 

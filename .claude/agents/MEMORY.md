@@ -52,7 +52,11 @@ dever-K or responsible dever-N fixes → tester re-tests
     ↓
 [all tasks done] tester final comprehensive test
     ↓
-tester → coordinator: "All tests passed"
+tester → tester writes test report: docs/superpowers/tests/{date}-{feature}-test-report.md
+tester → submits test report to checker: "Review test report"
+    ↓
+[checker APPROVE] → tester → coordinator: "All tests passed"
+[checker REQUEST_CHANGES] → tester revises test report → re-review
     ↓
 coordinator → user: "Ready for acceptance"
 ```
@@ -64,6 +68,8 @@ coordinator → user: "Ready for acceptance"
 | Spec | `docs/superpowers/specs/{date}-{feature}-design.md` |
 | Task List | `docs/superpowers/tasks/{date}-{feature}-tasklist.md` |
 | Code Review | `docs/superpowers/reviews/{date}-{task}-review.md` |
+| Test Cases | `docs/superpowers/tests/{date}-{feature}-test-cases.md` |
+| Test Report | `docs/superpowers/tests/{date}-{feature}-test-report.md` |
 | Test Issue | `docs/superpowers/issues/{date}-{issue}-issue.md` |
 | Agent Log | `docs/superpowers/logs/{agent}/{date}-{agent}-log.md` |
 
@@ -77,4 +83,5 @@ coordinator → user: "Ready for acceptance"
 6. **One dever per task** — Each task spawns a dedicated `dever-{N}` instance
 7. **Tester assigns issues to the responsible dever** — coordinator routes the assignment
 8. **Fallback: spawn new dever** — If responsible dever cannot be identified, spawn `dever-K` to fix
-9. **All issues must be resolved** — Feature only ready for acceptance when ALL issues are closed
+9. **Test report required** — After all tests pass, tester writes report and submits to checker for approval
+10. **All issues must be resolved** — Feature only ready for acceptance when ALL issues are closed
