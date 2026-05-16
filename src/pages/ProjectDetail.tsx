@@ -391,36 +391,40 @@ const ProjectDetail: React.FC = () => {
               ) : (
                 <div className="flex-1 space-y-3">
                   {budgetSources.map((source) => (
-                    <div key={source.id} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={source.label}
-                        onChange={(e) => updateSource(source.id, { label: e.target.value })}
-                        className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
-                      />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={source.amount}
-                        onChange={(e) => updateSource(source.id, { amount: Number(e.target.value) || 0 })}
-                        className="w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
-                      />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={source.usedAmount}
-                        onChange={(e) => updateSource(source.id, { usedAmount: Number(e.target.value) || 0 })}
-                        className="w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
-                      />
-                      <button
-                        onClick={() => removeSource(source.id)}
-                        disabled={budgetSources.length <= 1}
-                        className="w-8 h-8 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Icon name="delete" />
-                      </button>
+                    <div key={source.id} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="text"
+                          value={source.label}
+                          onChange={(e) => updateSource(source.id, { label: e.target.value })}
+                          className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 min-w-0"
+                        />
+                        <button
+                          onClick={() => removeSource(source.id)}
+                          disabled={budgetSources.length <= 1}
+                          className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <Icon name="delete" size={16} />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={source.amount}
+                          onChange={(e) => updateSource(source.id, { amount: Number(e.target.value) || 0 })}
+                          className="w-20 sm:w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
+                        />
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={source.usedAmount}
+                          onChange={(e) => updateSource(source.id, { usedAmount: Number(e.target.value) || 0 })}
+                          className="w-20 sm:w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
+                        />
+                      </div>
                     </div>
                   ))}
                   <button
