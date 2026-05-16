@@ -149,6 +149,19 @@ async function doInitDatabase(): Promise<Database> {
     )
   `)
 
+  // Create budget_sources table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS budget_sources (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      label TEXT NOT NULL,
+      amount REAL DEFAULT 0,
+      used_amount REAL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `)
+
   // Load seed data if database is empty
   if (!seeded) {
     const result = db.exec('SELECT COUNT(*) as count FROM projects')
