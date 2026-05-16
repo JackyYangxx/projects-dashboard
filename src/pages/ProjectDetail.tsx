@@ -402,7 +402,7 @@ const ProjectDetail: React.FC = () => {
                           value={source.label}
                           title={source.label}
                           onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
-                          className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
+                          className="w-20 flex-1 sm:w-auto bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
                         />
                         <button
                           onClick={() => removeSource(source.id)}
