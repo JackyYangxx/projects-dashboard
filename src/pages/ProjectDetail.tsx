@@ -400,8 +400,9 @@ const ProjectDetail: React.FC = () => {
                         <input
                           type="text"
                           value={source.label}
+                          title={source.label}
                           onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
-                          className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+                          className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
                         />
                         <button
                           onClick={() => removeSource(source.id)}
@@ -417,16 +418,18 @@ const ProjectDetail: React.FC = () => {
                           inputMode="numeric"
                           pattern="[0-9]*"
                           value={source.amount}
+                          title={String(source.amount)}
                           onChange={(e) => handleSourceAmountChange(source.id, Number(e.target.value) || 0)}
-                          className="w-20 sm:w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
+                          className="w-16 sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
                         />
                         <input
                           type="text"
                           inputMode="numeric"
                           pattern="[0-9]*"
                           value={source.usedAmount}
+                          title={String(source.usedAmount)}
                           onChange={(e) => handleSourceUsedAmountChange(source.id, Number(e.target.value) || 0)}
-                          className="w-20 sm:w-28 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500"
+                          className="w-16 sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
                         />
                       </div>
                     </div>
