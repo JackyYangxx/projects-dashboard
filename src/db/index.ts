@@ -1,5 +1,6 @@
 import initSqlJs, { Database } from 'sql.js'
 import { seedProjects } from '../data/seedData'
+import type { Project } from '../types'
 
 let db: Database | null = null
 let dbPromise: Promise<Database> | null = null
@@ -161,6 +162,27 @@ async function doInitDatabase(): Promise<Database> {
       updated_at TEXT NOT NULL
     )
   `)
+
+  // Migrate existing projects to budget_sources
+  const existingProjects = db.exec('SELECT id, total_amount, used_amount FROM projects')
+  const existingSources = db.exec('SELECT DISTINCT project_id FROM budget_sources')
+
+  const projectsWithSources = new Set((existingSources[0]?.values || []) as string[])
+  const projectRows = existingProjects[0]?.values || []
+
+  for (const row of projectRows) {
+    const projectId = row[0] as string
+    const totalAmount = row[1] as number
+    const usedAmount = row[2] as number
+
+    if (!projectsWithSources.has(projectId)) {
+      const now = new Date().toISOString()
+      db.run(`
+        INSERT INTO budget_sources (id, project_id, label, amount, used_amount, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `, [crypto.randomUUID(), projectId, '默认来源', totalAmount || 0, usedAmount || 0, now, now])
+    }
+  }
 
   // Load seed data if database is empty
   if (!seeded) {
