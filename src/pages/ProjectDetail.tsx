@@ -395,43 +395,39 @@ const ProjectDetail: React.FC = () => {
               ) : (
                 <div className="flex-1 space-y-3">
                   {budgetSources.map((source) => (
-                    <div key={source.id} className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <input
-                          type="text"
-                          value={source.label}
-                          title={source.label}
-                          onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
-                          className="w-20 flex-1 sm:w-auto bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
-                        />
-                        <button
-                          onClick={() => removeSource(source.id)}
-                          disabled={budgetSources.length <= 1}
-                          className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <Icon name="delete" size={16} />
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={source.amount}
-                          title={String(source.amount)}
-                          onChange={(e) => handleSourceAmountChange(source.id, Number(e.target.value) || 0)}
-                          className="w-16 sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
-                        />
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={source.usedAmount}
-                          title={String(source.usedAmount)}
-                          onChange={(e) => handleSourceUsedAmountChange(source.id, Number(e.target.value) || 0)}
-                          className="w-16 sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
-                        />
-                      </div>
+                    <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                      <input
+                        type="text"
+                        value={source.label}
+                        title={source.label}
+                        onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
+                        className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate min-w-0"
+                      />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={source.amount}
+                        title={String(source.amount)}
+                        onChange={(e) => handleSourceAmountChange(source.id, Number(e.target.value) || 0)}
+                        className="flex-1 sm:flex-none sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
+                      />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={source.usedAmount}
+                        title={String(source.usedAmount)}
+                        onChange={(e) => handleSourceUsedAmountChange(source.id, Number(e.target.value) || 0)}
+                        className="flex-1 sm:flex-none sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
+                      />
+                      <button
+                        onClick={() => removeSource(source.id)}
+                        disabled={budgetSources.length <= 1}
+                        className="w-full sm:w-8 h-8 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Icon name="delete" size={16} />
+                      </button>
                     </div>
                   ))}
                   <button
