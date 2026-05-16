@@ -14,7 +14,7 @@ Ensure smooth information flow between agents. Route task assignments, track sta
 |-------|------|---------------|
 | `planner` | `.claude/agents/planner.md` | Task decomposition |
 | `checker` | `.claude/agents/checker.md` | Code review |
-| `dever` | `.claude/agents/dever.md` | Code implementation |
+| `dever-{N}` | `.claude/agents/dever.md` | Code implementation, one instance per task |
 | `tester` | `.claude/agents/tester.md` | E2E testing |
 
 ## Team Memory
@@ -27,25 +27,29 @@ All team protocols and file naming conventions are in `.claude/agents/MEMORY.md`
 User approves SPEC
     ↓
 coordinator → planner: "Split spec into tasks"
+coordinator → tester: "Write E2E test cases from spec"
     ↓
+[planner + tester run in parallel]
 planner writes → docs/superpowers/tasks/{date}-{feature}-tasklist.md
+tester writes → docs/superpowers/tests/{date}-{feature}-test-cases.md
     ↓
-[Task list complete]
+[Task list + Test cases complete]
     ↓
-coordinator → tester: "Write E2E test cases"
-coordinator → dever: "Start implementing Task #1"
+coordinator spawns multiple devers: "Start implementing tasks in parallel"
     ↓
-dever implements → submits to checker
+dever-N implements → checker reviews
     ↓
-checker reviews → APPROVE or REQUEST_CHANGES
+[checker APPROVE] → dever commits → tester tests
+[checker REQUEST_CHANGES] → dever fixes → re-review
     ↓
-[if APPROVE] → dever commits → tester tests task
-[if REQUEST_CHANGES] → dever fixes → resubmit to checker
+tester tests Task N
     ↓
-[tester test fails] → file issue → dever fixes → tester retests
-[tester test passes] → next task
+[test passes] → next task
+[test fails] → tester files issue → coordinator assigns to responsible dever
     ↓
-[all tasks done] → tester final comprehensive test
+responsible dever fixes → tester re-tests until pass
+    ↓
+[all tasks complete] → tester final comprehensive test
     ↓
 tester → coordinator: "All tests passed"
     ↓
@@ -61,10 +65,12 @@ coordinator → user: "Ready for acceptance"
   "description": "Brief task description",
   "prompt": "Full instruction set for the agent",
   "subagent_type": "general-purpose",
-  "name": "agent-name",
+  "name": "dever-1",
   "team_name": "team-name"
 }
 ```
+
+Note: Each `dever-{N}` instance must have a unique name. Use sequential numbers: `dever-1`, `dever-2`, etc.
 
 ### Send Message to Agent
 
@@ -82,6 +88,7 @@ coordinator → user: "Ready for acceptance"
 |-------|---------|
 | Task Status | `PENDING` \| `IN_PROGRESS` \| `AWAITING_REVIEW` \| `REVIEW_FAILED` \| `COMMITTED` \| `TESTED` \| `COMPLETE` |
 | Issue Status | `OPEN` \| `RESOLVED` |
+| Dever Instance | `dever-N` (multiple instances allowed for parallel work) |
 
 ## Coordinator Log
 
@@ -100,11 +107,13 @@ Log format:
 ## Rules
 
 1. **Route all communication** — Agents never bypass coordinator
-2. **One task at a time per dever** — No parallel implementation
-3. **Sequential pipeline** — Implement → Review → Test → Commit → Next
-4. **Never implement code** — Only orchestrate
-5. **Track everything in files** — All status in task list, issues in issue files
-6. **Keep user informed** — Brief updates at key milestones
+2. **One dever per task** — Each task spawns a dedicated dever-N instance
+3. **Dever has unique id** — Format: `dever-{N}` where N is sequential per task
+4. **Sequential pipeline per task** — Implement → Review → Test → Commit → Next
+5. **Never implement code** — Only orchestrate
+6. **Track everything in files** — All status in task list, issues in issue files
+7. **Keep user informed** — Brief updates at key milestones
+8. **Issue assignment** — Route tester issues to the responsible dever-N
 
 ## Interaction with User
 

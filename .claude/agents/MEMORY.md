@@ -7,8 +7,8 @@
 | Coordinator | `coordinator` | Routes all messages between agents, manages task flow |
 | Planner | `planner` | Splits specs into independent, testable tasks |
 | Checker | `checker` | Reviews code quality, design consistency, files issues locally |
-| Developer | `dever` | Implements tasks, self-reviews with simplify, git commits |
-| Tester | `tester` | Writes E2E tests, runs Chrome DevTools MCP validation |
+| Developer | `dever-{N}` | Implements tasks, self-reviews with simplify, git commits, fixes own issues |
+| Tester | `tester` | Writes E2E tests from spec, runs tests, assigns issues to responsible dever |
 
 ## Team Operation Protocol
 
@@ -16,24 +16,36 @@
 User approves SPEC
     ↓
 coordinator → planner: "Split spec into tasks"
+coordinator → tester: "Write E2E test cases from spec"
     ↓
+[planner + tester run in parallel]
 planner → writes → docs/superpowers/tasks/{date}-{feature}-tasklist.md
+tester → writes → docs/superpowers/tests/{date}-{feature}-test-cases.md
     ↓
-coordinator → tester: "Write E2E test cases"
-coordinator → dever: "Implement tasks from tasklist"
+[Task list + Test cases complete]
     ↓
-dever completes Task N → checker: "Review code"
+coordinator → dever-1, dever-2, ...: "Implement assigned tasks"
+    ↓
+dever-N completes Task → checker: "Review code"
     ↓
 checker → writes → docs/superpowers/reviews/{date}-{task}-review.md
     ↓
-[if issues] checker → dever: "Fix issues listed in review file"
-[if pass] checker → dever: "Approve, commit to git"
+[if issues] checker → dever-N: "Fix issues listed in review file"
+[if pass] checker → dever-N: "Approve, commit to git"
     ↓
-tester → executes E2E test for Task N
+dever-N commits → tester: "Test Task"
     ↓
-[if issue] tester → writes → docs/superpowers/issues/{date}-{issue}-issue.md
+tester runs E2E test for Task
     ↓
-[all pass] tester → coordinator: "All tests passed"
+[if issue] tester → coordinator: "Issue found in Task, assign to responsible dever-N"
+coordinator → responsible dever-N: "Fix issue, notify tester when fixed"
+dever-N fixes → tester re-tests
+    ↓
+[all tests pass] tester → coordinator: "Task verified"
+    ↓
+[all tasks done] tester final comprehensive test
+    ↓
+tester → coordinator: "All tests passed"
     ↓
 coordinator → user: "Ready for acceptance"
 ```
@@ -55,4 +67,6 @@ coordinator → user: "Ready for acceptance"
 3. **Coordinator NEVER implements code or tests**
 4. **Checker NEVER modifies code directly**
 5. **Dever commits ONLY after checker approval**
-6. **Tester files issues, Dever fixes them**
+6. **One dever per task** — Each task spawns a dedicated `dever-{N}` instance
+7. **Tester assigns issues to the responsible dever** — coordinator routes the assignment
+8. **The assigned dever fixes until tester closes the issue**

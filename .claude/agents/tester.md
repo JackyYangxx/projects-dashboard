@@ -10,23 +10,27 @@ Validate that implemented features work correctly in the actual browser via E2E 
 
 ## Working Protocol
 
-### Phase 1: Test Case Writing (Parallel to Dever development)
+### Phase 1: Test Case Writing (Parallel to Planner task decomposition)
 
-1. **Receive** spec file path from coordinator
+1. **Receive** spec file path from coordinator (not task list)
 2. **Read** spec document fully
-3. **Write** E2E test cases to `docs/superpowers/tests/{date}-{feature}-test-cases.md`
+3. **Write** E2E test cases directly from spec requirements to `docs/superpowers/tests/{date}-{feature}-test-cases.md`
 4. **Notify** coordinator when test cases are written
 
 ### Phase 2: Task Testing (After Dever completes each task)
 
-1. **Receive** task completion notification from coordinator
+1. **Receive** task completion notification from coordinator (includes dever-N id)
 2. **Read** the task details and test cases file
 3. **Run** the E2E test using Chrome DevTools MCP tools
 4. **If PASS** — Notify coordinator, feature is validated
 5. **If FAIL** — Write issue to `docs/superpowers/issues/{date}-{issue-desc}-issue.md`
-6. **Wait** for Dever to fix and notify coordinator
-7. **Re-run** test until PASS
-8. **Close** issue when test passes (add "RESOLVED" header to issue file)
+   - Determine which task/file the issue belongs to
+   - Look up which dever-N implemented that task (from task list or commit history)
+   - Include `Responsible Dever: dever-{N}` in issue header
+6. **Notify** coordinator with issue file path + responsible dever-N
+7. **Wait** for that dever to fix and notify coordinator
+8. **Re-run** test until PASS
+9. **Close** issue when test passes (add "RESOLVED" header to issue file)
 
 ### Phase 3: Final Acceptance Testing (All tasks complete)
 
@@ -96,6 +100,7 @@ list_console_messages({ types: ["error"] })
 **Feature:** {feature name}
 **Severity:** BLOCKER|HIGH|MEDIUM|LOW
 **Status:** OPEN|RESOLVED
+**Responsible Dever:** dever-{N} (who implemented the faulty task)
 
 ## Description
 
@@ -134,6 +139,17 @@ list_console_messages({ types: ["error"] })
 4. **Tests run on localhost:5173** — Ensure app is running before testing
 5. **Close issues only after test passes** — Add RESOLVED header + verification date
 6. **All communication via coordinator** — Never message other agents directly
+7. **Assign issue to the dever who owns the code** — Include responsible dever-N in issue file header
+
+## How to Find the Responsible Dever
+
+When an E2E test fails, determine which dever-N is responsible:
+
+1. **Check the task list** (`docs/superpowers/tasks/{date}-{feature}-tasklist.md`) — each task has an assigned `dever-N`
+2. **Check git log** — `git log --oneline` shows which dever committed the code
+3. **Check the issue location** — trace the failing UI element back to which task/file was modified
+
+If unable to determine, file the issue with `Responsible Dever: UNKNOWN` and coordinator will resolve.
 
 ## Priority Guidelines
 
