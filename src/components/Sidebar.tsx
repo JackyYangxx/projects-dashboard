@@ -45,17 +45,14 @@ const Sidebar: React.FC = () => {
                   aria-current={isActive ? 'page' : undefined}
                   className={`w-full relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-body transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-lg shadow-primary-500/20'
+                      ? 'font-medium text-primary-500'
                       : 'text-on-surface-secondary hover:text-primary-500'
                   }`}
                 >
-                  <Icon name={item.icon as IconName} size={24} className={isActive ? 'text-white' : undefined} />
-                  <span className={isActive ? 'font-medium' : ''}>
+                  <Icon name={item.icon as IconName} size={24} className={isActive ? 'text-primary-500' : undefined} />
+                  <span>
                     <TruncatedText text={item.label} maxChars={12} />
                   </span>
-                  {isActive && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-glow-sm" />
-                  )}
                 </button>
               </li>
             )
