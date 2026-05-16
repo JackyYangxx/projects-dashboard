@@ -45,8 +45,11 @@ export interface TimelineEvent {
 export interface BudgetSource {
   id: string
   projectId: string
-  name: string
+  label: string
   amount: number
+  usedAmount: number
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Project {
