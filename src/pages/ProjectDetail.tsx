@@ -395,13 +395,13 @@ const ProjectDetail: React.FC = () => {
               ) : (
                 <div className="flex-1 space-y-3">
                   {budgetSources.map((source) => (
-                    <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
                       <input
                         type="text"
                         value={source.label}
                         title={source.label}
                         onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
-                        className="flex-1 bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate min-w-0"
+                        className="flex-1 min-w-[30%] bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
                       />
                       <input
                         type="text"
@@ -410,7 +410,7 @@ const ProjectDetail: React.FC = () => {
                         value={source.amount}
                         title={String(source.amount)}
                         onChange={(e) => handleSourceAmountChange(source.id, Number(e.target.value) || 0)}
-                        className="flex-1 sm:flex-none sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
+                        className="w-[30%] sm:flex-1 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
                       />
                       <input
                         type="text"
@@ -419,12 +419,12 @@ const ProjectDetail: React.FC = () => {
                         value={source.usedAmount}
                         title={String(source.usedAmount)}
                         onChange={(e) => handleSourceUsedAmountChange(source.id, Number(e.target.value) || 0)}
-                        className="flex-1 sm:flex-none sm:w-28 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
+                        className="w-[30%] sm:flex-1 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
                       />
                       <button
                         onClick={() => removeSource(source.id)}
                         disabled={budgetSources.length <= 1}
-                        className="w-full sm:w-8 h-8 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors ml-auto"
                       >
                         <Icon name="delete" size={16} />
                       </button>
