@@ -7,6 +7,10 @@
           {
             "type": "agent",
             "prompt": "You are running as a PreToolUse hook for git push.\n\nCheck if this is a git push command: jq -r '.tool_input.command' 2>/dev/null | grep -E 'git push|gh pr create'\n\nIf it IS a push command:\n1. First, run `git status` and `git diff --name-only` to see what files would be pushed\n2. Run the simplify skill on any TypeScript/JavaScript files in that list\n3. If the simplify skill makes changes:\n   - Run `git add -A`\n   - Run `git commit -m \"chore: simplify code before push\" --amend --no-edit` to amend rather than create new commit\n   - This way the original push will include the simplified code\n4. If no changes needed, just report \"No changes needed\"\n\nIf it is NOT a push command, output \"SKIP\" and do nothing.\n\nImportant: Only intercept actual push commands (git push, gh pr create). Do not block other git commands."
+          },
+          {
+            "type": "agent",
+            "prompt": "You are running as a PreToolUse hook for electron:build (release build).\n\nCheck if this is a release build command: jq -r '.tool_input.command' 2>/dev/null | grep -E 'electron:build'\n\nIf it IS a release build:\n1. Read package.json version: cat package.json | jq -r '.version'\n2. Read the version displayed in Sidebar.tsx: grep -E 'v[0-9]+\\.[0-9]+\\.[0-9]+' src/components/Sidebar.tsx\n3. If versions don't match:\n   - Extract version from package.json\n   - Update Sidebar.tsx to replace the old version with the new one\n   - Run git add -A and git commit with message \"chore: sync version number before release\"\n4. If versions match, output \"Version check passed, no changes needed\"\n\nIf it is NOT a release build command, output \"SKIP\" and do nothing."
           }
         ]
       }
