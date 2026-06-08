@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import TruncatedText from './TruncatedText'
 import Icon, { IconName } from './Icon'
+import { animateCountUp, animateProgress } from '@/utils/animations'
 
 interface StatsCardProps {
   title: string
@@ -24,12 +25,43 @@ const StatsCard: React.FC<StatsCardProps> = ({
   variant = 'default',
 }) => {
   const isAccent = variant === 'accent'
+  const valueRef = useRef<HTMLSpanElement>(null)
+  const progressFillRef = useRef<HTMLDivElement>(null)
+
+  // Count-up for numeric or numeric-string values
+  useEffect(() => {
+    if (!valueRef.current) return
+    if (typeof value === 'number') {
+      animateCountUp(valueRef.current, value, { duration: 1100 })
+    } else {
+      // Try to extract a leading number and suffix
+      const match = String(value).match(/^([\d,.]+)(.*)$/)
+      if (match) {
+        const num = Number(match[1].replace(/,/g, ''))
+        if (!Number.isNaN(num)) {
+          const suffix = match[2]
+          animateCountUp(valueRef.current, num, { duration: 1100, suffix })
+        } else {
+          valueRef.current.textContent = String(value)
+        }
+      } else {
+        valueRef.current.textContent = String(value)
+      }
+    }
+  }, [value])
+
+  // Progress bar grow
+  useEffect(() => {
+    if (progress !== undefined && progressFillRef.current) {
+      animateProgress(progressFillRef.current, progress, { duration: 1100, delay: 300 })
+    }
+  }, [progress])
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-float cursor-pointer ${
+    <div className={`relative overflow-hidden rounded-2xl p-5 h-full flex flex-col transition-all duration-200 hover:shadow-elevated cursor-pointer group ${
       isAccent
-        ? 'bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-lg shadow-primary-500/20'
-        : 'bg-white border border-outline shadow-card hover:shadow-elevated'
+        ? 'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-elevated'
+        : 'bg-white border border-outline shadow-card'
     }`}>
       {/* Background glow effect for accent variant */}
       {isAccent && (
@@ -45,7 +77,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
             {title}
           </p>
           <p className={`text-2xl font-heading font-bold tabular-nums ${isAccent ? 'text-white' : 'text-on-surface-primary'}`}>
-            <TruncatedText text={String(value)} maxChars={12} className="inline" />
+            <span ref={valueRef} className="inline">0</span>
           </p>
           {subtitle && (
             <p className={`text-xs font-body mt-1 ${isAccent ? 'text-white/70' : 'text-on-surface-tertiary'}`}>
@@ -72,32 +104,34 @@ const StatsCard: React.FC<StatsCardProps> = ({
           )}
         </div>
         {icon && (
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
             isAccent
               ? 'bg-white/20 shadow-lg'
-              : 'bg-gradient-to-br from-primary-50 to-accent-50 border border-primary-100'
+              : 'bg-primary-50 border border-primary-100'
           }`}>
-            <Icon name={icon} className={`text-xl ${isAccent ? 'text-white' : 'text-primary-500'}`} />
+            <Icon name={icon} className={`text-xl ${isAccent ? 'text-white' : 'text-primary-600'}`} />
           </div>
         )}
       </div>
 
       {progress !== undefined && (
-        <div className="mt-4">
+        <div className="mt-auto pt-4">
           <div className="flex items-center justify-between text-xs font-body mb-1.5">
             <span className={isAccent ? 'text-white/80' : 'text-on-surface-secondary'}>
               {progressLabel || '执行率'}
             </span>
-            <span className={`font-heading font-semibold tabular-nums ${isAccent ? 'text-white' : 'text-primary-500'}`}>
+            <span className={`font-heading font-semibold tabular-nums ${isAccent ? 'text-white' : 'text-primary-600'}`}>
               {progress}%
             </span>
           </div>
           <div className={`h-2 rounded-full overflow-hidden ${isAccent ? 'bg-white/30' : 'bg-surface-base'}`}>
             <div
-              className={`h-full rounded-full transition-[width] duration-500 ease-out ${
+              ref={progressFillRef}
+              data-progress-fill
+              className={`h-full rounded-full ${
                 isAccent
                   ? 'bg-white'
-                  : 'bg-gradient-to-r from-primary-500 to-accent-500'
+                  : 'bg-gradient-to-r from-primary-500 to-primary-400'
               }`}
               style={{ width: `${progress}%` }}
             />

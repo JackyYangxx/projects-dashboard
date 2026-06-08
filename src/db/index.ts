@@ -1,6 +1,5 @@
 import initSqlJs, { Database } from 'sql.js'
 import { seedProjects } from '../data/seedData'
-import type { Project } from '../types'
 
 let db: Database | null = null
 let dbPromise: Promise<Database> | null = null
@@ -167,7 +166,7 @@ async function doInitDatabase(): Promise<Database> {
   const existingProjects = db.exec('SELECT id, total_amount, used_amount FROM projects')
   const existingSources = db.exec('SELECT DISTINCT project_id FROM budget_sources')
 
-  const projectsWithSources = new Set((existingSources[0]?.values || []) as string[])
+  const projectsWithSources = new Set((existingSources[0]?.values || []).map(row => row[0] as string))
   const projectRows = existingProjects[0]?.values || []
 
   for (const row of projectRows) {

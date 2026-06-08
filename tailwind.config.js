@@ -7,49 +7,61 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Light Tech Theme - Clean with subtle gradients
+        // Surface - Light main area, layered for depth
         'surface': {
-          'base': '#F8FAFC',      // Light background
-          'container': '#FFFFFF',   // Card/elevated surface
-          'elevated': '#FFFFFF',    // Elevated elements
-          'hover': '#F1F5F9',      // Hover state
+          'base': '#F1F5F9',       // Main bg (slate-100) - cards pop on this
+          'container': '#FFFFFF',  // Cards
+          'elevated': '#FFFFFF',   // Elevated
+          'hover': '#E2E8F0',      // Hover (slate-200)
+          'subtle': '#F8FAFC',     // Subtle dividers inside cards
         },
         'on-surface': {
-          'primary': '#0F172A',    // Primary text - dark
-          'secondary': '#475569',   // Secondary text
-          'tertiary': '#94A3B8',    // Tertiary text
+          'primary': '#0F172A',    // Primary text
+          'secondary': '#475569',  // Secondary
+          'tertiary': '#94A3B8',   // Tertiary
         },
         'outline': {
-          DEFAULT: '#E2E8F0',
-          'variant': '#F1F5F9',
+          DEFAULT: '#CBD5E1',      // Visible on Windows (slate-300)
+          'variant': '#E2E8F0',    // Subtle dividers
+          'strong': '#94A3B8',     // Emphasis
         },
-        // Primary - Vibrant blue
+        // Sidebar - Dark theme
+        'sidebar': {
+          'bg': '#0F172A',         // slate-900
+          'bg-hover': '#1E293B',   // slate-800
+          'border': '#1E293B',     // slate-800
+          'text': '#94A3B8',       // slate-400
+          'text-strong': '#F1F5F9',// slate-100
+          'text-active': '#5A87C9',// trust-blue-400
+          'active-bg': 'rgba(0, 45, 98, 0.12)',
+        },
+        // Primary - Trust Blue (brand color)
         'primary': {
-          DEFAULT: '#3B82F6',
-          '50': '#EFF6FF',
-          '100': '#DBEAFE',
-          '200': '#BFDBFE',
-          '300': '#93C5FD',
-          '400': '#60A5FA',
-          '500': '#3B82F6',
-          '600': '#2563EB',
-          '700': '#1D4ED8',
-          '800': '#1E40AF',
-          '900': '#1E3A8A',
+          DEFAULT: '#2E6BB8',
+          '50': '#F0F5FC',
+          '100': '#DCE7F5',
+          '200': '#B8CFEB',
+          '300': '#8FB1DD',
+          '400': '#5A87C9',
+          '500': '#2E6BB8',
+          '600': '#1F4F95',
+          '700': '#002D62',        // Trust Blue
+          '800': '#001F47',
+          '900': '#001428',
         },
-        // Accent - Purple/Violet for tech highlights
+        // Accent - Cyan/Teal (gradient partner)
         'accent': {
-          DEFAULT: '#8B5CF6',
-          '50': '#F5F3FF',
-          '100': '#EDE9FE',
-          '200': '#DDD6FE',
-          '300': '#C4B5FD',
-          '400': '#A78BFA',
-          '500': '#8B5CF6',
-          '600': '#7C3AED',
-          '700': '#6D28D9',
-          '800': '#5B21B6',
-          '900': '#4C1D95',
+          DEFAULT: '#06B6D4',
+          '50': '#ECFEFF',
+          '100': '#CFFAFE',
+          '200': '#A5F3FC',
+          '300': '#67E8F9',
+          '400': '#22D3EE',
+          '500': '#06B6D4',
+          '600': '#0891B2',
+          '700': '#0E7490',
+          '800': '#155E75',
+          '900': '#164E63',
         },
         // Semantic colors
         'success': {
@@ -67,61 +79,46 @@ module.exports = {
           'light': '#F87171',
           'dark': '#DC2626',
         },
-        'info': '#3B82F6',
+        'info': '#06B6D4',
       },
       fontFamily: {
-        'heading': ['Fira Code', 'monospace'],
-        'body': ['Fira Sans', 'sans-serif'],
-        'mono': ['Fira Code', 'monospace'],
+        'heading': ['"Fira Code"', '"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        'body': ['"Fira Sans"', '"Inter"', 'system-ui', '-apple-system', '"Segoe UI"', '"Microsoft YaHei"', 'sans-serif'],
+        'mono': ['"Fira Code"', '"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        'sm': '0.125rem',
-        'md': '0.375rem',
-        'lg': '0.5rem',
-        'xl': '0.75rem',
-        '2xl': '1rem',
+        'sm': '0.25rem',   // 4px
+        'md': '0.5rem',    // 8px
+        'lg': '0.75rem',   // 12px
+        'xl': '1rem',      // 16px
+        '2xl': '1.25rem',  // 20px
+        '3xl': '1.5rem',   // 24px
         'full': '9999px',
       },
       boxShadow: {
-        // Light tech shadows
-        'surface': '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
-        'elevated': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-        'float': '0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
-        'card': '0 0 0 1px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.04)',
-        'glow-sm': '0 0 15px rgba(59, 130, 246, 0.15)',
-        'glow-md': '0 0 30px rgba(59, 130, 246, 0.2)',
-        'glow-lg': '0 0 50px rgba(59, 130, 246, 0.25)',
+        // Stronger shadows render well on Windows
+        'surface': '0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06)',
+        'elevated': '0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04)',
+        'float': '0 10px 25px -3px rgba(15, 23, 42, 0.12), 0 4px 6px -2px rgba(15, 23, 42, 0.06)',
+        'card': '0 0 0 1px rgba(15, 23, 42, 0.04), 0 2px 4px rgba(15, 23, 42, 0.04)',
+        // Brand glow (trust blue)
+        'glow-sm': '0 0 0 1px rgba(46, 107, 184, 0.2), 0 4px 12px rgba(46, 107, 184, 0.15)',
+        'glow-md': '0 0 0 1px rgba(46, 107, 184, 0.25), 0 8px 24px rgba(46, 107, 184, 0.2)',
+        'glow-lg': '0 0 0 1px rgba(46, 107, 184, 0.3), 0 12px 40px rgba(46, 107, 184, 0.25)',
+        // Sidebar depth shadow
+        'sidebar': '1px 0 0 0 #1E293B',
       },
       backdropBlur: {
         'glass': '12px',
       },
       animation: {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'flow-1': 'flow1 8s ease infinite',
-        'flow-2': 'flow2 10s ease infinite',
-        'flow-3': 'flow3 12s ease infinite',
         'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
-        flow1: {
-          '0%, 100%': { transform: 'translate(0%, 0%)' },
-          '25%': { transform: 'translate(5%, 5%)' },
-          '50%': { transform: 'translate(0%, 10%)' },
-          '75%': { transform: 'translate(-5%, 5%)' },
-        },
-        flow2: {
-          '0%, 100%': { transform: 'translate(0%, 0%)' },
-          '25%': { transform: 'translate(-5%, -5%)' },
-          '50%': { transform: 'translate(-10%, 0%)' },
-          '75%': { transform: 'translate(-5%, -10%)' },
-        },
-        flow3: {
-          '0%, 100%': { transform: 'translate(0%, 0%) scale(1)' },
-          '50%': { transform: 'translate(5%, -5%) scale(1.05)' },
-        },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-10px)' },
+          '50%': { transform: 'translateY(-8px)' },
         },
       },
     },

@@ -186,6 +186,16 @@ const ProjectDetail: React.FC = () => {
     updateProject(project.id, { notes: html, updatedAt: new Date().toISOString() })
   }
 
+  const handleRepoSave = () => {
+    if (!project) return
+    updateProject(project.id, {
+      repository: repoEditRepository,
+      branch: repoEditBranch,
+      updatedAt: new Date().toISOString(),
+    })
+    setIsRepoEditing(false)
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-CN', {
       style: 'currency',
@@ -233,14 +243,15 @@ const ProjectDetail: React.FC = () => {
         <div className="ml-auto flex items-center gap-3">
           <button
             onClick={() => setIsReadOnly((prev) => !prev)}
+            title={isReadOnly ? '切换到编辑模式' : '切换到查看模式'}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-body font-medium transition-all duration-150 ${
               isReadOnly
                 ? 'bg-surface-base text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500'
-                : 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-sm'
+                : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-sm'
             }`}
           >
             <Icon name={isReadOnly ? 'edit' : 'visibility'} size={15} />
-            {isReadOnly ? '编辑' : '查看'}
+            {isReadOnly ? '编辑' : '编辑中'}
           </button>
           <span
             className={`px-2 py-1 rounded text-xs font-body font-medium ${
@@ -321,6 +332,7 @@ const ProjectDetail: React.FC = () => {
                   </div>
                   <div className="flex justify-end gap-2">
                     <button
+                      type="button"
                       onClick={() => {
                         setRepoEditRepository(project.repository || '')
                         setRepoEditBranch(project.branch || '')
@@ -331,10 +343,8 @@ const ProjectDetail: React.FC = () => {
                       取消
                     </button>
                     <button
-                      onClick={() => {
-                        updateProject(project.id, { repository: repoEditRepository, branch: repoEditBranch, updatedAt: new Date().toISOString() })
-                        setIsRepoEditing(false)
-                      }}
+                      type="button"
+                      onClick={handleRepoSave}
                       className="px-3 py-1.5 bg-primary-500 text-white rounded-lg text-xs font-body font-medium hover:bg-primary-600"
                     >
                       保存
@@ -397,6 +407,12 @@ const ProjectDetail: React.FC = () => {
                 </div>
               ) : (
                 <div className="flex-1 space-y-3">
+                  <div className="flex flex-wrap gap-2 items-center text-xs font-body text-on-surface-tertiary">
+                    <span className="flex-1 min-w-[30%] px-2">来源名称</span>
+                    <span className="w-[30%] sm:flex-1 px-1 sm:px-2 text-right">总额</span>
+                    <span className="w-[30%] sm:flex-1 px-1 sm:px-2 text-right">已使用</span>
+                    <span className="w-8 ml-auto" />
+                  </div>
                   {budgetSources.map((source) => (
                     <div className="flex flex-wrap gap-2 items-center">
                       <input
@@ -550,7 +566,7 @@ const ProjectDetail: React.FC = () => {
                         const { addNoteHistory } = useProjectStore.getState()
                         addNoteHistory(project.id, project.notes)
                       }}
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all"
+                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all"
                     >
                       保存历史
                     </button>
@@ -626,7 +642,7 @@ const ProjectDetail: React.FC = () => {
                       {!isReadOnly && (
                         <button
                           onClick={() => setShowMilestoneModal(true)}
-                          className="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg text-xs font-body font-medium hover:shadow-glow-sm transition-all flex items-center gap-1"
+                          className="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-xs font-body font-medium hover:shadow-glow-sm transition-all flex items-center gap-1"
                         >
                           <Icon name="add" />
                           添加里程碑
@@ -758,7 +774,7 @@ const ProjectDetail: React.FC = () => {
               <button
                 onClick={handleAddMember}
                 disabled={!newMemberName.trim() || !newMemberRole.trim()}
-                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 添加
               </button>
@@ -854,7 +870,7 @@ const ProjectDetail: React.FC = () => {
               <button
                 onClick={handleAddMilestone}
                 disabled={!newMilestoneTitle.trim() || !newMilestoneDate.trim()}
-                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 添加
               </button>

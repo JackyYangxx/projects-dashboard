@@ -1,8 +1,8 @@
 # Precision Curator - 设计系统文档
 
-**版本:** 2.0.0
-**更新日期:** 2026-04-17
-**设计风格:** 浅色科技风 + 流动渐变
+**版本:** 3.0.0
+**更新日期:** 2026-06-08
+**设计风格:** 深色侧栏 + 浅色主区 · 翠绿品牌色
 
 ---
 
@@ -10,15 +10,20 @@
 
 ### 1.1 核心概念
 
-**"轻盈的科技感"** — 在保持专业企业级观感的同时，通过流动的渐变背景和精致的毛玻璃效果赋予界面现代感和活力。
+**"专业工具的克制美"** — Linear/Notion 风格的双层结构：深色侧栏锚定品牌识别度，浅色主区保留数据可读性。通过翠绿品牌色建立鲜明记忆点，摆脱"通用 SaaS 蓝"的平庸感。
 
-- **轻盈感**: 浅色基调 + 毛玻璃 + 柔和阴影
-- **科技感**: Fira Code 字体 + 紫色渐变 + 流动动画
-- **专业感**: 清晰的信息层级 + 规范的间距系统
+- **结构感**: 深色侧栏(#0F172A) + 浅色主区(#F1F5F9)，强烈的明暗对比
+- **品牌感**: 单一翠绿品牌色(#10B981)，全应用一致的强调色
+- **精致感**: 清晰边框(CBD5E1) + 大圆角(20px) + 多层阴影，Windows 上也清晰可辨
 
-### 1.2 设计参考
+### 1.2 关键改进
 
-基于 ui-ux-pro-max 设计系统的 Enterprise Dashboard 规范，结合现代 SaaS 产品美学。
+v3.0 相比 v2.0 解决了以下"朴素感"问题：
+- 移除半透明背景层（Windows 渲染糊）
+- 主背景加深至 slate-100 让白卡片有层次
+- 边框从 slate-200 加深到 slate-300 解决 Windows 边框消失
+- 圆角从 12px 加大到 20px
+- 统一品牌色，移除蓝紫渐变组合
 
 ---
 
@@ -27,67 +32,74 @@
 ### 2.1 主色板
 
 ```
-Primary (电光蓝)     #3B82F6
-Accent (科技紫)      #8B5CF6
+Primary (翠绿 Emerald)  #10B981  ← 品牌色
+Accent  (青色 Cyan)     #06B6D4  ← 次级渐变
+Sidebar (深 slate)      #0F172A
+Surface (slate-100)     #F1F5F9
 ```
-
-从传统的蓝色/灰色企业配色转向蓝紫渐变，体现科技感和现代性。
 
 ### 2.2 完整调色板
 
 ```css
-/* 表面色 - 层级结构 */
---surface-base: #F8FAFC;      /* 主背景 - 浅灰白 */
---surface-container: #FFFFFF;   /* 卡片/容器 - 纯白 */
+/* 表面色 - 层级结构 (主区) */
+--surface-base: #F1F5F9;       /* 主区背景 - slate-100，卡片浮于其上 */
+--surface-container: #FFFFFF;  /* 卡片/容器 - 纯白 */
 --surface-elevated: #FFFFFF;   /* 抬升元素 */
---surface-hover: #F1F5F9;      /* Hover 状态 */
+--surface-hover: #E2E8F0;      /* Hover 状态 */
+--surface-subtle: #F8FAFC;     /* 表头/分隔区 */
 
 /* 文字色 - 可访问性优先 */
 --on-surface-primary: #0F172A;   /* 主要文字 - WCAG AAA */
 --on-surface-secondary: #475569; /* 次要文字 - WCAG AA */
 --on-surface-tertiary: #94A3B8;   /* 三级文字 */
 
-/* 边框色 */
---outline: #E2E8F0;
---outline-variant: #F1F5F9;
+/* 边框色 (Windows 可见性) */
+--outline: #CBD5E1;        /* slate-300 - 默认边框 */
+--outline-variant: #E2E8F0;/* 极细分隔 */
+--outline-strong: #94A3B8; /* 强调边框 */
 
-/* Primary 渐变色阶 */
---primary-50: #EFF6FF;
---primary-100: #DBEAFE;
---primary-200: #BFDBFE;
---primary-300: #93C5FD;
---primary-400: #60A5FA;
---primary-500: #3B82F6;  /* 主色 */
---primary-600: #2563EB;
---primary-700: #1D4ED8;
+/* 侧栏色 (深色主题) */
+--sidebar-bg: #0F172A;         /* slate-900 */
+--sidebar-bg-hover: #1E293B;   /* slate-800 */
+--sidebar-border: #1E293B;
+--sidebar-text: #94A3B8;
+--sidebar-text-strong: #F1F5F9;
+--sidebar-text-active: #34D399;
 
-/* Accent 渐变色阶 */
---accent-400: #A78BFA;
---accent-500: #8B5CF6;  /* 强调色 */
---accent-600: #7C3AED;
+/* Primary 翠绿色阶 */
+--primary-50:  #ECFDF5;
+--primary-100: #D1FAE5;
+--primary-200: #A7F3D0;
+--primary-300: #6EE7B7;
+--primary-400: #34D399;
+--primary-500: #10B981;  /* 主色 */
+--primary-600: #059669;
+--primary-700: #047857;
+--primary-800: #065F46;
+--primary-900: #064E3B;
+
+/* Accent 青色阶 */
+--accent-400: #22D3EE;
+--accent-500: #06B6D4;
+--accent-600: #0891B2;
 
 /* 语义色 */
---success: #10B981;
+--success: #10B981;  /* 与 primary 同源 */
 --warning: #F59E0B;
---error: #EF4444;
+--error:   #EF4444;
 ```
 
 ### 2.3 渐变配方
 
 ```css
-/* 按钮/卡片背景渐变 */
-background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+/* 主按钮 - 翠绿单色渐变 */
+background: linear-gradient(135deg, #10B981 0%, #059669 100%);
 
-/* 背景流动渐变 */
-background: linear-gradient(135deg,
-  rgba(99, 102, 241, 0.08) 0%,
-  rgba(139, 92, 246, 0.05) 30%,
-  rgba(236, 72, 153, 0.03) 60%,
-  rgba(59, 130, 246, 0.08) 100%
-);
+/* 进度条 */
+background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
 
-/* 进度条渐变 */
-background: linear-gradient(90deg, #3B82F6 0%, #8B5CF6 100%);
+/* Logo 盒 */
+background: linear-gradient(135deg, #34D399 0%, #059669 100%);
 ```
 
 ---
@@ -122,29 +134,28 @@ font-family: 'Fira Sans', sans-serif;
 
 ## 四、阴影与光效
 
-### 4.1 阴影层级
+### 4.1 阴影层级 (Windows 优化)
 
 ```css
-/* 卡片阴影 - 轻柔层次感 */
---shadow-surface: 0 1px 3px rgba(0, 0, 0, 0.05),
-                  0 1px 2px rgba(0, 0, 0, 0.03);
+/* 卡片 - 边+阴影组合，对比更强 */
+--shadow-card: 0 0 0 1px rgba(15,23,42,0.04), 0 2px 4px rgba(15,23,42,0.04);
 
-/* 抬升阴影 - 悬浮元素 */
---shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
-                   0 2px 4px -1px rgba(0, 0, 0, 0.03);
+/* 抬升 - 悬浮元素 */
+--shadow-elevated: 0 4px 6px -1px rgba(15,23,42,0.08),
+                   0 2px 4px -2px rgba(15,23,42,0.04);
 
-/* 浮动阴影 - 弹窗/下拉 */
---shadow-float: 0 10px 25px -3px rgba(0, 0, 0, 0.08),
-                0 4px 6px -2px rgba(0, 0, 0, 0.04);
+/* 浮动 - 弹窗/下拉 */
+--shadow-float: 0 10px 25px -3px rgba(15,23,42,0.12),
+                0 4px 6px -2px rgba(15,23,42,0.06);
 ```
 
-### 4.2 发光效果
+### 4.2 翠绿发光 (品牌色)
 
 ```css
-/* 按钮/图标发光 - 强调交互 */
---glow-sm: 0 0 15px rgba(59, 130, 246, 0.15);
---glow-md: 0 0 30px rgba(59, 130, 246, 0.20);
---glow-lg: 0 0 50px rgba(59, 130, 246, 0.25);
+/* 强调按钮/Logo */
+--glow-sm: 0 0 0 1px rgba(16,185,129,0.2), 0 4px 12px rgba(16,185,129,0.15);
+--glow-md: 0 0 0 1px rgba(16,185,129,0.25), 0 8px 24px rgba(16,185,129,0.2);
+--glow-lg: 0 0 0 1px rgba(16,185,129,0.3), 0 12px 40px rgba(16,185,129,0.25);
 ```
 
 ---
@@ -152,13 +163,14 @@ font-family: 'Fira Sans', sans-serif;
 ## 五、圆角系统
 
 ```css
-/* 遵循 4px 基准 */
---radius-sm: 0.125rem;   /* 2px - 小标签 */
---radius-md: 0.375rem;   /* 6px - 输入框 */
---radius-lg: 0.5rem;    /* 8px - 按钮 */
---radius-xl: 0.75rem;   /* 12px - 卡片 */
---radius-2xl: 1rem;     /* 16px - 大容器 */
---radius-full: 9999px;   /* 胶囊按钮 */
+/* v3.0 加大圆角，更现代 */
+--radius-sm:   0.25rem;   /* 4px  - 小标签 */
+--radius-md:   0.5rem;    /* 8px  - 输入框/按钮 */
+--radius-lg:   0.75rem;   /* 12px - 中型容器 */
+--radius-xl:   1rem;      /* 16px - 卡片 */
+--radius-2xl:  1.25rem;   /* 20px - 大卡片 (默认) */
+--radius-3xl:  1.5rem;    /* 24px - 弹窗 */
+--radius-full: 9999px;    /* 胶囊 */
 ```
 
 ---
@@ -221,48 +233,50 @@ transition: transform duration-150 ease-out;
 
 ### 7.1 按钮
 
-**主按钮**
+**主按钮 (翠绿渐变)**
 ```jsx
-className="px-5 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500
-          text-white rounded-xl font-medium
-          hover:shadow-glow-sm transition-all duration-200"
+className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600
+          text-white rounded-lg font-medium
+          hover:shadow-glow-sm hover:from-primary-600 hover:to-primary-700
+          transition-all duration-200"
 ```
 
-**次要按钮**
+**次要按钮 (实色白底)**
 ```jsx
-className="px-4 py-2 bg-white border border-outline rounded-xl
-          text-on-surface-primary
-          hover:bg-surface-hover transition-colors duration-150"
+className="px-3 py-2 bg-white border border-outline
+          text-on-surface-primary rounded-lg font-medium
+          hover:bg-surface-hover hover:border-outline-strong
+          transition-all duration-200"
 ```
 
 **图标按钮**
 ```jsx
-className="w-10 h-10 flex items-center justify-center rounded-xl
-          text-on-surface-secondary
-          hover:bg-surface-hover hover:text-primary-500
-          transition-all duration-200"
+className="w-9 h-9 flex items-center justify-center rounded-lg
+          text-on-surface-tertiary
+          hover:bg-primary-50 hover:text-primary-600
+          transition-all duration-150"
 ```
 
 ### 7.2 卡片
 
-**标准卡片**
+**标准卡片 (主区)**
 ```jsx
 className="bg-white rounded-2xl border border-outline shadow-card
           hover:shadow-elevated transition-all duration-200"
 ```
 
-**强调卡片 (渐变背景)**
+**强调卡片 (翠绿渐变)**
 ```jsx
-className="bg-gradient-to-br from-primary-500 to-accent-500
-          text-white rounded-2xl shadow-lg"
+className="bg-gradient-to-br from-primary-500 to-primary-700
+          text-white rounded-2xl shadow-elevated"
 ```
 
 ### 7.3 输入框
 
 ```jsx
-className="w-full px-4 py-2 bg-surface-base border border-outline rounded-xl
+className="w-full px-4 py-2 bg-surface-base border border-outline rounded-lg
           text-on-surface-primary placeholder:text-on-surface-tertiary
-          focus:outline-none focus:border-primary-500
+          focus:outline-none focus:border-primary-500 focus:bg-white
           focus:ring-2 focus:ring-primary-500/20
           transition-all duration-200"
 ```
@@ -270,7 +284,7 @@ className="w-full px-4 py-2 bg-surface-base border border-outline rounded-xl
 ### 7.4 状态徽章
 
 ```jsx
-// 进行中
+// 进行中 (主品牌色)
 className="bg-primary-50 text-primary-600 border border-primary-200"
 
 // 已完成
@@ -278,6 +292,22 @@ className="bg-success/10 text-success border border-success/20"
 
 // 暂停中
 className="bg-warning/10 text-warning border border-warning/20"
+```
+
+### 7.5 侧栏 (v3.0 新增)
+
+```jsx
+// 容器
+<aside className="bg-sidebar-bg border-r border-sidebar-border">
+
+  // 激活导航项
+  <button className="bg-[rgba(16,185,129,0.1)] text-sidebar-text-active
+                    font-medium relative">
+    // 左侧 4px 翠绿指示条
+    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5
+                     bg-primary-400 rounded-r-full" />
+  </button>
+</aside>
 ```
 
 ---
@@ -361,6 +391,7 @@ className="bg-warning/10 text-warning border border-warning/20"
 |------|------|------|
 | 1.0.0 | 2026-04-17 | 初始版本 - 企业蓝灰配色 |
 | 2.0.0 | 2026-04-17 | 科技风升级 - 浅色+流动渐变+紫色强调 |
+| 3.0.0 | 2026-06-08 | **配色重构** - 深色侧栏+翠绿品牌色，移除蓝紫渐变，加深边框/圆角/阴影解决 Windows 朴素感 |
 
 ## 十二、UI 审查记录
 

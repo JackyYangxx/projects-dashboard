@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import type { Project } from '../types/index'
 import { STATUS_LABELS } from '../constants/project'
 import Icon from './Icon'
 import TruncatedText from './TruncatedText'
+import { animateProgress, animateStaggerIn } from '@/utils/animations'
 
 interface ProjectTableProps {
   projects: Project[]
@@ -87,6 +88,30 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const visibleProjects = filteredProjects.slice(0, visibleCount)
   const hasMore = visibleCount < filteredProjects.length
 
+  const tbodyRef = React.useRef<HTMLTableSectionElement>(null)
+
+  // Animate progress bars in visible rows
+  useEffect(() => {
+    if (!tbodyRef.current) return
+    const rows = tbodyRef.current.querySelectorAll<HTMLElement>('tr[data-row]')
+    rows.forEach((row) => {
+      const fills = row.querySelectorAll<HTMLElement>('[data-progress-fill]')
+      fills.forEach((fill) => {
+        const target = Number(fill.dataset.target || '0')
+        animateProgress(fill, target, { duration: 1000, delay: 200 })
+      })
+    })
+  }, [visibleProjects])
+
+  // Stagger entrance for new rows
+  useEffect(() => {
+    if (!tbodyRef.current) return
+    const rows = tbodyRef.current.querySelectorAll<HTMLElement>('tr[data-row]')
+    animateStaggerIn(tbodyRef.current, 'tr[data-row]', { staggerMs: 40, distance: 8 })
+    // Touch the dependency to avoid unused-var warning
+    void rows
+  }, [visibleProjects.length])
+
   const getStatusBadge = (status: Project['status']) => {
     const styles = {
       ongoing: 'bg-primary-50 text-primary-600 border border-primary-200',
@@ -113,16 +138,16 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-outline overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-card border border-outline overflow-hidden">
       {/* Filters */}
-      <div className="flex items-center gap-3 p-4 border-b border-outline bg-gradient-to-r from-surface-base to-white/50">
+      <div className="flex items-center gap-3 p-4 border-b border-outline bg-surface-subtle">
         <select
           id="monthFilter"
           name="monthFilter"
           value={monthFilter}
           onChange={(e) => setMonthFilter(e.target.value)}
           aria-label="按月份筛选"
-          className="px-3 py-2 bg-white border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
+          className="px-3 py-2 bg-white border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
         >
           {MONTHS.map((m) => (
             <option key={m} value={m}>{m}</option>
@@ -135,7 +160,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           aria-label="按状态筛选"
-          className="px-3 py-2 bg-white border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
+          className="px-3 py-2 bg-white border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>{s}</option>
@@ -147,13 +172,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             setMonthFilter('全部')
             setStatusFilter('全部')
           }}
-          className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer"
+          className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer"
         >
           重置筛选
         </button>
 
         <div className="ml-auto text-sm font-body text-on-surface-secondary">
-          <span className="font-mono text-primary-500 font-medium">{filteredProjects.length}</span> 个项目
+          <span className="font-mono text-primary-600 font-semibold">{filteredProjects.length}</span> 个项目
         </div>
       </div>
 
@@ -161,7 +186,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       <div className="overflow-x-auto">
         <table className="w-full" role="table">
           <thead>
-            <tr className="border-b border-outline bg-surface-base/50">
+            <tr className="border-b border-outline bg-surface-subtle">
               <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
                 项目名称
               </th>
@@ -185,7 +210,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody ref={tbodyRef}>
             {visibleProjects.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
@@ -199,9 +224,10 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               visibleProjects.map((project, idx) => (
                 <tr
                   key={project.id}
+                  data-row
                   onClick={() => onView?.(project)}
-                  className={`border-b border-outline-variant transition-colors duration-150 hover:bg-primary-50/50 cursor-pointer ${
-                    idx % 2 === 0 ? 'bg-transparent' : 'bg-surface-base/30'
+                  className={`border-b border-outline-variant transition-colors duration-150 hover:bg-primary-50/40 cursor-pointer ${
+                    idx % 2 === 0 ? 'bg-transparent' : 'bg-surface-subtle/50'
                   }`}
                 >
                   <td className="px-4 py-3">
@@ -234,7 +260,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-16 h-2 bg-surface-base rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-500 ease-out"
+                          data-progress-fill
+                          data-target={project.progress}
+                          className="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full"
                           style={{ width: `${project.progress}%` }}
                         />
                       </div>
@@ -247,7 +275,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-12 h-1.5 bg-surface-base rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-300"
+                          data-progress-fill
+                          data-target={getBudgetRate(project.usedAmount, project.totalAmount)}
+                          className="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full"
                           style={{ width: `${getBudgetRate(project.usedAmount, project.totalAmount)}%` }}
                         />
                       </div>
@@ -292,7 +322,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       </div>
 
       {/* Infinite scroll sentinel & loading indicator */}
-      <div ref={sentinelRef} className="px-4 py-3 border-t border-outline bg-gradient-to-r from-surface-base to-white/50">
+      <div ref={sentinelRef} className="px-4 py-3 border-t border-outline bg-surface-subtle">
         {isLoadingMore ? (
           <div className="flex items-center justify-center gap-2 py-2">
             <Icon name="progress_activity" className="text-lg text-primary-500" spin />

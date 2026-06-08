@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '@/components/Icon'
 import * as XLSX from 'xlsx'
@@ -9,11 +9,16 @@ import ProjectTable from '@/components/ProjectTable'
 import { useProjectStore } from '@/store/projectStore'
 import { upsert } from '@/db/projectDao'
 import { STATUS_LABELS, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
+import { startAmbientOrbs, animateStaggerIn, animateFadeIn } from '@/utils/animations'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const { projects, isLoading, loadProjects, setFilteredProjectIds } = useProjectStore()
   const [showImportMenu, setShowImportMenu] = useState(false)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const statsRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLDivElement>(null)
+  const orbsContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadProjects()
@@ -38,6 +43,28 @@ const Dashboard: React.FC = () => {
       setFilteredProjectIds(projects.map(p => p.id))
     }
   }, [projects, setFilteredProjectIds])
+
+  // Ambient background orbs animation
+  useEffect(() => {
+    if (orbsContainerRef.current) {
+      startAmbientOrbs(orbsContainerRef.current)
+    }
+  }, [])
+
+  // Stagger entrance for header, stats, and table once data is ready
+  useEffect(() => {
+    if (isLoading) return
+    if (headerRef.current) animateFadeIn(headerRef.current, { delay: 0, duration: 450 })
+    if (statsRef.current) {
+      animateStaggerIn(statsRef.current, '[data-stagger]', { delay: 100, staggerMs: 80 })
+    }
+  }, [isLoading])
+
+  useEffect(() => {
+    if (!isLoading && projects.length > 0 && tableRef.current) {
+      animateFadeIn(tableRef.current, { delay: 350, duration: 500 })
+    }
+  }, [isLoading, projects.length])
 
   const handleFilteredProjectsChange = (ids: string[]) => {
     setFilteredProjectIds(ids)
@@ -217,24 +244,28 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-surface-base relative overflow-hidden">
-      {/* Flowing Background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-accent-50" />
-
-        {/* Animated gradient blobs */}
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-gradient-to-br from-primary-200/40 to-accent-200/30 rounded-full blur-3xl animate-blob" />
-        <div className="absolute top-1/3 -right-4 w-80 h-80 bg-gradient-to-br from-accent-200/40 to-primary-200/30 rounded-full blur-3xl animate-blob" style={{ animationDelay: '2s' }} />
-        <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-gradient-to-br from-primary-100/50 to-purple-200/30 rounded-full blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
-
-        {/* Grid pattern overlay */}
+    <div className="min-h-screen bg-surface-base relative">
+      {/* Ambient floating orbs - subtle motion behind content */}
+      <div ref={orbsContainerRef} className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div
-          className="absolute inset-0 opacity-[0.02]"
+          data-orb
+          className="absolute top-[10%] left-[15%] w-[420px] h-[420px] bg-gradient-to-br from-primary-200/40 to-primary-300/20 rounded-full blur-3xl"
+        />
+        <div
+          data-orb
+          className="absolute top-[55%] right-[8%] w-[360px] h-[360px] bg-gradient-to-br from-accent-200/30 to-primary-200/20 rounded-full blur-3xl"
+        />
+        <div
+          data-orb
+          className="absolute bottom-[5%] left-[35%] w-[300px] h-[300px] bg-gradient-to-br from-primary-300/30 to-accent-200/20 rounded-full blur-3xl"
+        />
+        {/* Subtle grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
           style={{
-            backgroundImage: `linear-gradient(rgba(99, 102, 241, 0.3) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(99, 102, 241, 0.3) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
+            backgroundImage: `linear-gradient(rgba(46, 107, 184, 0.4) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(46, 107, 184, 0.4) 1px, transparent 1px)`,
+            backgroundSize: '64px 64px',
           }}
         />
       </div>
@@ -246,7 +277,7 @@ const Dashboard: React.FC = () => {
 
         <main className="p-6 relative z-10">
           {/* Page title */}
-          <div className="flex items-center justify-between mb-6">
+          <div ref={headerRef} className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-heading font-bold text-on-surface-primary">
                 业务概览
@@ -259,14 +290,14 @@ const Dashboard: React.FC = () => {
               <div className="relative import-menu-container">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowImportMenu(!showImportMenu) }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
                 >
                   <Icon name="upload_file" size={16} />
                   导入
                   <Icon name="expand_more" size={16} className="ml-0.5" />
                 </button>
                 {showImportMenu && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-outline rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="absolute top-full left-0 mt-1.5 bg-white border border-outline rounded-xl shadow-elevated z-50 min-w-[160px] py-1 overflow-hidden">
                     <button
                       onClick={() => { handleImport(); setShowImportMenu(false) }}
                       className="w-full px-4 py-2 text-left text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-all duration-200 flex items-center gap-2"
@@ -286,7 +317,7 @@ const Dashboard: React.FC = () => {
 
               <button
                 onClick={handleExport}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-outline text-on-surface-primary rounded-xl text-sm font-body font-medium hover:bg-surface-hover transition-all duration-200 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
               >
                 <Icon name="download" size={16} />
                 导出
@@ -294,7 +325,7 @@ const Dashboard: React.FC = () => {
 
               <button
                 onClick={() => navigate('/project/new')}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer shadow-lg shadow-primary-500/20"
+                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm hover:from-primary-600 hover:to-primary-700 transition-all duration-200 cursor-pointer shadow-elevated"
               >
                 <Icon name="add" size={16} />
                 新增项目
@@ -303,40 +334,46 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Stats cards */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <StatsCard
-              title="项目总数"
-              value={totalCount}
-              subtitle={`本周更新 ${thisWeekDueCount} 个项目`}
-              icon="folder_open"
-            />
-            <StatsCard
-              title="进行中"
-              value={ongoingCount}
-              subtitle={`占总项目的 ${totalCount > 0 ? Math.round((ongoingCount / totalCount) * 100) : 0}%`}
-              icon="pending_actions"
-            />
-            <StatsCard
-              title="预算执行率"
-              value={`${budgetExecutionRate}%`}
-              progress={budgetExecutionRate}
-              progressLabel="全局预算执行"
-              icon="account_balance_wallet"
-            />
+          <div ref={statsRef} className="grid grid-cols-3 gap-4 mb-6 items-stretch">
+            <div data-stagger className="h-full">
+              <StatsCard
+                title="项目总数"
+                value={totalCount}
+                subtitle={`本周更新 ${thisWeekDueCount} 个项目`}
+                icon="folder_open"
+              />
+            </div>
+            <div data-stagger className="h-full">
+              <StatsCard
+                title="进行中"
+                value={ongoingCount}
+                subtitle={`占总项目的 ${totalCount > 0 ? Math.round((ongoingCount / totalCount) * 100) : 0}%`}
+                icon="pending_actions"
+              />
+            </div>
+            <div data-stagger className="h-full">
+              <StatsCard
+                title="预算执行率"
+                value={`${budgetExecutionRate}%`}
+                progress={budgetExecutionRate}
+                progressLabel="全局预算执行"
+                icon="account_balance_wallet"
+              />
+            </div>
           </div>
 
           {/* Project table */}
           {isLoading ? (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline shadow-card">
+            <div className="bg-white rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline shadow-card">
               <div className="relative">
-                <Icon name="progress_activity" spin />
+                <Icon name="progress_activity" spin className="text-primary-500" />
               </div>
               <span className="text-sm font-body text-on-surface-secondary">加载中...</span>
             </div>
           ) : projects.length === 0 ? (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline border-dashed shadow-card">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-100 to-accent-100 flex items-center justify-center">
-                <Icon name="folder_open" />
+            <div className="bg-white rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline border-dashed shadow-card">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
+                <Icon name="folder_open" className="text-primary-600" />
               </div>
               <div className="text-center">
                 <p className="text-sm font-body text-on-surface-secondary mb-1">暂无项目</p>
@@ -344,13 +381,15 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           ) : (
-            <ProjectTable
-              projects={projects}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onFilteredProjectsChange={handleFilteredProjectsChange}
-            />
+            <div ref={tableRef}>
+              <ProjectTable
+                projects={projects}
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onFilteredProjectsChange={handleFilteredProjectsChange}
+              />
+            </div>
           )}
         </main>
       </div>

@@ -385,7 +385,7 @@ export default function CodeReview() {
           <button
             onClick={handleStartReview}
             disabled={selectedProjectIds.length === 0 || isReviewing}
-            className="mt-4 px-6 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl font-medium text-sm disabled:opacity-50"
+            className="mt-4 px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-medium text-sm hover:shadow-glow-sm transition-all disabled:opacity-50"
           >
             {isReviewing ? '评审中...' : '开始评审'}
           </button>

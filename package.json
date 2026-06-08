@@ -14,6 +14,7 @@
   "dependencies": {
     "@types/dompurify": "^3.0.5",
     "@types/jszip": "^3.4.0",
+    "animejs": "^4.4.1",
     "dompurify": "^3.4.0",
     "electron-store": "^11.0.2",
     "jszip": "^3.10.1",
