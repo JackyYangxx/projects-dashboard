@@ -9,7 +9,7 @@ import ProjectTable from '@/components/ProjectTable'
 import { useProjectStore } from '@/store/projectStore'
 import { upsert } from '@/db/projectDao'
 import { STATUS_LABELS, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
-import { startAmbientOrbs, animateStaggerIn, animateFadeIn } from '@/utils/animations'
+import { startAmbientOrbs, animateStaggerIn, animateFadeIn, animateFlowingCurves, animateParticles, animateConicRotation } from '@/utils/animations'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -19,6 +19,7 @@ const Dashboard: React.FC = () => {
   const statsRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
   const orbsContainerRef = useRef<HTMLDivElement>(null)
+  const conicRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadProjects()
@@ -44,10 +45,14 @@ const Dashboard: React.FC = () => {
     }
   }, [projects, setFilteredProjectIds])
 
-  // Ambient background orbs animation
+  // Ambient background animation: orbs + flowing curves + particles + conic
   useEffect(() => {
-    if (orbsContainerRef.current) {
-      startAmbientOrbs(orbsContainerRef.current)
+    if (!orbsContainerRef.current) return
+    startAmbientOrbs(orbsContainerRef.current)
+    animateFlowingCurves(orbsContainerRef.current)
+    animateParticles(orbsContainerRef.current)
+    if (conicRef.current) {
+      animateConicRotation(conicRef.current)
     }
   }, [])
 
@@ -245,21 +250,86 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface-base relative">
-      {/* Ambient floating orbs - subtle motion behind content */}
+      {/* Ambient dynamic background — orbs + conic + curves + particles + grid */}
       <div ref={orbsContainerRef} className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {/* Layer 1: subtle base gradient wash */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/40 via-surface-base to-accent-50/20" />
+
+        {/* Layer 2: slow rotating conic gradient */}
+        <div
+          ref={conicRef}
+          data-conic
+          className="absolute top-1/2 left-1/2 w-[180vmax] h-[180vmax] -translate-x-1/2 -translate-y-1/2 blur-3xl"
+          style={{
+            opacity: 0.35,
+            background:
+              'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(46,107,184,0.45) 50deg, transparent 120deg, rgba(6,182,212,0.3) 190deg, transparent 260deg, rgba(46,107,184,0.35) 330deg, transparent 360deg)',
+          }}
+        />
+
+        {/* Layer 3: flowing SVG curves */}
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 1920 1080">
+          <defs>
+            <linearGradient id="curve-1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(46,107,184,0)" />
+              <stop offset="50%" stopColor="rgba(46,107,184,0.5)" />
+              <stop offset="100%" stopColor="rgba(46,107,184,0)" />
+            </linearGradient>
+            <linearGradient id="curve-2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(6,182,212,0)" />
+              <stop offset="50%" stopColor="rgba(6,182,212,0.4)" />
+              <stop offset="100%" stopColor="rgba(6,182,212,0)" />
+            </linearGradient>
+            <linearGradient id="curve-3" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(90,135,201,0)" />
+              <stop offset="50%" stopColor="rgba(90,135,201,0.35)" />
+              <stop offset="100%" stopColor="rgba(90,135,201,0)" />
+            </linearGradient>
+          </defs>
+          <path data-flow d="M-100,360 Q480,200 960,380 T2020,320" stroke="url(#curve-1)" strokeWidth="1.5" fill="none" />
+          <path data-flow d="M-100,540 Q600,380 1200,580 T2200,500" stroke="url(#curve-2)" strokeWidth="1.2" fill="none" />
+          <path data-flow d="M-100,720 Q500,560 1100,760 T2100,680" stroke="url(#curve-3)" strokeWidth="1" fill="none" />
+        </svg>
+
+        {/* Layer 4: floating particles */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 28 }).map((_, i) => {
+            const left = (i * 37 + 13) % 100
+            const top = (i * 53 + 27) % 100
+            const size = i % 3 === 0 ? 2 : 1
+            return (
+              <div
+                key={i}
+                data-particle
+                className="absolute rounded-full bg-primary-400"
+                style={{
+                  left: `${left}%`,
+                  top: `${top}%`,
+                  width: `${size * 4}px`,
+                  height: `${size * 4}px`,
+                  opacity: 0.4,
+                  boxShadow: i % 4 === 0 ? '0 0 8px rgba(46,107,184,0.7)' : undefined,
+                }}
+              />
+            )
+          })}
+        </div>
+
+        {/* Layer 5: large blurred orbs (animated by startAmbientOrbs) */}
         <div
           data-orb
-          className="absolute top-[10%] left-[15%] w-[420px] h-[420px] bg-gradient-to-br from-primary-200/40 to-primary-300/20 rounded-full blur-3xl"
+          className="absolute top-[8%] left-[12%] w-[440px] h-[440px] bg-gradient-to-br from-primary-300/45 to-primary-500/20 rounded-full blur-3xl"
         />
         <div
           data-orb
-          className="absolute top-[55%] right-[8%] w-[360px] h-[360px] bg-gradient-to-br from-accent-200/30 to-primary-200/20 rounded-full blur-3xl"
+          className="absolute top-[55%] right-[6%] w-[380px] h-[380px] bg-gradient-to-br from-accent-300/40 to-primary-300/20 rounded-full blur-3xl"
         />
         <div
           data-orb
-          className="absolute bottom-[5%] left-[35%] w-[300px] h-[300px] bg-gradient-to-br from-primary-300/30 to-accent-200/20 rounded-full blur-3xl"
+          className="absolute bottom-[3%] left-[32%] w-[320px] h-[320px] bg-gradient-to-br from-primary-400/40 to-accent-300/20 rounded-full blur-3xl"
         />
-        {/* Subtle grid overlay */}
+
+        {/* Layer 6: grid overlay */}
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -290,7 +360,7 @@ const Dashboard: React.FC = () => {
               <div className="relative import-menu-container">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowImportMenu(!showImportMenu) }}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 w-[104px] px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
                 >
                   <Icon name="upload_file" size={16} />
                   导入
@@ -317,7 +387,7 @@ const Dashboard: React.FC = () => {
 
               <button
                 onClick={handleExport}
-                className="flex items-center gap-1.5 px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
+                className="flex items-center justify-center gap-1.5 w-[104px] px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
               >
                 <Icon name="download" size={16} />
                 导出

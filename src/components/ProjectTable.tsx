@@ -322,18 +322,18 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       </div>
 
       {/* Infinite scroll sentinel & loading indicator */}
-      <div ref={sentinelRef} className="px-4 py-3 border-t border-outline bg-surface-subtle">
+      <div ref={sentinelRef} className="px-4 py-2 border-t border-outline bg-surface-subtle">
         {isLoadingMore ? (
-          <div className="flex items-center justify-center gap-2 py-2">
-            <Icon name="progress_activity" className="text-lg text-primary-500" spin />
-            <span className="text-sm font-body text-on-surface-secondary">加载更多...</span>
+          <div className="flex items-center justify-center gap-2 py-1">
+            <Icon name="progress_activity" className="text-base text-primary-500" spin />
+            <span className="text-xs font-body text-on-surface-secondary">加载更多...</span>
           </div>
         ) : hasMore ? (
-          <div className="flex items-center justify-center py-2">
+          <div className="flex items-center justify-center py-1">
             <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary-300 to-transparent" />
           </div>
         ) : visibleProjects.length > 0 ? (
-          <p className="text-center text-sm font-body text-on-surface-tertiary">
+          <p className="text-center text-xs font-body leading-tight text-on-surface-tertiary">
             已展示全部 <span className="font-mono text-primary-500 font-medium">{filteredProjects.length}</span> 个项目
           </p>
         ) : null}

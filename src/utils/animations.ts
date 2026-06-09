@@ -126,6 +126,94 @@ export const startAmbientOrbs = (container: HTMLElement) => {
 }
 
 /**
+ * Flowing SVG curves: horizontal drift + opacity breathing.
+ * Curves should have a stroke gradient applied for the soft edge fade.
+ */
+export const animateFlowingCurves = (container: HTMLElement) => {
+  if (prefersReducedMotion()) return
+  const curves = container.querySelectorAll<SVGPathElement>('[data-flow]')
+  if (curves.length === 0) return
+
+  curves.forEach((curve, i) => {
+    const baseDuration = 16000 + i * 2200
+    const drift = 50 + i * 18
+    animate(curve, {
+      translateX: [
+        { to: drift, duration: baseDuration / 2 },
+        { to: -drift, duration: baseDuration / 2 },
+        { to: 0, duration: baseDuration / 4 },
+      ],
+      opacity: [
+        { to: 0.7, duration: baseDuration / 4 },
+        { to: 0.25, duration: baseDuration / 4 },
+        { to: 0.55, duration: baseDuration / 4 },
+        { to: 0.4, duration: baseDuration / 4 },
+      ],
+      loop: true,
+      ease: 'inOutSine',
+      delay: i * 500,
+    })
+  })
+}
+
+/**
+ * Floating particles with seeded drift trajectories.
+ * Each particle has a deterministic but varied motion pattern.
+ */
+export const animateParticles = (container: HTMLElement) => {
+  if (prefersReducedMotion()) return
+  const particles = container.querySelectorAll<HTMLElement>('[data-particle]')
+  if (particles.length === 0) return
+
+  particles.forEach((particle, i) => {
+    const seed = (i + 1) * 7919
+    const tx = ((seed % 200) - 100) * 0.7
+    const ty = (((seed * 3) % 200) - 100) * 0.6
+    const dur = 12000 + (seed % 8000)
+    animate(particle, {
+      translateX: [
+        { to: tx, duration: dur / 3 },
+        { to: -tx * 0.6, duration: dur / 3 },
+        { to: 0, duration: dur / 3 },
+      ],
+      translateY: [
+        { to: ty, duration: dur / 3 },
+        { to: -ty * 0.6, duration: dur / 3 },
+        { to: 0, duration: dur / 3 },
+      ],
+      opacity: [
+        { to: 0.7, duration: dur / 4 },
+        { to: 0.15, duration: dur / 4 },
+        { to: 0.5, duration: dur / 4 },
+        { to: 0.3, duration: dur / 4 },
+      ],
+      scale: [
+        { to: 1.4, duration: dur / 3 },
+        { to: 0.7, duration: dur / 3 },
+        { to: 1, duration: dur / 3 },
+      ],
+      loop: true,
+      ease: 'inOutSine',
+      delay: (i % 14) * 220,
+    })
+  })
+}
+
+/**
+ * Continuous slow rotation — used for conic gradient backdrops.
+ * 90s full rotation = barely noticeable per second, ambient feel.
+ */
+export const animateConicRotation = (element: HTMLElement) => {
+  if (prefersReducedMotion()) return
+  animate(element, {
+    rotate: 360,
+    duration: 90000,
+    loop: true,
+    ease: 'linear',
+  })
+}
+
+/**
  * Subtle pulse for the logo / brand mark.
  */
 export const animateLogoPulse = (element: HTMLElement) => {

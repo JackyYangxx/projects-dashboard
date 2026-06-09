@@ -79,11 +79,6 @@ const StatsCard: React.FC<StatsCardProps> = ({
           <p className={`text-2xl font-heading font-bold tabular-nums ${isAccent ? 'text-white' : 'text-on-surface-primary'}`}>
             <span ref={valueRef} className="inline">0</span>
           </p>
-          {subtitle && (
-            <p className={`text-xs font-body mt-1 ${isAccent ? 'text-white/70' : 'text-on-surface-tertiary'}`}>
-              <TruncatedText text={subtitle} maxChars={20} />
-            </p>
-          )}
           {growth !== undefined && !isAccent && (
             <div
               className={`flex items-center gap-1 mt-2 text-xs font-body font-medium ${
@@ -104,40 +99,47 @@ const StatsCard: React.FC<StatsCardProps> = ({
           )}
         </div>
         {icon && (
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
             isAccent
               ? 'bg-white/20 shadow-lg'
               : 'bg-primary-50 border border-primary-100'
           }`}>
-            <Icon name={icon} className={`text-xl ${isAccent ? 'text-white' : 'text-primary-600'}`} />
+            <Icon name={icon} className={`text-base ${isAccent ? 'text-white' : 'text-primary-600'}`} />
           </div>
         )}
       </div>
 
-      {progress !== undefined && (
-        <div className="mt-auto pt-4">
-          <div className="flex items-center justify-between text-xs font-body mb-1.5">
-            <span className={isAccent ? 'text-white/80' : 'text-on-surface-secondary'}>
-              {progressLabel || '执行率'}
-            </span>
-            <span className={`font-heading font-semibold tabular-nums ${isAccent ? 'text-white' : 'text-primary-600'}`}>
-              {progress}%
-            </span>
+      <div className="mt-auto">
+        {subtitle && (
+          <p className={`text-xs font-body pt-4 ${isAccent ? 'text-white/70' : 'text-on-surface-tertiary'}`}>
+            <TruncatedText text={subtitle} maxChars={20} />
+          </p>
+        )}
+        {progress !== undefined && (
+          <div className="pt-4">
+            <div className="flex items-center justify-between text-xs font-body mb-1.5">
+              <span className={isAccent ? 'text-white/80' : 'text-on-surface-secondary'}>
+                {progressLabel || '执行率'}
+              </span>
+              <span className={`font-heading font-semibold tabular-nums ${isAccent ? 'text-white' : 'text-primary-600'}`}>
+                {progress}%
+              </span>
+            </div>
+            <div className={`h-2 rounded-full overflow-hidden ${isAccent ? 'bg-white/30' : 'bg-surface-base'}`}>
+              <div
+                ref={progressFillRef}
+                data-progress-fill
+                className={`h-full rounded-full ${
+                  isAccent
+                    ? 'bg-white'
+                    : 'bg-gradient-to-r from-primary-500 to-primary-400'
+                }`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
-          <div className={`h-2 rounded-full overflow-hidden ${isAccent ? 'bg-white/30' : 'bg-surface-base'}`}>
-            <div
-              ref={progressFillRef}
-              data-progress-fill
-              className={`h-full rounded-full ${
-                isAccent
-                  ? 'bg-white'
-                  : 'bg-gradient-to-r from-primary-500 to-primary-400'
-              }`}
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
