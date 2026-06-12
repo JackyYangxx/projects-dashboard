@@ -29,8 +29,14 @@ import {
   Palette,
   Code,
   Settings,
-  ClipboardCheck,
   ExternalLink,
+  LayoutGrid,
+  PlayCircle,
+  CheckCircle,
+  PauseCircle,
+  FilterX,
+  Filter,
+  ClipboardCheck,
 } from 'lucide-react'
 
 const iconMap = {
@@ -66,6 +72,12 @@ const iconMap = {
   fact_check: ClipboardCheck,
   settings: Settings,
   open_in_new: ExternalLink,
+  apps: LayoutGrid,
+  play_circle: PlayCircle,
+  check_circle: CheckCircle,
+  pause_circle: PauseCircle,
+  filter_alt_off: FilterX,
+  filter: Filter,
 } as const
 
 export type IconName = keyof typeof iconMap

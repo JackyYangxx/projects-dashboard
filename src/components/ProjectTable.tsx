@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import type { Project } from '../types/index'
-import { STATUS_LABELS } from '../constants/project'
-import Icon from './Icon'
+import Icon, { type IconName } from './Icon'
 import TruncatedText from './TruncatedText'
 import { animateProgress, animateStaggerIn } from '@/utils/animations'
 
@@ -10,58 +9,53 @@ interface ProjectTableProps {
   onEdit?: (project: Project) => void
   onDelete?: (project: Project) => void
   onView?: (project: Project) => void
-  onFilteredProjectsChange?: (ids: string[]) => void
 }
 
-const MONTHS = ['全部', '一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
-const STATUS_OPTIONS = ['全部', '进行中', '已完成', '暂停中']
-
 const INITIAL_PAGE_SIZE = 20
+
+const STATUS_DOT: Record<Project['status'], string> = {
+  ongoing: 'bg-primary-500',
+  completed: 'bg-success',
+  paused: 'bg-warning',
+}
+
+const STATUS_ICON: Record<Project['status'], IconName> = {
+  ongoing: 'play_circle',
+  completed: 'check_circle',
+  paused: 'pause_circle',
+}
+
+const STATUS_PILL: Record<Project['status'], string> = {
+  ongoing: 'bg-primary-50 text-primary-700 border-primary-200',
+  completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  paused: 'bg-amber-50 text-amber-700 border-amber-200',
+}
+
+const STATUS_TEXT: Record<Project['status'], string> = {
+  ongoing: '进行中',
+  completed: '已完成',
+  paused: '已暂停',
+}
 
 const ProjectTable: React.FC<ProjectTableProps> = ({
   projects,
   onEdit,
   onDelete,
   onView,
-  onFilteredProjectsChange,
 }) => {
-  const [monthFilter, setMonthFilter] = React.useState('全部')
-  const [statusFilter, setStatusFilter] = React.useState('全部')
-  const [filteredProjects, setFilteredProjects] = React.useState(projects)
   const [visibleCount, setVisibleCount] = React.useState(INITIAL_PAGE_SIZE)
   const [isLoadingMore, setIsLoadingMore] = React.useState(false)
   const isLoadingMoreRef = React.useRef(false)
   const sentinelRef = React.useRef<HTMLDivElement>(null)
+  const tbodyRef = React.useRef<HTMLTableSectionElement>(null)
 
-  React.useEffect(() => {
-    let result = projects
-
-    if (statusFilter !== '全部') {
-      const statusMap: Record<string, Project['status']> = {
-        '进行中': 'ongoing',
-        '已完成': 'completed',
-        '暂停中': 'paused',
-      }
-      const targetStatus = statusMap[statusFilter]
-      if (targetStatus) {
-        result = result.filter((p) => p.status === targetStatus)
-      }
-    }
-
-    if (monthFilter !== '全部') {
-      const monthIdx = MONTHS.indexOf(monthFilter)
-      result = result.filter((p) => {
-        const date = new Date(p.createdAt)
-        return date.getMonth() + 1 === monthIdx
-      })
-    }
-
-    setFilteredProjects(result)
+  // Reset paging when projects change (filter applied)
+  useEffect(() => {
     setVisibleCount(INITIAL_PAGE_SIZE)
-    onFilteredProjectsChange?.(result.map(p => p.id))
-  }, [projects, monthFilter, statusFilter])
+  }, [projects])
 
-  React.useEffect(() => {
+  // Infinite scroll
+  useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
 
@@ -72,7 +66,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           isLoadingMoreRef.current = true
           setIsLoadingMore(true)
           setTimeout(() => {
-            setVisibleCount((prev) => Math.min(prev + 20, filteredProjects.length))
+            setVisibleCount((prev) => Math.min(prev + 20, projects.length))
             isLoadingMoreRef.current = false
             setIsLoadingMore(false)
           }, 300)
@@ -83,14 +77,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [filteredProjects.length])
+  }, [projects.length])
 
-  const visibleProjects = filteredProjects.slice(0, visibleCount)
-  const hasMore = visibleCount < filteredProjects.length
+  const visibleProjects = projects.slice(0, visibleCount)
+  const hasMore = visibleCount < projects.length
 
-  const tbodyRef = React.useRef<HTMLTableSectionElement>(null)
-
-  // Animate progress bars in visible rows
+  // Animate progress bars
   useEffect(() => {
     if (!tbodyRef.current) return
     const rows = tbodyRef.current.querySelectorAll<HTMLElement>('tr[data-row]')
@@ -103,28 +95,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     })
   }, [visibleProjects])
 
-  // Stagger entrance for new rows
+  // Stagger entrance
   useEffect(() => {
     if (!tbodyRef.current) return
     const rows = tbodyRef.current.querySelectorAll<HTMLElement>('tr[data-row]')
     animateStaggerIn(tbodyRef.current, 'tr[data-row]', { staggerMs: 40, distance: 8 })
-    // Touch the dependency to avoid unused-var warning
     void rows
   }, [visibleProjects.length])
-
-  const getStatusBadge = (status: Project['status']) => {
-    const styles = {
-      ongoing: 'bg-primary-50 text-primary-600 border border-primary-200',
-      completed: 'bg-success/10 text-success border border-success/20',
-      paused: 'bg-warning/10 text-warning border border-warning/20',
-    }
-    const labels = STATUS_LABELS
-    return (
-      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-body font-medium ${styles[status]}`}>
-        {labels[status]}
-      </span>
-    )
-  }
 
   const getBudgetRate = (used: number, total: number) => {
     if (total === 0) return 0
@@ -138,74 +115,31 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-card border border-outline overflow-hidden">
-      {/* Filters */}
-      <div className="flex items-center gap-3 p-4 border-b border-outline bg-surface-subtle">
-        <select
-          id="monthFilter"
-          name="monthFilter"
-          value={monthFilter}
-          onChange={(e) => setMonthFilter(e.target.value)}
-          aria-label="按月份筛选"
-          className="px-3 py-2 bg-white border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
-        >
-          {MONTHS.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
-
-        <select
-          id="statusFilter"
-          name="statusFilter"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          aria-label="按状态筛选"
-          className="px-3 py-2 bg-white border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer transition-colors"
-        >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-
-        <button
-          onClick={() => {
-            setMonthFilter('全部')
-            setStatusFilter('全部')
-          }}
-          className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all duration-200 cursor-pointer"
-        >
-          重置筛选
-        </button>
-
-        <div className="ml-auto text-sm font-body text-on-surface-secondary">
-          <span className="font-mono text-primary-600 font-semibold">{filteredProjects.length}</span> 个项目
-        </div>
-      </div>
-
+    <div className="bg-white rounded-lg shadow-card border border-outline overflow-hidden">
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full" role="table">
           <thead>
-            <tr className="border-b border-outline bg-surface-subtle">
-              <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                项目名称
+            <tr className="border-b border-outline bg-surface-hover">
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary">
+                项目
               </th>
-              <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                 产品线
               </th>
-              <th scope="col" className="text-left px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                 负责人
               </th>
-              <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                项目进展
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                进展
               </th>
-              <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
-                预算执行率
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                预算执行
               </th>
-              <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                 状态
               </th>
-              <th scope="col" className="text-center px-4 py-3 text-xs font-body font-semibold text-on-surface-secondary uppercase tracking-wider">
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none w-24">
                 操作
               </th>
             </tr>
@@ -221,94 +155,117 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 </td>
               </tr>
             ) : (
-              visibleProjects.map((project, idx) => (
+              visibleProjects.map((project) => (
                 <tr
                   key={project.id}
                   data-row
                   onClick={() => onView?.(project)}
-                  className={`border-b border-outline-variant transition-colors duration-150 hover:bg-primary-50/40 cursor-pointer ${
-                    idx % 2 === 0 ? 'bg-transparent' : 'bg-surface-subtle/50'
-                  }`}
+                  className="group border-b border-outline-variant/60 last:border-b-0 transition-colors duration-150 hover:bg-primary-50/40 cursor-pointer"
                 >
-                  <td className="px-4 py-3">
-                    <TruncatedText
-                      text={project.name}
-                      maxChars={20}
-                      className="text-sm font-body font-medium text-on-surface-primary"
-                    />
-                    {project.tag && (
-                      <p className="text-xs font-body text-on-surface-tertiary mt-0.5">
-                        <TruncatedText text={project.tag} maxChars={15} />
-                      </p>
-                    )}
+                  <td className="relative px-4 py-2.5">
+                    {/* Hover left bar */}
+                    <span className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="flex items-center gap-2.5">
+                      {project.status === 'ongoing' ? (
+                        <span className="relative flex w-2 h-2 flex-shrink-0" aria-hidden>
+                          <span className="absolute inline-flex w-full h-full rounded-full bg-primary-500 opacity-60 animate-ping-slow" />
+                          <span className={`relative inline-flex w-2 h-2 rounded-full ${STATUS_DOT[project.status]}`} />
+                        </span>
+                      ) : (
+                        <span
+                          className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[project.status]}`}
+                          aria-hidden
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <TruncatedText
+                          text={project.name}
+                          maxChars={22}
+                          className="text-sm font-body font-medium text-on-surface-primary"
+                        />
+                        {project.tag && (
+                          <p className="text-[11px] font-body text-on-surface-tertiary mt-0.5 truncate max-w-[180px]">
+                            {project.tag}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                     <TruncatedText
-                      text={project.productLine || '-'}
+                      text={project.productLine || '—'}
                       maxChars={12}
-                      className="text-sm font-body text-on-surface-secondary"
+                      className="text-xs font-body text-on-surface-secondary"
                     />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                     <TruncatedText
-                      text={project.leader || '-'}
+                      text={project.leader || '未指定'}
                       maxChars={10}
-                      className="text-sm font-body text-on-surface-secondary"
+                      className="text-xs font-body text-on-surface-secondary"
                     />
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-16 h-2 bg-surface-base rounded-full overflow-hidden">
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-1.5 bg-surface-hover rounded-full overflow-hidden">
                         <div
                           data-progress-fill
                           data-target={project.progress}
-                          className="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full"
+                          className="h-full bg-primary-500 rounded-full"
                           style={{ width: `${project.progress}%` }}
                         />
                       </div>
-                      <span className="text-xs font-body text-on-surface-secondary tabular-nums font-mono">
+                      <span className="text-xs font-body text-on-surface-secondary tabular-nums font-mono w-9 text-right">
                         {project.progress}%
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-12 h-1.5 bg-surface-base rounded-full overflow-hidden">
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                    <div className="flex items-center gap-2">
+                      <div className="w-12 h-1.5 bg-surface-hover rounded-full overflow-hidden">
                         <div
                           data-progress-fill
                           data-target={getBudgetRate(project.usedAmount, project.totalAmount)}
-                          className="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full"
+                          className="h-full bg-emerald-500 rounded-full"
                           style={{ width: `${getBudgetRate(project.usedAmount, project.totalAmount)}%` }}
                         />
                       </div>
-                      <span className="text-xs font-body text-on-surface-secondary tabular-nums">
+                      <span className="text-xs font-body text-on-surface-secondary tabular-nums font-mono w-9 text-right">
                         {getBudgetRate(project.usedAmount, project.totalAmount)}%
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    {getStatusBadge(project.status)}
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-body font-medium border ${STATUS_PILL[project.status]}`}
+                    >
+                      <Icon name={STATUS_ICON[project.status]} size={12} />
+                      {STATUS_TEXT[project.status]}
+                    </span>
                   </td>
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-center gap-1">
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-0.5">
                       <button
                         onClick={() => onView?.(project)}
                         aria-label={`查看 ${project.name}`}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
+                        title="查看"
+                        className="w-7 h-7 flex items-center justify-center rounded-md text-on-surface-tertiary hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer"
                       >
                         <Icon name="visibility" size={15} />
                       </button>
                       <button
                         onClick={() => onEdit?.(project)}
                         aria-label={`编辑 ${project.name}`}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-primary-50 hover:text-primary-500 transition-all duration-150 cursor-pointer"
+                        title="编辑"
+                        className="w-7 h-7 flex items-center justify-center rounded-md text-on-surface-tertiary hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer"
                       >
                         <Icon name="edit" size={15} />
                       </button>
                       <button
                         onClick={() => handleDelete(project)}
                         aria-label={`删除 ${project.name}`}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-error/10 hover:text-error transition-all duration-150 cursor-pointer"
+                        title="删除"
+                        className="w-7 h-7 flex items-center justify-center rounded-md text-on-surface-tertiary hover:bg-error/10 hover:text-error transition-colors cursor-pointer"
                       >
                         <Icon name="delete" size={15} />
                       </button>
@@ -322,19 +279,19 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       </div>
 
       {/* Infinite scroll sentinel & loading indicator */}
-      <div ref={sentinelRef} className="px-4 py-2 border-t border-outline bg-surface-subtle">
+      <div ref={sentinelRef} className="px-4 py-2.5 border-t border-outline bg-surface-subtle/40">
         {isLoadingMore ? (
           <div className="flex items-center justify-center gap-2 py-1">
             <Icon name="progress_activity" className="text-base text-primary-500" spin />
-            <span className="text-xs font-body text-on-surface-secondary">加载更多...</span>
+            <span className="text-xs font-body text-on-surface-secondary">加载更多…</span>
           </div>
         ) : hasMore ? (
           <div className="flex items-center justify-center py-1">
             <div className="h-px w-24 bg-gradient-to-r from-transparent via-primary-300 to-transparent" />
           </div>
-        ) : visibleProjects.length > 0 ? (
+        ) : projects.length > 0 ? (
           <p className="text-center text-xs font-body leading-tight text-on-surface-tertiary">
-            已展示全部 <span className="font-mono text-primary-500 font-medium">{filteredProjects.length}</span> 个项目
+            已展示全部 <span className="font-mono text-primary-500 font-medium">{projects.length}</span> 个项目
           </p>
         ) : null}
       </div>

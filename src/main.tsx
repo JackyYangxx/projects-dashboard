@@ -21,12 +21,12 @@ initDatabase()
     console.error('[App] Database init failed:', err)
     document.body.innerHTML = `
       <div style="padding: 20px; font-family: monospace; color: #dc2626;">
-        <h1>Database Initialization Failed</h1>
+        <h1>项目管理看板 — 数据库初始化失败</h1>
         <pre style="background: #1f1f1f; color: #e5e5e5; padding: 10px; border-radius: 4px; overflow: auto;">
 ${err.message}
 ${err.stack || ''}
         </pre>
-        <p>Check the console for more details (DevTools → Console)</p>
+        <p>请查看控制台获取详情（开发者工具 → Console）</p>
       </div>
     `
   })

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Icon from '@/components/Icon'
+import Icon, { type IconName } from '@/components/Icon'
 import * as XLSX from 'xlsx'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
@@ -9,81 +9,108 @@ import ProjectTable from '@/components/ProjectTable'
 import { useProjectStore } from '@/store/projectStore'
 import { upsert } from '@/db/projectDao'
 import { STATUS_LABELS, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
-import { startAmbientOrbs, animateStaggerIn, animateFadeIn, animateFlowingCurves, animateParticles, animateConicRotation } from '@/utils/animations'
+import { animateStaggerIn, animateFadeIn } from '@/utils/animations'
+import type { Project } from '@/types'
+
+type StatusFilter = 'all' | Project['status']
+
+const MONTHS = ['全部', '一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+const STATUS_CHIPS: { key: StatusFilter; label: string; icon: IconName }[] = [
+  { key: 'all', label: '全部', icon: 'apps' },
+  { key: 'ongoing', label: '进行中', icon: 'play_circle' },
+  { key: 'completed', label: '已完成', icon: 'check_circle' },
+  { key: 'paused', label: '已暂停', icon: 'pause_circle' },
+]
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const { projects, isLoading, loadProjects, setFilteredProjectIds } = useProjectStore()
   const [showImportMenu, setShowImportMenu] = useState(false)
+  const [showStatusMenu, setShowStatusMenu] = useState(false)
+  const [showMonthMenu, setShowMonthMenu] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ongoing')
+  const [monthFilter, setMonthFilter] = useState<string>('全部')
+
   const headerRef = useRef<HTMLDivElement>(null)
+  const filterRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
-  const orbsContainerRef = useRef<HTMLDivElement>(null)
-  const conicRef = useRef<HTMLDivElement>(null)
+  const statusMenuRef = useRef<HTMLDivElement>(null)
+  const monthMenuRef = useRef<HTMLDivElement>(null)
+  const glowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadProjects()
   }, [loadProjects])
 
-  // Close import menu when clicking outside
+  // Close import / status / month menus when clicking outside
   useEffect(() => {
-    if (!showImportMenu) return
+    if (!showImportMenu && !showStatusMenu && !showMonthMenu) return
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement
-      if (!target.closest('.import-menu-container')) {
+      if (showImportMenu && !target.closest('.import-menu-container')) {
         setShowImportMenu(false)
+      }
+      if (showStatusMenu && statusMenuRef.current && !statusMenuRef.current.contains(target)) {
+        setShowStatusMenu(false)
+      }
+      if (showMonthMenu && monthMenuRef.current && !monthMenuRef.current.contains(target)) {
+        setShowMonthMenu(false)
       }
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [showImportMenu])
+  }, [showImportMenu, showStatusMenu, showMonthMenu])
 
-  // Set initial filtered project IDs when projects load
+  // Filtered projects
+  const filteredProjects = useMemo(() => {
+    let result = projects
+    if (statusFilter !== 'all') {
+      result = result.filter((p) => p.status === statusFilter)
+    }
+    if (monthFilter !== '全部') {
+      const monthIdx = MONTHS.indexOf(monthFilter)
+      result = result.filter((p) => {
+        const date = new Date(p.createdAt)
+        return date.getMonth() + 1 === monthIdx
+      })
+    }
+    return result
+  }, [projects, statusFilter, monthFilter])
+
+  // Sync filtered IDs for prev/next nav
   useEffect(() => {
     if (projects.length > 0) {
-      setFilteredProjectIds(projects.map(p => p.id))
+      setFilteredProjectIds(filteredProjects.map(p => p.id))
     }
-  }, [projects, setFilteredProjectIds])
+  }, [filteredProjects, projects.length, setFilteredProjectIds])
 
-  // Ambient background animation: orbs + flowing curves + particles + conic
-  useEffect(() => {
-    if (!orbsContainerRef.current) return
-    startAmbientOrbs(orbsContainerRef.current)
-    animateFlowingCurves(orbsContainerRef.current)
-    animateParticles(orbsContainerRef.current)
-    if (conicRef.current) {
-      animateConicRotation(conicRef.current)
-    }
-  }, [])
+  // Background removed (Notion/Linear clean style) — keep ref to avoid unused warning
+  void glowRef
 
-  // Stagger entrance for header, stats, and table once data is ready
+  // Stagger entrance for hero / stats / filter / table
   useEffect(() => {
     if (isLoading) return
     if (headerRef.current) animateFadeIn(headerRef.current, { delay: 0, duration: 450 })
     if (statsRef.current) {
-      animateStaggerIn(statsRef.current, '[data-stagger]', { delay: 100, staggerMs: 80 })
+      animateStaggerIn(statsRef.current, '[data-stagger]', { delay: 200, staggerMs: 80 })
     }
+    if (filterRef.current) animateFadeIn(filterRef.current, { delay: 450, duration: 400 })
   }, [isLoading])
 
   useEffect(() => {
     if (!isLoading && projects.length > 0 && tableRef.current) {
-      animateFadeIn(tableRef.current, { delay: 350, duration: 500 })
+      animateFadeIn(tableRef.current, { delay: 600, duration: 500 })
     }
   }, [isLoading, projects.length])
 
-  const handleFilteredProjectsChange = (ids: string[]) => {
-    setFilteredProjectIds(ids)
-  }
-
-  // Calculate stats
+  // Stats
   const totalCount = projects.length
   const ongoingCount = projects.filter((p) => p.status === 'ongoing').length
   const totalBudget = projects.reduce((sum, p) => sum + p.totalAmount, 0)
   const usedBudget = projects.reduce((sum, p) => sum + p.usedAmount, 0)
-  const budgetExecutionRate =
-    totalBudget > 0 ? Math.round((usedBudget / totalBudget) * 100) : 0
+  const budgetExecutionRate = totalBudget > 0 ? Math.round((usedBudget / totalBudget) * 100) : 0
 
-  // Count projects due this week
   const thisWeekDueCount = projects.filter((p) => {
     if (p.status !== 'ongoing') return false
     const updatedDate = new Date(p.updatedAt)
@@ -97,11 +124,9 @@ const Dashboard: React.FC = () => {
   const handleView = (project: { id: string }) => {
     navigate(`/project/${project.id}`)
   }
-
   const handleEdit = (project: { id: string }) => {
     navigate(`/project/${project.id}?edit=true`)
   }
-
   const handleDelete = (project: { id: string }) => {
     useProjectStore.getState().deleteProject(project.id)
   }
@@ -187,30 +212,18 @@ const Dashboard: React.FC = () => {
   const handleDownloadTemplate = () => {
     const requiredHeaders = ['项目名称', '产品线', '负责人', '总预算', '已用预算']
     const optionalHeaders = ['代码仓', '分支']
-
-    // Build header row with * suffix for required fields
     const headerRow = [
       ...requiredHeaders.map(h => `${h}*`),
-      ...optionalHeaders
+      ...optionalHeaders,
     ]
-
-    // Build sample row with placeholder values
-    const sampleRow = [
-      '示例项目', '示例产品线', '张三', 100000, 50000,
-      '', ''
-    ]
-
+    const sampleRow = ['示例项目', '示例产品线', '张三', 100000, 50000, '', '']
     const wsData = [headerRow, sampleRow]
     const ws = XLSX.utils.aoa_to_sheet(wsData)
-
-    // Apply gray background to required field cells in sample row (column B-G, row 2)
-    // B=1, C=2, D=3, E=4, F=5, G=6 (0-indexed)
     for (let col = 0; col < 5; col++) {
       const cellRef = XLSX.utils.encode_cell({ r: 1, c: col })
       if (!ws[cellRef]) ws[cellRef] = {}
       ws[cellRef].s = { fill: { fgColor: { rgb: 'E0E0E0' } } }
     }
-
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, '导入模版')
     XLSX.writeFile(wb, '导入模版.xlsx')
@@ -240,7 +253,6 @@ const Dashboard: React.FC = () => {
       '里程碑': JSON.stringify(p.milestones),
       '时间线': JSON.stringify(p.timeline),
     }))
-
     const ws = XLSX.utils.json_to_sheet(exportData)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, '项目列表')
@@ -248,169 +260,38 @@ const Dashboard: React.FC = () => {
     XLSX.writeFile(wb, `projects_${date}.xlsx`)
   }
 
+  const isEmpty = !isLoading && projects.length === 0
+  const isFilteredEmpty = !isLoading && projects.length > 0 && filteredProjects.length === 0
+
   return (
     <div className="min-h-screen bg-surface-base relative">
-      {/* Ambient dynamic background — orbs + conic + curves + particles + grid */}
-      <div ref={orbsContainerRef} className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        {/* Layer 1: subtle base gradient wash */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/40 via-surface-base to-accent-50/20" />
-
-        {/* Layer 2: slow rotating conic gradient */}
-        <div
-          ref={conicRef}
-          data-conic
-          className="absolute top-1/2 left-1/2 w-[180vmax] h-[180vmax] -translate-x-1/2 -translate-y-1/2 blur-3xl"
-          style={{
-            opacity: 0.35,
-            background:
-              'conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(46,107,184,0.45) 50deg, transparent 120deg, rgba(6,182,212,0.3) 190deg, transparent 260deg, rgba(46,107,184,0.35) 330deg, transparent 360deg)',
-          }}
-        />
-
-        {/* Layer 3: flowing SVG curves */}
-        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 1920 1080">
-          <defs>
-            <linearGradient id="curve-1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(46,107,184,0)" />
-              <stop offset="50%" stopColor="rgba(46,107,184,0.5)" />
-              <stop offset="100%" stopColor="rgba(46,107,184,0)" />
-            </linearGradient>
-            <linearGradient id="curve-2" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(6,182,212,0)" />
-              <stop offset="50%" stopColor="rgba(6,182,212,0.4)" />
-              <stop offset="100%" stopColor="rgba(6,182,212,0)" />
-            </linearGradient>
-            <linearGradient id="curve-3" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(90,135,201,0)" />
-              <stop offset="50%" stopColor="rgba(90,135,201,0.35)" />
-              <stop offset="100%" stopColor="rgba(90,135,201,0)" />
-            </linearGradient>
-          </defs>
-          <path data-flow d="M-100,360 Q480,200 960,380 T2020,320" stroke="url(#curve-1)" strokeWidth="1.5" fill="none" />
-          <path data-flow d="M-100,540 Q600,380 1200,580 T2200,500" stroke="url(#curve-2)" strokeWidth="1.2" fill="none" />
-          <path data-flow d="M-100,720 Q500,560 1100,760 T2100,680" stroke="url(#curve-3)" strokeWidth="1" fill="none" />
-        </svg>
-
-        {/* Layer 4: floating particles */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 28 }).map((_, i) => {
-            const left = (i * 37 + 13) % 100
-            const top = (i * 53 + 27) % 100
-            const size = i % 3 === 0 ? 2 : 1
-            return (
-              <div
-                key={i}
-                data-particle
-                className="absolute rounded-full bg-primary-400"
-                style={{
-                  left: `${left}%`,
-                  top: `${top}%`,
-                  width: `${size * 4}px`,
-                  height: `${size * 4}px`,
-                  opacity: 0.4,
-                  boxShadow: i % 4 === 0 ? '0 0 8px rgba(46,107,184,0.7)' : undefined,
-                }}
-              />
-            )
-          })}
-        </div>
-
-        {/* Layer 5: large blurred orbs (animated by startAmbientOrbs) */}
-        <div
-          data-orb
-          className="absolute top-[8%] left-[12%] w-[440px] h-[440px] bg-gradient-to-br from-primary-300/45 to-primary-500/20 rounded-full blur-3xl"
-        />
-        <div
-          data-orb
-          className="absolute top-[55%] right-[6%] w-[380px] h-[380px] bg-gradient-to-br from-accent-300/40 to-primary-300/20 rounded-full blur-3xl"
-        />
-        <div
-          data-orb
-          className="absolute bottom-[3%] left-[32%] w-[320px] h-[320px] bg-gradient-to-br from-primary-400/40 to-accent-300/20 rounded-full blur-3xl"
-        />
-
-        {/* Layer 6: grid overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(46, 107, 184, 0.4) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(46, 107, 184, 0.4) 1px, transparent 1px)`,
-            backgroundSize: '64px 64px',
-          }}
-        />
-      </div>
-
       <Sidebar />
 
-      <div className="ml-64">
-        <Header title="项目概览" />
+      <div className="ml-64 relative z-10">
+        <Header title="项目看板" />
 
-        <main className="p-6 relative z-10">
-          {/* Page title */}
-          <div ref={headerRef} className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-heading font-bold text-on-surface-primary">
-                业务概览
+        <main className="p-5 lg:p-7 max-w-[1600px]">
+          {/* Hero */}
+          <div ref={headerRef} className="flex items-end justify-between mb-6 gap-4">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-heading font-bold text-on-surface-primary tracking-tight mb-1">
+                项目看板
               </h1>
-              <p className="text-sm font-body text-on-surface-tertiary mt-1">
-                实时监控项目状态与预算执行
+              <p className="text-sm font-body text-on-surface-secondary">
+                跟踪从立项到落地的每个节点 · 当前 <span className="font-mono font-semibold text-primary-600 tabular-nums">{totalCount}</span> 个项目
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative import-menu-container">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowImportMenu(!showImportMenu) }}
-                  className="flex items-center justify-center gap-1.5 w-[104px] px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
-                >
-                  <Icon name="upload_file" size={16} />
-                  导入
-                  <Icon name="expand_more" size={16} className="ml-0.5" />
-                </button>
-                {showImportMenu && (
-                  <div className="absolute top-full left-0 mt-1.5 bg-white border border-outline rounded-xl shadow-elevated z-50 min-w-[160px] py-1 overflow-hidden">
-                    <button
-                      onClick={() => { handleImport(); setShowImportMenu(false) }}
-                      className="w-full px-4 py-2 text-left text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-all duration-200 flex items-center gap-2"
-                    >
-                      <Icon name="upload_file" size={16} />
-                      导入项目
-                    </button>
-                    <button
-                      onClick={() => { handleDownloadTemplate(); setShowImportMenu(false) }}
-                      className="w-full px-4 py-2 text-left text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-all duration-200 flex items-center gap-2"
-                    >
-                      下载导入模版
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={handleExport}
-                className="flex items-center justify-center gap-1.5 w-[104px] px-3 py-2 bg-white border border-outline text-on-surface-primary rounded-lg text-sm font-body font-medium hover:bg-surface-hover hover:border-outline-strong transition-all duration-200 cursor-pointer"
-              >
-                <Icon name="download" size={16} />
-                导出
-              </button>
-
-              <button
-                onClick={() => navigate('/project/new')}
-                className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm hover:from-primary-600 hover:to-primary-700 transition-all duration-200 cursor-pointer shadow-elevated"
-              >
-                <Icon name="add" size={16} />
-                新增项目
-              </button>
             </div>
           </div>
 
           {/* Stats cards */}
-          <div ref={statsRef} className="grid grid-cols-3 gap-4 mb-6 items-stretch">
+          <div ref={statsRef} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 items-stretch">
             <div data-stagger className="h-full">
               <StatsCard
                 title="项目总数"
                 value={totalCount}
                 subtitle={`本周更新 ${thisWeekDueCount} 个项目`}
                 icon="folder_open"
+                tone="blue"
               />
             </div>
             <div data-stagger className="h-full">
@@ -419,6 +300,7 @@ const Dashboard: React.FC = () => {
                 value={ongoingCount}
                 subtitle={`占总项目的 ${totalCount > 0 ? Math.round((ongoingCount / totalCount) * 100) : 0}%`}
                 icon="pending_actions"
+                tone="green"
               />
             </div>
             <div data-stagger className="h-full">
@@ -428,37 +310,199 @@ const Dashboard: React.FC = () => {
                 progress={budgetExecutionRate}
                 progressLabel="全局预算执行"
                 icon="account_balance_wallet"
+                progressVariant="ring"
+                tone="amber"
               />
             </div>
           </div>
 
+          {/* Filter + Action bar */}
+          {!isLoading && projects.length > 0 && (
+            <div ref={filterRef} className="mb-3 flex flex-wrap items-center gap-2 relative z-10">
+              {/* Status filter */}
+              <div ref={statusMenuRef} className="relative">
+                <button
+                  onClick={() => {
+                    setShowStatusMenu(v => !v)
+                    setShowMonthMenu(false)
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
+                    statusFilter !== 'all'
+                      ? 'bg-primary-50 border-primary-200 text-primary-700'
+                      : 'bg-white border-outline text-on-surface-secondary hover:border-primary-300'
+                  }`}
+                >
+                  <Icon name="filter" size={14} className={statusFilter !== 'all' ? 'text-primary-500' : 'text-on-surface-tertiary'} />
+                  <span>状态：{statusFilter === 'all' ? '全部' : STATUS_LABELS[statusFilter]}</span>
+                  <Icon name="chevron_down" size={14} className="opacity-60" />
+                </button>
+                {showStatusMenu && (
+                  <div className="absolute z-[60] mt-1 w-40 bg-white border border-outline rounded-md shadow-lg py-1">
+                    {STATUS_CHIPS.map((s) => (
+                      <button
+                        key={s.key}
+                        onClick={() => {
+                          setStatusFilter(s.key)
+                          setShowStatusMenu(false)
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 flex items-center gap-2 cursor-pointer ${
+                          statusFilter === s.key ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
+                        }`}
+                      >
+                        <Icon name={s.icon} size={14} className={statusFilter === s.key ? 'text-primary-500' : 'text-on-surface-tertiary'} />
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Month filter */}
+              <div ref={monthMenuRef} className="relative">
+                <button
+                  onClick={() => {
+                    setShowMonthMenu(v => !v)
+                    setShowStatusMenu(false)
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
+                    monthFilter !== '全部'
+                      ? 'bg-primary-50 border-primary-200 text-primary-700'
+                      : 'bg-white border-outline text-on-surface-secondary hover:border-primary-300'
+                  }`}
+                >
+                  <span>月份：{monthFilter}</span>
+                  <Icon name="chevron_down" size={14} className="opacity-60" />
+                </button>
+                {showMonthMenu && (
+                  <div className="absolute z-[60] mt-1 w-32 max-h-64 overflow-y-auto bg-white border border-outline rounded-md shadow-lg py-1">
+                    {MONTHS.map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => {
+                          setMonthFilter(m)
+                          setShowMonthMenu(false)
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 cursor-pointer ${
+                          monthFilter === m ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {(statusFilter !== 'all' || monthFilter !== '全部') && (
+                <button
+                  onClick={() => { setStatusFilter('all'); setMonthFilter('全部') }}
+                  className="inline-flex items-center gap-1 px-2 h-9 text-xs font-body text-on-surface-tertiary hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors cursor-pointer"
+                >
+                  <Icon name="filter_alt_off" size={12} />
+                  清除筛选
+                </button>
+              )}
+
+              <span className="text-xs font-body text-on-surface-tertiary ml-1">
+                共 <span className="font-mono font-semibold text-primary-600 tabular-nums">{filteredProjects.length}</span> 条结果
+              </span>
+
+              <div className="ml-auto flex items-center gap-2">
+                {/* Import */}
+                <div className="relative import-menu-container">
+                  <button
+                    onClick={() => setShowImportMenu(v => !v)}
+                    className="inline-flex items-center justify-center gap-1.5 w-[96px] h-9 px-3 bg-white border border-outline text-on-surface-secondary rounded-md text-sm font-body font-medium hover:border-primary-300 hover:text-primary-600 transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <Icon name="upload_file" size={14} />
+                    导入
+                    <Icon name="chevron_down" size={12} className="opacity-60" />
+                  </button>
+                  {showImportMenu && (
+                    <div className="absolute z-[60] right-0 mt-1 w-44 bg-white border border-outline rounded-md shadow-lg py-1">
+                      <button
+                        onClick={() => { setShowImportMenu(false); handleImport() }}
+                        className="w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 text-on-surface-primary cursor-pointer flex items-center gap-2"
+                      >
+                        <Icon name="upload_file" size={14} className="text-on-surface-tertiary" />
+                        导入项目
+                      </button>
+                      <button
+                        onClick={() => { setShowImportMenu(false); handleDownloadTemplate() }}
+                        className="w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 text-on-surface-primary cursor-pointer flex items-center gap-2"
+                      >
+                        <Icon name="download" size={14} className="text-on-surface-tertiary" />
+                        下载导入模版
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Export */}
+                <button
+                  onClick={handleExport}
+                  className="inline-flex items-center justify-center gap-1.5 w-[96px] h-9 px-3 bg-white border border-outline text-on-surface-secondary rounded-md text-sm font-body font-medium hover:border-primary-300 hover:text-primary-600 transition-colors cursor-pointer whitespace-nowrap"
+                >
+                  <Icon name="download" size={14} />
+                  导出
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Project table */}
           {isLoading ? (
-            <div className="bg-white rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline shadow-card">
-              <div className="relative">
-                <Icon name="progress_activity" spin className="text-primary-500" />
-              </div>
-              <span className="text-sm font-body text-on-surface-secondary">加载中...</span>
+            <div className="relative z-0 bg-white rounded-lg p-12 flex flex-col items-center justify-center gap-3 border border-outline shadow-card">
+              <Icon name="progress_activity" spin className="text-primary-500" size={24} />
+              <span className="text-sm font-body text-on-surface-secondary">加载中…</span>
             </div>
-          ) : projects.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 flex flex-col items-center justify-center gap-4 border border-outline border-dashed shadow-card">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
-                <Icon name="folder_open" className="text-primary-600" />
+          ) : isEmpty ? (
+            <div className="bg-white rounded-lg p-12 flex flex-col items-center justify-center gap-3 border border-dashed border-outline">
+              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary-50 to-primary-100 ring-1 ring-primary-100 flex items-center justify-center">
+                <Icon name="folder_open" size={28} className="text-primary-600" />
               </div>
-              <div className="text-center">
-                <p className="text-sm font-body text-on-surface-secondary mb-1">暂无项目</p>
-                <p className="text-xs font-body text-on-surface-tertiary">点击上方按钮创建第一个项目</p>
+              <div className="text-center max-w-sm">
+                <p className="text-base font-heading font-semibold text-on-surface-primary mb-1">
+                  开始你的第一个项目
+                </p>
+                <p className="text-sm font-body text-on-surface-tertiary mb-5">
+                  在这里跟踪从立项到落地的全流程节点，所有数据保存在本地。
+                </p>
+                <button
+                  onClick={() => navigate('/project/new')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-body font-medium hover:bg-primary-600 transition-colors shadow-sm cursor-pointer"
+                >
+                  <Icon name="add" size={16} />
+                  新增项目
+                </button>
               </div>
             </div>
           ) : (
             <div ref={tableRef}>
-              <ProjectTable
-                projects={projects}
-                onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onFilteredProjectsChange={handleFilteredProjectsChange}
-              />
+              {isFilteredEmpty ? (
+                <div className="bg-white rounded-lg p-12 flex flex-col items-center justify-center gap-3 border border-dashed border-outline">
+                  <Icon name="filter_alt_off" size={28} className="text-on-surface-tertiary" />
+                  <div className="text-center">
+                    <p className="text-sm font-body text-on-surface-primary mb-1">没有匹配的项目</p>
+                    <p className="text-xs font-body text-on-surface-tertiary">试试调整状态或月份筛选条件</p>
+                  </div>
+                  <button
+                    onClick={() => { setStatusFilter('all'); setMonthFilter('全部') }}
+                    className="mt-1 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-body text-primary-600 hover:bg-primary-50 rounded-lg transition-colors cursor-pointer"
+                  >
+                    清除筛选
+                  </button>
+                </div>
+              ) : (
+                <div className="relative z-0">
+                  <ProjectTable
+                    projects={filteredProjects}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                </div>
+              )}
             </div>
           )}
         </main>

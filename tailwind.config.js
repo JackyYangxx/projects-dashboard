@@ -7,33 +7,33 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Surface - Light main area, layered for depth
+        // Surface - Notion/Linear-style clean white
         'surface': {
-          'base': '#F1F5F9',       // Main bg (slate-100) - cards pop on this
+          'base': '#FFFFFF',       // Main bg (pure white)
           'container': '#FFFFFF',  // Cards
           'elevated': '#FFFFFF',   // Elevated
-          'hover': '#E2E8F0',      // Hover (slate-200)
-          'subtle': '#F8FAFC',     // Subtle dividers inside cards
+          'hover': '#F4F4F5',      // Hover (zinc-100)
+          'subtle': '#FAFAFA',     // Subtle dividers (zinc-50)
         },
         'on-surface': {
-          'primary': '#0F172A',    // Primary text
-          'secondary': '#475569',  // Secondary
-          'tertiary': '#94A3B8',   // Tertiary
+          'primary': '#18181B',    // Primary text (zinc-900)
+          'secondary': '#52525B',  // Secondary (zinc-600)
+          'tertiary': '#A1A1AA',   // Tertiary (zinc-400)
         },
         'outline': {
-          DEFAULT: '#CBD5E1',      // Visible on Windows (slate-300)
-          'variant': '#E2E8F0',    // Subtle dividers
-          'strong': '#94A3B8',     // Emphasis
+          DEFAULT: '#E4E4E7',      // zinc-200, clean light border
+          'variant': '#F4F4F5',    // Subtle dividers (zinc-100)
+          'strong': '#A1A1AA',     // Emphasis (zinc-400)
         },
-        // Sidebar - Dark theme
+        // Sidebar - Light cool (zinc)
         'sidebar': {
-          'bg': '#0F172A',         // slate-900
-          'bg-hover': '#1E293B',   // slate-800
-          'border': '#1E293B',     // slate-800
-          'text': '#94A3B8',       // slate-400
-          'text-strong': '#F1F5F9',// slate-100
-          'text-active': '#5A87C9',// trust-blue-400
-          'active-bg': 'rgba(0, 45, 98, 0.12)',
+          'bg': '#F4F4F5',         // zinc-100
+          'bg-hover': '#E4E4E7',   // zinc-200
+          'border': '#E4E4E7',     // zinc-200
+          'text': '#71717A',       // zinc-500
+          'text-strong': '#18181B',// zinc-900
+          'text-active': '#1F4F95',// primary-600 (deep trust blue for contrast on light)
+          'active-bg': '#DCE7F5',  // primary-100 solid
         },
         // Primary - Trust Blue (brand color)
         'primary': {
@@ -96,17 +96,18 @@ module.exports = {
         'full': '9999px',
       },
       boxShadow: {
-        // Stronger shadows render well on Windows
+        // Cool slate shadows
         'surface': '0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06)',
-        'elevated': '0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04)',
-        'float': '0 10px 25px -3px rgba(15, 23, 42, 0.12), 0 4px 6px -2px rgba(15, 23, 42, 0.06)',
-        'card': '0 0 0 1px rgba(15, 23, 42, 0.04), 0 2px 4px rgba(15, 23, 42, 0.04)',
+        'elevated': '0 4px 8px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04)',
+        'float': '0 12px 28px -4px rgba(15, 23, 42, 0.10), 0 4px 8px -2px rgba(15, 23, 42, 0.05)',
+        'card': '0 0 0 1px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.04)',
+        'soft': '0 1px 2px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(15, 23, 42, 0.04)',
         // Brand glow (trust blue)
-        'glow-sm': '0 0 0 1px rgba(46, 107, 184, 0.2), 0 4px 12px rgba(46, 107, 184, 0.15)',
-        'glow-md': '0 0 0 1px rgba(46, 107, 184, 0.25), 0 8px 24px rgba(46, 107, 184, 0.2)',
-        'glow-lg': '0 0 0 1px rgba(46, 107, 184, 0.3), 0 12px 40px rgba(46, 107, 184, 0.25)',
-        // Sidebar depth shadow
-        'sidebar': '1px 0 0 0 #1E293B',
+        'glow-sm': '0 0 0 1px rgba(46, 107, 184, 0.18), 0 4px 12px rgba(46, 107, 184, 0.12)',
+        'glow-md': '0 0 0 1px rgba(46, 107, 184, 0.22), 0 8px 24px rgba(46, 107, 184, 0.18)',
+        'glow-lg': '0 0 0 1px rgba(46, 107, 184, 0.28), 0 12px 40px rgba(46, 107, 184, 0.22)',
+        // Sidebar depth shadow (subtle right shadow on light bg)
+        'sidebar': '1px 0 0 0 #E2E8F0, 4px 0 12px -4px rgba(15, 23, 42, 0.04)',
       },
       backdropBlur: {
         'glass': '12px',
@@ -114,11 +115,39 @@ module.exports = {
       animation: {
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 6s ease-in-out infinite',
+        'breath': 'breath 7s ease-in-out infinite',
+        'shimmer': 'shimmer 3s linear infinite',
+        'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'drift-a': 'driftA 24s ease-in-out infinite',
+        'drift-b': 'driftB 30s ease-in-out infinite',
+        'drift-c': 'driftC 22s ease-in-out infinite',
       },
       keyframes: {
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-8px)' },
+        },
+        breath: {
+          '0%, 100%': { opacity: '0.3', transform: 'scale(1)' },
+          '50%': { opacity: '0.55', transform: 'scale(1.08)' },
+        },
+        shimmer: {
+          '0%': { strokeDashoffset: '0' },
+          '100%': { strokeDashoffset: '-200' },
+        },
+        driftA: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(80px, -40px) scale(1.08)' },
+          '66%': { transform: 'translate(-30px, 60px) scale(0.95)' },
+        },
+        driftB: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(-60px, 50px) scale(0.92)' },
+          '66%': { transform: 'translate(50px, -30px) scale(1.1)' },
+        },
+        driftC: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '50%': { transform: 'translate(40px, 40px) scale(1.12)' },
         },
       },
     },
