@@ -1,12 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" color="#FFFFFF">
-  <!-- Tray icon: monochrome 人 character, shrunk to ~half in viewBox for more breathing room. Default color white for Windows dark theme. -->
-  <!-- 撇 -->
-  <line x1="4" y1="4" x2="6.5" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-  <!-- 捺 -->
-  <line x1="12" y1="4" x2="9.5" y2="11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" />
-  <!-- 节点 (shoulders) -->
-  <circle cx="4" cy="4" r="0.9" fill="currentColor" />
-  <circle cx="12" cy="4" r="0.9" fill="currentColor" />
-  <!-- 汇点 (focal, enlarged) -->
-  <circle cx="8" cy="11" r="1.4" fill="currentColor" />
+  <!-- Tray icon: minimal list symbol (项目列表). Independent of main 人 logo. White for Windows dark theme. -->
+  <line x1="3" y1="4" x2="13" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  <line x1="3" y1="8" x2="13" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  <line x1="3" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
 </svg>

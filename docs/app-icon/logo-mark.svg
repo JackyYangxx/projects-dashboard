@@ -1,13 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
   <!-- 撇 (left stroke) -->
-  <line x1="10" y1="9" x2="12" y2="27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="10" y1="9" x2="14" y2="27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
   <!-- 捺 (right stroke) -->
-  <line x1="26" y1="9" x2="24" y2="27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="26" y1="9" x2="22" y2="27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
   <!-- Node 1: 撇起 -->
   <circle cx="10" cy="9" r="2" fill="currentColor" />
   <!-- Node 2: 捺起 -->
   <circle cx="26" cy="9" r="2" fill="currentColor" />
-  <!-- Node 3: 汇点 (focal point, enlarged) -->
-  <circle cx="18" cy="27" r="4" fill="currentColor" />
+  <!-- Node 3: 汇点 (enlarged, focal point) -->
+  <circle cx="18" cy="27" r="3.5" fill="currentColor" />
 </svg>
-
