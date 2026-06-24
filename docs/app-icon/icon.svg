@@ -16,10 +16,10 @@
   <rect x="0" y="0" width="256" height="256" rx="48" fill="url(#highlightGradient)" />
   <!-- 人 character: scaled 5x from logo-mark.svg 36-viewBox, centered at (128, 128), widened bottom gap and enlarged 汇点 -->
   <g transform="translate(38, 38)">
-    <line x1="50" y1="45" x2="70" y2="135" stroke="white" stroke-width="12.5" stroke-linecap="round" />
-    <line x1="130" y1="45" x2="110" y2="135" stroke="white" stroke-width="12.5" stroke-linecap="round" />
+    <line x1="50" y1="45" x2="60" y2="135" stroke="white" stroke-width="12.5" stroke-linecap="round" />
+    <line x1="130" y1="45" x2="120" y2="135" stroke="white" stroke-width="12.5" stroke-linecap="round" />
     <circle cx="50" cy="45" r="10" fill="white" />
     <circle cx="130" cy="45" r="10" fill="white" />
-    <circle cx="90" cy="135" r="17.5" fill="white" />
+    <circle cx="90" cy="135" r="20" fill="white" />
   </g>
 </svg>
