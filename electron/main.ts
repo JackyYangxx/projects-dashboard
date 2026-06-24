@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, type NativeImage } from 'electron'
 import path from 'path'
 import fs from 'fs'
 import Store from 'electron-store'
@@ -34,6 +34,41 @@ function createWindow() {
   }
 }
 
+let tray: Tray | null = null
+
+function loadTrayIcon(): NativeImage {
+  const icoPath = path.join(__dirname, '../docs/app-icon/tray.ico')
+  let image = nativeImage.createFromPath(icoPath)
+  if (image.isEmpty()) {
+    const pngPath = path.join(__dirname, '../docs/app-icon/tray-32.png')
+    image = nativeImage.createFromPath(pngPath)
+  }
+  return image
+}
+
+function toggleMainWindow() {
+  const win = BrowserWindow.getAllWindows()[0]
+  if (!win) return
+  if (win.isVisible() && !win.isMinimized()) {
+    win.hide()
+  } else {
+    if (win.isMinimized()) win.restore()
+    win.show()
+    win.focus()
+  }
+}
+
+function createTray() {
+  tray = new Tray(loadTrayIcon())
+  tray.setToolTip('项目管理看板')
+  tray.on('click', toggleMainWindow)
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: '显示主窗口', click: toggleMainWindow },
+    { type: 'separator' },
+    { label: '退出', click: () => app.quit() },
+  ]))
+}
+
 const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
   app.quit()
@@ -47,11 +82,21 @@ app.on('second-instance', () => {
   }
 })
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow()
+  createTray()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
+  }
+})
+
+app.on('before-quit', () => {
+  if (tray) {
+    tray.destroy()
+    tray = null
   }
 })
 
