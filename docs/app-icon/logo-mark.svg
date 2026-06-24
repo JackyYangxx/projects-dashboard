@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <!-- 撇 (left stroke) -->
+  <line x1="10" y1="9" x2="16" y2="27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+  <!-- 捺 (right stroke) -->
+  <line x1="26" y1="9" x2="20" y2="27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+  <!-- Node 1: 撇起笔 -->
+  <circle cx="10" cy="9" r="2" fill="currentColor" />
+  <!-- Node 2: 捺起笔 -->
+  <circle cx="26" cy="9" r="2" fill="currentColor" />
+  <!-- Node 3: 汇点 -->
+  <circle cx="18" cy="27" r="2.5" fill="currentColor" />
+</svg>
