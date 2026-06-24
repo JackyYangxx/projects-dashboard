@@ -1,5 +1,5 @@
-appId: com.precisioncurator.app
-productName: Precision Curator
+appId: com.projects-dashboard.app
+productName: 项目管理看板
 
 directories:
   output: release
