@@ -42,7 +42,7 @@ const Sidebar: React.FC = () => {
             项目管理看板
           </span>
           <span className="text-[10px] font-mono text-sidebar-text/60 truncate">
-            Project Dashboard · v1.0.7
+            Project Dashboard · v1.0.8
           </span>
         </div>
       </div>
