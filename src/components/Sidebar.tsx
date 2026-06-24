@@ -34,7 +34,13 @@ const Sidebar: React.FC = () => {
           ref={logoRef}
           className="relative w-9 h-9 rounded-md flex items-center justify-center bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 shadow-glow-sm ring-1 ring-black/5"
         >
-          <span className="text-white font-heading font-bold text-sm relative z-10">P</span>
+          <svg viewBox="0 0 36 36" className="w-7 h-7 relative z-10 text-white" fill="none" aria-label="项目管理看板 logo">
+            <line x1="10" y1="9" x2="16" y2="27" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            <line x1="26" y1="9" x2="20" y2="27" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="10" cy="9" r="2" fill="currentColor" />
+            <circle cx="26" cy="9" r="2" fill="currentColor" />
+            <circle cx="18" cy="27" r="2.5" fill="currentColor" />
+          </svg>
           <div className="absolute inset-0 rounded-md bg-gradient-to-tr from-white/0 to-white/30" />
         </div>
         <div className="flex flex-col min-w-0">
