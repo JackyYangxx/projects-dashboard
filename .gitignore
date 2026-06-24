@@ -8,4 +8,5 @@ release/
 .DS_Store
 stitch_
 .worktrees
-docs
+docs/app-icon/*.png
+docs/app-icon/*.ico
