@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5A87C9" />
+      <stop offset="0.5" stop-color="#2E6BB8" />
+      <stop offset="1" stop-color="#002D62" />
+    </linearGradient>
+    <linearGradient id="highlightGradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="white" stop-opacity="0" />
+      <stop offset="1" stop-color="white" stop-opacity="0.3" />
+    </linearGradient>
+  </defs>
+  <!-- Container: blue gradient rounded square -->
+  <rect x="0" y="0" width="256" height="256" rx="48" fill="url(#bgGradient)" />
+  <!-- Right-edge highlight overlay (white fade from left to right) -->
+  <rect x="0" y="0" width="256" height="256" rx="48" fill="url(#highlightGradient)" />
+  <!-- 人 character: scaled 5x from logo-mark.svg 36-viewBox, centered at (128, 128), occupies ~44% of container width -->
+  <g transform="translate(38, 38)">
+    <line x1="50" y1="45" x2="80" y2="135" stroke="white" stroke-width="12.5" stroke-linecap="round" />
+    <line x1="130" y1="45" x2="100" y2="135" stroke="white" stroke-width="12.5" stroke-linecap="round" />
+    <circle cx="50" cy="45" r="10" fill="white" />
+    <circle cx="130" cy="45" r="10" fill="white" />
+    <circle cx="90" cy="135" r="12.5" fill="white" />
+  </g>
+</svg>
