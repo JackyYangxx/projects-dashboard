@@ -59,14 +59,19 @@ function toggleMainWindow() {
 }
 
 function createTray() {
-  tray = new Tray(loadTrayIcon())
-  tray.setToolTip('项目管理看板')
-  tray.on('click', toggleMainWindow)
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: '显示主窗口', click: toggleMainWindow },
-    { type: 'separator' },
-    { label: '退出', click: () => app.quit() },
-  ]))
+  try {
+    tray = new Tray(loadTrayIcon())
+    tray.setToolTip('项目管理看板')
+    tray.on('click', toggleMainWindow)
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: '显示主窗口', click: toggleMainWindow },
+      { type: 'separator' },
+      { label: '退出', click: () => app.quit() },
+    ]))
+  } catch (err) {
+    console.error('[tray] failed to create tray:', err)
+    tray = null
+  }
 }
 
 const gotTheLock = app.requestSingleInstanceLock()

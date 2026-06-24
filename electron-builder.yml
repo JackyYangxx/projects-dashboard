@@ -8,6 +8,8 @@ files:
   - dist/**/*
   - dist-electron/**/*
   - package.json
+  - docs/app-icon/*.ico
+  - docs/app-icon/*.png
 
 win:
   target:
