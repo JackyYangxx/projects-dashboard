@@ -115,7 +115,7 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -135,7 +135,7 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
         {!readOnly && onReset && (
           <button
             onClick={onReset}
-            className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl text-sm font-body font-medium hover:shadow-glow-sm transition-all"
+            className="inline-flex items-center h-8 px-2.5 text-xs font-body font-medium text-on-surface-secondary border border-outline rounded-md hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
           >
             重置
           </button>
@@ -150,27 +150,27 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-label="项目进度"
-        className={`relative h-3 bg-surface-base rounded-full select-none group ${
+        className={`relative h-2 bg-surface-hover rounded-full select-none group ${
           readOnly ? 'cursor-default' : 'cursor-pointer'
         }`}
         onMouseDown={handleMouseDown}
       >
         <div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-150 ease-out shadow-sm"
+          className="absolute top-0 left-0 h-full bg-primary-500 rounded-full transition-[width] duration-150 ease-out"
           style={{ width: `${value}%` }}
         />
         {!readOnly && (
           <div
-            className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full shadow-lg transition-all duration-150 ${
-              isDragging ? 'scale-110 cursor-grabbing' : 'group-hover:scale-105 cursor-grab'
+            className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-primary-500 rounded-full shadow-sm transition-all duration-150 ${
+              isDragging ? 'scale-110 cursor-grabbing' : 'group-hover:scale-110 cursor-grab'
             }`}
-            style={{ left: `calc(${value}% - 10px)` }}
+            style={{ left: `calc(${value}% - 8px)` }}
           />
         )}
       </div>
 
       {/* Percentage labels */}
-      <div className="flex justify-between text-xs font-mono text-on-surface-tertiary px-1">
+      <div className="flex justify-between text-[10px] font-mono text-on-surface-tertiary px-0.5">
         <span>0%</span>
         <span>25%</span>
         <span>50%</span>
@@ -179,18 +179,18 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
       </div>
 
       {/* Sub-progress cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         {subProgressItems.map((item) => (
           <div
             key={item.key}
-            className="bg-white rounded-xl p-3 flex items-center gap-3 border border-outline transition-all duration-150 hover:shadow-elevated hover:border-primary-200"
+            className="bg-surface-hover/50 rounded-md p-2.5 flex items-center gap-2.5 border border-transparent hover:border-outline transition-colors"
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-primary-50 to-accent-50 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-100">
-              <Icon name={item.icon} className="text-accent-500 text-base" />
+            <div className="w-8 h-8 bg-primary-50 rounded-md flex items-center justify-center flex-shrink-0 border border-primary-200">
+              <Icon name={item.icon} className="text-primary-600" size={16} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-body text-on-surface-secondary">{item.label}</p>
-              <p className="text-base font-heading font-semibold text-on-surface-primary tabular-nums">
+              <p className="text-base font-heading font-semibold text-on-surface-primary tabular-nums leading-tight">
                 {subProgress[item.key]}%
               </p>
               <div
@@ -199,7 +199,7 @@ const ProgressSlider: React.FC<ProgressSliderProps> = ({
                 onMouseDown={(e) => handleSubMouseDown(e, item.key)}
               >
                 <div
-                  className="h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-[width] duration-100"
+                  className="h-full bg-primary-500 rounded-full transition-[width] duration-100"
                   style={{ width: `${subProgress[item.key]}%` }}
                 />
               </div>

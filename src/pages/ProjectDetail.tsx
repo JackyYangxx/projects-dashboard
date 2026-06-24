@@ -33,17 +33,21 @@ const ProjectDetail: React.FC = () => {
   const [showMemberModal, setShowMemberModal] = useState(false)
   const [newMemberName, setNewMemberName] = useState('')
   const [newMemberRole, setNewMemberRole] = useState('')
-  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null)
-  // Initialize expandedHistoryId when project loads (expand latest note history)
+  const [expandedHistoryIds, setExpandedHistoryIds] = useState<Set<string>>(new Set())
+  // Default: expand only the newest note history entry when project loads or new entry added
   useEffect(() => {
     if (project?.noteHistory && project.noteHistory.length > 0) {
       const latestId = project.noteHistory[project.noteHistory.length - 1].id
-      setExpandedHistoryId(latestId)
+      setExpandedHistoryIds(new Set([latestId]))
     }
   }, [project?.noteHistory])
+  const [isEditingTotalBudget, setIsEditingTotalBudget] = useState(false)
+  const [totalBudgetInput, setTotalBudgetInput] = useState('')
   const [showMilestoneModal, setShowMilestoneModal] = useState(false)
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('')
-  const [newMilestoneDate, setNewMilestoneDate] = useState('')
+  const [newMilestoneDate, setNewMilestoneDate] = useState(() =>
+    new Date().toISOString().slice(0, 10)
+  )
   const [newMilestoneStatus, setNewMilestoneStatus] = useState<'pending' | 'completed' | 'delayed'>('pending')
   const [newMilestoneDescription, setNewMilestoneDescription] = useState('')
   const [repoEditRepository, setRepoEditRepository] = useState('')
@@ -65,7 +69,7 @@ const ProjectDetail: React.FC = () => {
   useEffect(() => {
     if (!showMilestoneModal) {
       setNewMilestoneTitle('')
-      setNewMilestoneDate('')
+      setNewMilestoneDate(new Date().toISOString().slice(0, 10))
       setNewMilestoneStatus('pending')
       setNewMilestoneDescription('')
     }
@@ -95,6 +99,8 @@ const ProjectDetail: React.FC = () => {
       label: '新来源',
       amount: 0,
       usedAmount: 0,
+      date: new Date().toISOString().slice(0, 10),
+      note: undefined,
     })
     setBudgetSources([...budgetSources, newSource])
   }
@@ -112,11 +118,12 @@ const ProjectDetail: React.FC = () => {
 
   const handleSourceLabelChange = (id: string, label: string) => updateSource(id, { label })
   const handleSourceAmountChange = (id: string, amount: number) => updateSource(id, { amount })
-  const handleSourceUsedAmountChange = (id: string, usedAmount: number) => updateSource(id, { usedAmount })
 
   const totalBudget = useMemo(() => budgetSources.reduce((sum, s) => sum + s.amount, 0), [budgetSources])
-  const totalUsed = useMemo(() => budgetSources.reduce((sum, s) => sum + s.usedAmount, 0), [budgetSources])
-  const budgetPercent = useMemo(() => totalBudget > 0 ? Math.round((totalUsed / totalBudget) * 100) : 0, [totalBudget, totalUsed])
+  const acquisitionPercent = useMemo(() => {
+    if (!project || project.totalAmount <= 0) return 0
+    return Math.min(100, Math.round((totalBudget / project.totalAmount) * 100))
+  }, [totalBudget, project])
 
   const handleAddMember = () => {
     if (!project || !newMemberName.trim() || !newMemberRole.trim()) return
@@ -162,7 +169,7 @@ const ProjectDetail: React.FC = () => {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-body font-medium hover:bg-primary-600 transition-colors"
+            className="inline-flex items-center h-9 px-3 bg-primary-500 text-white rounded-md text-sm font-body font-medium hover:bg-primary-600 transition-colors"
           >
             返回仪表盘
           </button>
@@ -223,43 +230,43 @@ const ProjectDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-base">
       {/* Top Navigation Bar */}
-      <nav className="h-14 bg-surface-elevated border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
+      <nav className="h-14 bg-white border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
         <button
           onClick={() => navigate('/')}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
+          className="w-9 h-9 flex items-center justify-center rounded-md text-on-surface-secondary hover:bg-surface-hover hover:text-on-surface-primary transition-colors"
           title="返回仪表盘"
         >
           <Icon name="arrow_back" />
         </button>
         <div className="h-5 w-px bg-outline" />
-        <div className="flex items-center gap-3">
-          <h1 className="text-base font-heading font-semibold text-on-surface-primary">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-base font-heading font-semibold text-on-surface-primary truncate">
             {project.name}
           </h1>
-          <span className="px-2 py-0.5 bg-surface-container rounded text-xs font-body text-on-surface-tertiary">
+          <span className="px-2 py-0.5 bg-primary-50 text-primary-700 border border-primary-200 rounded text-xs font-body font-medium flex-shrink-0">
             {project.tag}
           </span>
         </div>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => setIsReadOnly((prev) => !prev)}
             title={isReadOnly ? '切换到编辑模式' : '切换到查看模式'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-body font-medium transition-all duration-150 ${
+            className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm font-body font-medium border transition-colors ${
               isReadOnly
-                ? 'bg-surface-base text-on-surface-secondary hover:bg-primary-50 hover:text-primary-500'
-                : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-sm'
+                ? 'bg-white border-outline text-on-surface-secondary hover:border-primary-300 hover:text-primary-600'
+                : 'bg-primary-500 border-primary-500 text-white hover:bg-primary-600 hover:border-primary-600'
             }`}
           >
             <Icon name={isReadOnly ? 'edit' : 'visibility'} size={15} />
             {isReadOnly ? '编辑' : '编辑中'}
           </button>
           <span
-            className={`px-2 py-1 rounded text-xs font-body font-medium ${
+            className={`inline-flex items-center px-2 h-7 rounded-md text-xs font-body font-medium border ${
               project.status === 'ongoing'
-                ? 'bg-success/10 text-success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                 : project.status === 'completed'
-                  ? 'bg-primary-500/10 text-primary-500'
-                  : 'bg-warning/10 text-warning'
+                  ? 'bg-primary-50 border-primary-200 text-primary-700'
+                  : 'bg-amber-50 border-amber-200 text-amber-700'
             }`}
           >
             {project.status === 'ongoing' ? '进行中' : project.status === 'completed' ? '已完成' : '已暂停'}
@@ -271,20 +278,22 @@ const ProjectDetail: React.FC = () => {
       </nav>
 
       {/* Main Content - Bento Grid */}
-      <main className="max-w-[1600px] mx-auto p-6 pb-20">
+      <main className="max-w-[1600px] mx-auto p-5 lg:p-7 pb-24 lg:pb-24">
         <div className="grid grid-cols-12 gap-4">
+          {/* Left column - main content */}
+          <div className="col-span-12 lg:col-span-8 space-y-4">
           {/* Row 0: Repository Info Card */}
           <div className="col-span-12">
-            <div className="bg-surface-elevated rounded-xl p-6">
+            <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
-                  <Icon name="folder_copy" />
+                  <Icon name="folder_copy" size={16} />
                   代码仓信息
                 </h3>
                 {!isReadOnly && !isRepoEditing && (
                   <button
                     onClick={() => setIsRepoEditing(true)}
-                    className="px-3 py-1.5 text-xs font-body font-medium text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                    className="inline-flex items-center h-7 px-2.5 text-xs font-body font-medium text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
                   >
                     编辑
                   </button>
@@ -293,7 +302,7 @@ const ProjectDetail: React.FC = () => {
 
               {isRepoEditing ? (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-body text-on-surface-tertiary mb-1.5">代码仓</label>
                       <input
@@ -307,7 +316,7 @@ const ProjectDetail: React.FC = () => {
                             setIsRepoEditing(false)
                           }
                         }}
-                        className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+                        className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                         placeholder="https://github.com/org/repo"
                         autoFocus
                       />
@@ -325,7 +334,7 @@ const ProjectDetail: React.FC = () => {
                             setIsRepoEditing(false)
                           }
                         }}
-                        className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+                        className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                         placeholder="main"
                       />
                     </div>
@@ -338,14 +347,14 @@ const ProjectDetail: React.FC = () => {
                         setRepoEditBranch(project.branch || '')
                         setIsRepoEditing(false)
                       }}
-                      className="px-3 py-1.5 border border-outline rounded-lg text-xs font-body text-on-surface-primary hover:bg-surface-container"
+                      className="inline-flex items-center h-8 px-3 border border-outline rounded-md text-xs font-body text-on-surface-primary hover:bg-surface-hover transition-colors"
                     >
                       取消
                     </button>
                     <button
                       type="button"
                       onClick={handleRepoSave}
-                      className="px-3 py-1.5 bg-primary-500 text-white rounded-lg text-xs font-body font-medium hover:bg-primary-600"
+                      className="inline-flex items-center h-8 px-3 bg-primary-500 text-white rounded-md text-xs font-body font-medium hover:bg-primary-600 transition-colors"
                     >
                       保存
                     </button>
@@ -367,9 +376,9 @@ const ProjectDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Row 1: Repository Info - ABOVE this */}
-          <div className="col-span-12 lg:col-span-8">
-            <div className="bg-surface-elevated rounded-xl p-6 h-full">
+          {/* Row 1: Progress - full width */}
+          <div className="col-span-12">
+            <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
               <ProgressSlider
                 value={project.progress}
                 subProgress={project.subProgress}
@@ -388,316 +397,402 @@ const ProjectDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="col-span-12 lg:col-span-4">
-            <div className="bg-surface-elevated rounded-xl p-6 h-full flex flex-col shadow-card">
-              <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2 mb-4">
-                <Icon name="account_balance_wallet" size={18} />
-                预算统计
-              </h3>
-              {isReadOnly ? (
-                <div className="flex-1 space-y-2">
-                  {budgetSources.map((source) => (
-                    <div key={source.id} className="flex items-center justify-between">
-                      <span className="text-sm font-body text-on-surface-primary">{source.label}</span>
-                      <span className="text-sm font-heading font-semibold text-on-surface-primary">
-                        {formatCurrency(source.usedAmount)}
-                      </span>
-                    </div>
-                  ))}
+          {/* Milestones - standalone row below Progress */}
+          <div className="col-span-12">
+            <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
+                  <Icon name="timeline" size={16} />
+                  里程碑
+                </h3>
+                <div className="flex items-center gap-2">
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => setShowMilestoneModal(true)}
+                      className="inline-flex items-center h-7 px-2.5 bg-primary-500 text-white rounded-md text-xs font-body font-medium hover:bg-primary-600 transition-colors gap-1"
+                    >
+                      <Icon name="add" size={14} />
+                      添加里程碑
+                    </button>
+                  )}
+                  <span className="text-xs font-body text-on-surface-tertiary">
+                    {project.milestones.length} 个里程碑
+                  </span>
+                </div>
+              </div>
+
+              {project.milestones.length === 0 ? (
+                <div className="py-6 text-center">
+                  <Icon name="timeline" size={24} className="text-on-surface-tertiary mb-2" />
+                  <p className="text-sm font-body text-on-surface-tertiary">暂无里程碑</p>
                 </div>
               ) : (
-                <div className="flex-1 space-y-3">
-                  <div className="flex flex-wrap gap-2 items-center text-xs font-body text-on-surface-tertiary">
-                    <span className="flex-1 min-w-[30%] px-2">来源名称</span>
-                    <span className="w-[30%] sm:flex-1 px-1 sm:px-2 text-right">总额</span>
-                    <span className="w-[30%] sm:flex-1 px-1 sm:px-2 text-right">已使用</span>
-                    <span className="w-8 ml-auto" />
+                <div className="relative pl-6">
+                  <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-outline" />
+                  <div className="space-y-5">
+                    {project.milestones.map((milestone) => {
+                      const status = milestoneStatusStyles[milestone.status] || milestoneStatusStyles.pending
+                      return (
+                        <div key={milestone.id} className="relative">
+                          <div
+                            className={`absolute -left-[1.4375rem] top-1 w-4 h-4 rounded-full ${status.dot} ring-2 ring-white`}
+                          />
+                          <div className="ml-4">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="text-sm font-body font-semibold text-on-surface-primary">
+                                {milestone.title}
+                              </h4>
+                              <span className={`inline-flex items-center px-1.5 h-5 rounded text-[10px] font-body font-medium ${
+                                milestone.status === 'completed'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : milestone.status === 'delayed'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-primary-50 text-primary-700 border border-primary-200'
+                              }`}>
+                                {milestone.status === 'completed' ? '已完成' : milestone.status === 'delayed' ? '延期' : '进行中'}
+                              </span>
+                            </div>
+                            <p className="text-xs font-body text-on-surface-tertiary font-mono mb-1">
+                              {milestone.date}
+                            </p>
+                            {milestone.description && (
+                              <p className="text-xs font-body text-on-surface-secondary">
+                                {milestone.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                  {budgetSources.map((source) => (
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <input
-                        type="text"
-                        value={source.label}
-                        title={source.label}
-                        onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
-                        className="flex-1 min-w-[30%] bg-surface-base border border-outline rounded-lg px-2 py-1 text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
-                      />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={source.amount}
-                        title={String(source.amount)}
-                        onChange={(e) => handleSourceAmountChange(source.id, Number(e.target.value) || 0)}
-                        className="w-[30%] sm:flex-1 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
-                      />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={source.usedAmount}
-                        title={String(source.usedAmount)}
-                        onChange={(e) => handleSourceUsedAmountChange(source.id, Number(e.target.value) || 0)}
-                        className="w-[30%] sm:flex-1 bg-surface-base border border-outline rounded-lg px-1 sm:px-2 py-1 text-sm font-heading font-semibold text-on-surface-primary focus:outline-none focus:border-primary-500 truncate"
-                      />
-                      <button
-                        onClick={() => removeSource(source.id)}
-                        disabled={budgetSources.length <= 1}
-                        className="w-8 h-8 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-error disabled:opacity-30 disabled:cursor-not-allowed transition-colors ml-auto"
-                      >
-                        <Icon name="delete" size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    onClick={addBudgetSource}
-                    className="w-full py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-1"
-                  >
-                    <Icon name="add" />
-                    添加来源
-                  </button>
                 </div>
               )}
-              <div className="mt-6 pt-4 border-t border-outline">
-                <div className="grid grid-cols-3 gap-2 mb-4">
+            </div>
+          </div>
+
+          {/* Row 1b: Budget Stats - full width standalone row */}
+          <div className="col-span-12">
+            <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
+              <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2 mb-4">
+                <Icon name="account_balance_wallet" size={16} />
+                预算统计
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 flex flex-col">
+                  <div className="flex-1 overflow-y-auto -mx-1 px-1 space-y-2 max-h-[400px]">
+                {budgetSources.map((source) => (
+                  isReadOnly ? (
+                    <div key={source.id} className="bg-surface-hover/40 rounded-md p-3">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-sm font-body font-medium text-on-surface-primary truncate" title={source.label}>
+                          {source.label || '未命名来源'}
+                        </span>
+                        <span className="text-sm font-heading font-semibold text-on-surface-primary tabular-nums whitespace-nowrap">
+                          {formatCurrency(source.amount)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-body text-on-surface-tertiary">
+                        <span className="font-mono whitespace-nowrap">{source.date || '—'}</span>
+                        {source.note && (
+                          <>
+                            <span className="opacity-50">·</span>
+                            <span className="truncate" title={source.note}>{source.note}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={source.id} className="bg-surface-hover/40 rounded-md p-2.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={source.label}
+                          title={source.label}
+                          placeholder="来源名称"
+                          onChange={(e) => handleSourceLabelChange(source.id, e.target.value)}
+                          className="flex-1 min-w-0 h-7 bg-white border border-outline rounded px-2 text-xs font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                        />
+                        <input
+                          type="number"
+                          value={source.amount || ''}
+                          title={String(source.amount)}
+                          placeholder="金额"
+                          onChange={(e) => handleSourceAmountChange(source.id, Number(e.target.value) || 0)}
+                          className="w-20 h-7 bg-white border border-outline rounded px-2 text-xs font-heading font-semibold text-on-surface-primary text-right tabular-nums focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                        />
+                        <input
+                          type="date"
+                          value={source.date}
+                          onChange={(e) => updateSource(source.id, { date: e.target.value })}
+                          className="w-32 h-7 bg-white border border-outline rounded px-2 text-xs font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                        />
+                        <button
+                          onClick={() => removeSource(source.id)}
+                          disabled={budgetSources.length <= 1}
+                          className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-error hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed rounded transition-colors"
+                        >
+                          <Icon name="delete" size={14} />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <input
+                          type="text"
+                          value={source.note ?? ''}
+                          placeholder="备注（可选）"
+                          onChange={(e) => updateSource(source.id, { note: e.target.value || undefined })}
+                          className="flex-1 min-w-0 h-7 bg-white border border-outline rounded px-2 text-xs font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                        />
+                      </div>
+                    </div>
+                  )
+                ))}
+              </div>
+                {!isReadOnly && (
+                  <button
+                    onClick={addBudgetSource}
+                    className="mt-3 w-full h-8 border border-dashed border-outline rounded-md text-xs font-body text-on-surface-tertiary hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Icon name="add" size={12} />
+                    添加来源
+                  </button>
+                )}
+              </div>
+
+              {/* Right column: stats + pie chart */}
+              <div className="lg:col-span-1 flex flex-col">
+                <div className="flex flex-col items-center mb-4">
+                  <div className="relative w-32 h-32">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="42"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={2 * Math.PI * 42}
+                        strokeDashoffset={2 * Math.PI * 42 * (1 - acquisitionPercent / 100)}
+                        className="text-primary-500 transition-all"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-heading font-bold text-primary-600 tabular-nums">{acquisitionPercent}%</span>
+                      <span className="text-[10px] font-body text-on-surface-tertiary mt-0.5">获取率</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3 pt-4 border-t border-outline">
                   <div>
-                    <p className="text-xs font-body text-on-surface-tertiary">总金额</p>
-                    <p className="text-lg font-heading font-bold text-on-surface-primary">
+                    <p className="text-xs font-body text-on-surface-tertiary mb-1">总预算</p>
+                    {isEditingTotalBudget ? (
+                      <input
+                        type="number"
+                        value={totalBudgetInput}
+                        autoFocus
+                        onChange={(e) => setTotalBudgetInput(e.target.value)}
+                        onBlur={() => {
+                          const v = Number(totalBudgetInput) || 0
+                          updateProject(project.id, { totalAmount: v, updatedAt: new Date().toISOString() })
+                          setIsEditingTotalBudget(false)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            ;(e.target as HTMLInputElement).blur()
+                          }
+                          if (e.key === 'Escape') {
+                            setIsEditingTotalBudget(false)
+                          }
+                        }}
+                        className="w-full h-9 bg-white border border-primary-400 rounded px-2 text-lg font-heading font-semibold text-on-surface-primary text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-primary-500/15"
+                      />
+                    ) : (
+                      <button
+                        onClick={() => {
+                          if (isReadOnly) return
+                          setTotalBudgetInput(String(project.totalAmount))
+                          setIsEditingTotalBudget(true)
+                        }}
+                        disabled={isReadOnly}
+                        title={isReadOnly ? '' : '点击编辑'}
+                        className={`w-full text-right text-lg font-heading font-semibold text-on-surface-primary tabular-nums ${isReadOnly ? '' : 'hover:bg-surface-hover rounded px-2 -mx-2 cursor-text'}`}
+                      >
+                        {formatCurrency(project.totalAmount)}
+                      </button>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-body text-on-surface-tertiary mb-1">已获取</p>
+                    <p className="text-lg font-heading font-semibold text-on-surface-primary tabular-nums text-right">
                       {formatCurrency(totalBudget)}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-body text-on-surface-tertiary">已使用</p>
-                    <p className="text-lg font-heading font-bold text-on-surface-primary">
-                      {formatCurrency(totalUsed)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-body text-on-surface-tertiary">执行率</p>
-                    <p className="text-lg font-heading font-bold text-primary-500">{budgetPercent}%</p>
-                  </div>
-                </div>
-                <div className="w-full h-2 bg-surface-hover rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-500 rounded-full transition-all"
-                    style={{ width: `${budgetPercent}%` }}
-                  />
                 </div>
               </div>
             </div>
           </div>
+          </div>
 
-          {/* Row 2: Note History Accordion */}
-          {project.noteHistory.length > 0 && (
-            <div className="col-span-12">
-              <div className="bg-surface-elevated rounded-xl overflow-hidden">
-                <div
-                  className="flex items-center justify-between px-6 py-4 cursor-pointer select-none"
-                  onClick={() => {
-                    const newest = project.noteHistory[project.noteHistory.length - 1]?.id ?? null
-                    setExpandedHistoryId(expandedHistoryId ? null : newest)
-                  }}
-                >
-                  <h3 className="text-sm font-body font-medium text-on-surface-secondary">
-                    笔记历史
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-body text-on-surface-tertiary">
-                      {project.noteHistory.length} 条记录
-                    </span>
-                    <Icon name="chevron_left" />
-                  </div>
-                </div>
-                {expandedHistoryId && (
-                  <div className="border-t border-outline">
-                    {project.noteHistory.slice().reverse().map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="border-b border-outline-variant last:border-b-0"
-                      >
-                        <div
-                          className="px-6 py-3 flex items-center justify-between cursor-pointer hover:bg-surface-base/50 transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setExpandedHistoryId(expandedHistoryId === entry.id ? null : entry.id)
-                          }}
-                        >
-                          <span className="text-xs font-mono text-on-surface-tertiary">
-                            {formatDate(entry.createdAt)}
-                          </span>
-                          <Icon name="chevron_left" />
-                        </div>
-                        {expandedHistoryId === entry.id && (
-                          <div
-                            className="px-6 pb-3 text-sm font-body text-on-surface-secondary"
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(entry.content, { async: false })) }}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Row 2b: Rich Text Editor (12 cols) */}
-          {!isReadOnly && (
-            <div className="col-span-12">
-              <div className="bg-surface-elevated rounded-xl p-6">
-                <h3 className="text-sm font-body font-medium text-on-surface-secondary mb-4">项目笔记</h3>
-                <RichEditor
-                  value={project.notes}
-                  onChange={handleNotesChange}
-                  placeholder="在此记录项目进展、关键决策和重要事项..."
-                  readOnly={isReadOnly}
-                />
-                <div className="flex items-center justify-end gap-3 mt-4">
-                    <button
-                      onClick={() => {
-                        updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
-                      }}
-                      className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
-                    >
-                      取消
-                    </button>
-                    <button
-                      onClick={() => {
-                        const { addNoteHistory } = useProjectStore.getState()
-                        addNoteHistory(project.id, project.notes)
-                      }}
-                      className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all"
-                    >
-                      保存历史
-                    </button>
-                  </div>
-              </div>
-            </div>
-          )}
-
-          {/* Row 3: Strategic Team (5 cols) + Milestones (7 cols) - Same height cards */}
+          {/* Row 3: Strategic Team - standalone row */}
           <div className="col-span-12">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-12 lg:col-span-5">
-                <div className="bg-surface-elevated rounded-xl p-6 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-body font-medium text-on-surface-secondary">战略团队</h3>
-                    <span className="text-xs font-body text-on-surface-tertiary">
-                      {project.team.length} 名成员
-                    </span>
-                  </div>
+            <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-body font-medium text-on-surface-secondary">战略团队</h3>
+                <span className="text-xs font-body text-on-surface-tertiary">
+                  {project.team.length} 名成员
+                </span>
+              </div>
 
-                  {project.team.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="text-center py-4">
-                        <Icon name="group_off" size={24} className="text-on-surface-tertiary mb-2" />
-                        <p className="text-sm font-body text-on-surface-tertiary">暂无团队成员</p>
+              {project.team.length === 0 ? (
+                <div className="py-6 text-center">
+                  <Icon name="group_off" size={24} className="text-on-surface-tertiary mb-2" />
+                  <p className="text-sm font-body text-on-surface-tertiary">暂无团队成员</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {project.team.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center gap-3 p-2.5 bg-surface-hover/50 rounded-md"
+                    >
+                      <img
+                        src={member.avatar}
+                        alt={member.name}
+                        className="w-9 h-9 rounded-full bg-white"
+                        onError={(e) => {
+                          ;(e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-body font-medium text-on-surface-primary truncate">
+                          {member.name}
+                        </p>
+                        <p className="text-xs font-body text-on-surface-tertiary truncate">
+                          {member.role}
+                        </p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="flex-1 space-y-3">
-                      {project.team.map((member) => (
+                  ))}
+                </div>
+              )}
+
+              {!isReadOnly && (
+                <button
+                  onClick={() => setShowMemberModal(true)}
+                  className="mt-4 h-9 border border-dashed border-outline rounded-md text-sm font-body text-on-surface-tertiary hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Icon name="add" size={14} />
+                  添加成员
+                </button>
+              )}
+            </div>
+          </div>
+          </div>
+
+          {/* Right column - project notes (always editable, scrollable sidebar) */}
+          <div className="col-span-12 lg:col-span-4">
+            <div className="lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto pr-1 space-y-4">
+              {/* Note History Accordion */}
+              {project.noteHistory.length > 0 && (
+                <div className="bg-white border border-outline rounded-lg overflow-hidden shadow-card">
+                  <div
+                    className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-surface-hover/40 transition-colors"
+                    onClick={() => {
+                      if (expandedHistoryIds.size > 0) {
+                        setExpandedHistoryIds(new Set())
+                      } else {
+                        setExpandedHistoryIds(new Set(project.noteHistory.map(e => e.id)))
+                      }
+                    }}
+                  >
+                    <h3 className="text-sm font-body font-medium text-on-surface-secondary">
+                      笔记历史
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body text-on-surface-tertiary">
+                        {project.noteHistory.length} 条记录
+                      </span>
+                      <Icon
+                        name="chevron_left"
+                        size={18}
+                        className={`transition-transform duration-200 ${expandedHistoryIds.size > 0 ? '-rotate-90' : ''}`}
+                      />
+                    </div>
+                  </div>
+                  {expandedHistoryIds.size > 0 && (
+                    <div className="border-t border-outline">
+                      {project.noteHistory.slice().reverse().map((entry) => (
                         <div
-                          key={member.id}
-                          className="flex items-center gap-3 p-3 bg-surface-base rounded-lg"
+                          key={entry.id}
+                          className="border-b border-outline-variant last:border-b-0"
                         >
-                          <img
-                            src={member.avatar}
-                            alt={member.name}
-                            className="w-10 h-10 rounded-full bg-surface-container"
-                            onError={(e) => {
-                              ;(e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`
+                          <div
+                            className="px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-surface-hover/40 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const next = new Set(expandedHistoryIds)
+                              if (next.has(entry.id)) {
+                                next.delete(entry.id)
+                              } else {
+                                next.add(entry.id)
+                              }
+                              setExpandedHistoryIds(next)
                             }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-body font-medium text-on-surface-primary truncate">
-                              {member.name}
-                            </p>
-                            <p className="text-xs font-body text-on-surface-tertiary truncate">
-                              {member.role}
-                            </p>
+                          >
+                            <span className="text-xs font-mono text-on-surface-tertiary">
+                              {formatDate(entry.createdAt)}
+                            </span>
+                            <Icon
+                              name="chevron_left"
+                              size={16}
+                              className={`transition-transform duration-200 ${expandedHistoryIds.has(entry.id) ? '-rotate-90' : ''}`}
+                            />
                           </div>
+                          {expandedHistoryIds.has(entry.id) && (
+                            <div
+                              className="px-5 pb-4 text-sm font-body text-on-surface-secondary"
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(entry.content, { async: false })) }}
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
-
-                  {!isReadOnly && (
-                    <button
-                      onClick={() => setShowMemberModal(true)}
-                      className="mt-4 py-2 border border-dashed border-outline rounded-lg text-sm font-body text-on-surface-tertiary hover:border-primary-500 hover:text-primary-500 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Icon name="add" />
-                      添加成员
-                    </button>
-                  )}
                 </div>
-              </div>
+              )}
 
-              <div className="col-span-12 lg:col-span-7">
-                <div className="bg-surface-elevated rounded-xl p-6 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-body font-medium text-on-surface-secondary">里程碑</h3>
-                    <div className="flex items-center gap-2">
-                      {!isReadOnly && (
-                        <button
-                          onClick={() => setShowMilestoneModal(true)}
-                          className="px-3 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-xs font-body font-medium hover:shadow-glow-sm transition-all flex items-center gap-1"
-                        >
-                          <Icon name="add" />
-                          添加里程碑
-                        </button>
-                      )}
-                      <span className="text-xs font-body text-on-surface-tertiary">
-                        {project.milestones.length} 个里程碑
-                      </span>
-                    </div>
-                  </div>
-
-                  {project.milestones.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="text-center py-4">
-                        <Icon name="timeline" size={24} className="text-on-surface-tertiary mb-2" />
-                        <p className="text-sm font-body text-on-surface-tertiary">暂无里程碑</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex-1 relative pl-6">
-                      {/* Vertical line */}
-                      <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-outline" />
-                      <div className="space-y-6">
-                        {project.milestones.map((milestone) => {
-                          const status = milestoneStatusStyles[milestone.status] || milestoneStatusStyles.pending
-                          return (
-                            <div key={milestone.id} className="relative">
-                              {/* Dot */}
-                              <div
-                                className={`absolute -left-[1.125rem] top-1 w-4 h-4 rounded-full ${status.dot} ring-2 ring-white`}
-                              />
-                              <div className="ml-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="text-sm font-body font-semibold text-on-surface-primary">
-                                    {milestone.title}
-                                  </h4>
-                                  <span className={`text-xs font-body font-medium ${status.label}`}>
-                                    {milestone.status === 'completed' ? '已完成' : milestone.status === 'delayed' ? '延期' : '进行中'}
-                                  </span>
-                                </div>
-                                <p className="text-xs font-body text-on-surface-tertiary font-mono mb-1">
-                                  {milestone.date}
-                                </p>
-                                {milestone.description && (
-                                  <p className="text-xs font-body text-on-surface-secondary">
-                                    {milestone.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
+              {/* Project Notes Card */}
+              <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
+                    <Icon name="edit" size={16} />
+                    项目笔记
+                  </h3>
+                </div>
+                <RichEditor
+                  value={project.notes}
+                  onChange={handleNotesChange}
+                  placeholder="在此记录项目进展、关键决策和重要事项..."
+                />
+                <div className="flex items-center justify-end gap-2 mt-4">
+                  <button
+                    onClick={() => {
+                      updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
+                    }}
+                    className="inline-flex items-center h-9 px-3 border border-outline rounded-md text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-colors"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => {
+                      const { addNoteHistory } = useProjectStore.getState()
+                      addNoteHistory(project.id, project.notes)
+                    }}
+                    className="inline-flex items-center h-9 px-3 bg-primary-500 text-white rounded-md text-sm font-body font-medium hover:bg-primary-600 transition-colors"
+                  >
+                    保存历史
+                  </button>
                 </div>
               </div>
             </div>
@@ -708,23 +803,23 @@ const ProjectDetail: React.FC = () => {
       {/* Team Member Add Modal */}
       {showMemberModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm"
           onClick={() => setShowMemberModal(false)}
         >
           <div
-            className="bg-surface-elevated rounded-2xl shadow-xl border border-outline w-full max-w-md mx-4 overflow-hidden"
+            className="bg-white rounded-lg shadow-2xl border border-outline w-full max-w-md mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-outline">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-outline">
               <h3 className="text-base font-heading font-semibold text-on-surface-primary">添加团队成员</h3>
               <button
                 onClick={() => setShowMemberModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-on-surface-tertiary hover:bg-surface-hover hover:text-on-surface-primary transition-colors"
               >
                 <Icon name="close" />
               </button>
             </div>
-            <div className="p-6 space-y-5">
+            <div className="p-5 space-y-4">
               {/* Avatar Preview */}
               <div className="flex justify-center">
                 <img
@@ -732,13 +827,13 @@ const ProjectDetail: React.FC = () => {
                     ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(newMemberName.trim())}`
                     : 'https://api.dicebear.com/7.x/initials/svg?seed=?'}
                   alt="头像预览"
-                  className="w-20 h-20 rounded-full bg-surface-base ring-2 ring-outline"
+                  className="w-20 h-20 rounded-full bg-surface-hover ring-2 ring-outline"
                 />
               </div>
 
               {/* Name Input */}
               <div>
-                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-1.5">
                   姓名 <span className="text-error">*</span>
                 </label>
                 <input
@@ -746,13 +841,13 @@ const ProjectDetail: React.FC = () => {
                   value={newMemberName}
                   onChange={(e) => setNewMemberName(e.target.value)}
                   placeholder="输入姓名，如：张明"
-                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                  className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors"
                 />
               </div>
 
               {/* Role Input */}
               <div>
-                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-1.5">
                   职位 <span className="text-error">*</span>
                 </label>
                 <input
@@ -760,21 +855,21 @@ const ProjectDetail: React.FC = () => {
                   value={newMemberRole}
                   onChange={(e) => setNewMemberRole(e.target.value)}
                   placeholder="输入职位，如：项目经理"
-                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                  className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors"
                 />
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-outline bg-surface-base/50">
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-outline bg-surface-hover/30">
               <button
                 onClick={() => setShowMemberModal(false)}
-                className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
+                className="inline-flex items-center h-9 px-3 border border-outline rounded-md text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={handleAddMember}
                 disabled={!newMemberName.trim() || !newMemberRole.trim()}
-                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center h-9 px-3 bg-primary-500 text-white rounded-md text-sm font-body font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 添加
               </button>
@@ -786,26 +881,26 @@ const ProjectDetail: React.FC = () => {
       {/* Milestone Add Modal */}
       {showMilestoneModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm"
           onClick={() => setShowMilestoneModal(false)}
         >
           <div
-            className="bg-surface-elevated rounded-2xl shadow-xl border border-outline w-full max-w-md mx-4 overflow-hidden"
+            className="bg-white rounded-lg shadow-2xl border border-outline w-full max-w-md mx-4 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-outline">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-outline">
               <h3 className="text-base font-heading font-semibold text-on-surface-primary">添加里程碑</h3>
               <button
                 onClick={() => setShowMilestoneModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-tertiary hover:bg-surface-container hover:text-on-surface-primary transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-on-surface-tertiary hover:bg-surface-hover hover:text-on-surface-primary transition-colors"
               >
                 <Icon name="close" />
               </button>
             </div>
-            <div className="p-6 space-y-5">
+            <div className="p-5 space-y-4">
               {/* Title Input */}
               <div>
-                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-1.5">
                   标题 <span className="text-error">*</span>
                 </label>
                 <input
@@ -813,32 +908,32 @@ const ProjectDetail: React.FC = () => {
                   value={newMilestoneTitle}
                   onChange={(e) => setNewMilestoneTitle(e.target.value)}
                   placeholder="输入里程碑标题，如：需求分析完成"
-                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                  className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors"
                 />
               </div>
 
               {/* Date Input */}
               <div>
-                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-1.5">
                   日期 <span className="text-error">*</span>
                 </label>
                 <input
                   type="date"
                   value={newMilestoneDate}
                   onChange={(e) => setNewMilestoneDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                  className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors"
                 />
               </div>
 
               {/* Status Select */}
               <div>
-                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-1.5">
                   状态
                 </label>
                 <select
                   value={newMilestoneStatus}
                   onChange={(e) => setNewMilestoneStatus(e.target.value as 'pending' | 'completed' | 'delayed')}
-                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors"
+                  className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors"
                 >
                   <option value="pending">进行中</option>
                   <option value="completed">已完成</option>
@@ -848,7 +943,7 @@ const ProjectDetail: React.FC = () => {
 
               {/* Description Input */}
               <div>
-                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+                <label className="block text-sm font-body font-medium text-on-surface-secondary mb-1.5">
                   描述
                 </label>
                 <textarea
@@ -856,21 +951,21 @@ const ProjectDetail: React.FC = () => {
                   onChange={(e) => setNewMilestoneDescription(e.target.value)}
                   placeholder="输入里程碑描述（可选）"
                   rows={3}
-                  className="w-full px-3 py-2 bg-surface-base border border-outline rounded-xl text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-colors resize-none"
+                  className="w-full px-3 py-2 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors resize-none"
                 />
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-outline bg-surface-base/50">
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-outline bg-surface-hover/30">
               <button
                 onClick={() => setShowMilestoneModal(false)}
-                className="px-4 py-2 border border-outline rounded-xl text-sm font-body text-on-surface-primary hover:bg-surface-container transition-colors"
+                className="inline-flex items-center h-9 px-3 border border-outline rounded-md text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={handleAddMilestone}
                 disabled={!newMilestoneTitle.trim() || !newMilestoneDate.trim()}
-                className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-body font-medium hover:shadow-glow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center h-9 px-3 bg-primary-500 text-white rounded-md text-sm font-body font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 添加
               </button>

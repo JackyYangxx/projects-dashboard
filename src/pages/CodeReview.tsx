@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import JSZip from 'jszip'
 import { useCodeReviewStore } from '@/store/codeReviewStore'
 import { useProjectStore } from '@/store/projectStore'
@@ -313,7 +312,6 @@ function SkillPanel() {
 // ── Main Page ─────────────────────────────────────────────────
 
 export default function CodeReview() {
-  const navigate = useNavigate()
   const { loadLLMConfigs, loadMCPs, loadSkills, isReviewing, reviewProgress, mrReviewRecords, selectedProjectIds, selectProjects, startBatchReview, clearAllReviewData, reviewError } = useCodeReviewStore()
   const [configOpen, setConfigOpen] = useState(true)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -353,10 +351,6 @@ export default function CodeReview() {
     <div className="min-h-screen bg-surface-base">
       {/* Top Navigation Bar */}
       <nav className="h-14 bg-surface-elevated border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
-        <button onClick={() => navigate('/')} className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors" title="返回仪表盘">
-          <Icon name="arrow_back" />
-        </button>
-        <div className="h-5 w-px bg-outline" />
         <h1 className="text-base font-heading font-semibold text-on-surface-primary">AI 代码评审</h1>
       </nav>
 

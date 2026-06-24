@@ -12,7 +12,7 @@ export function getAllBudgetSources(projectId: string): BudgetSource[] {
     return []
   }
 
-  const stmt = db.prepare('SELECT * FROM budget_sources WHERE project_id = ? ORDER BY created_at DESC')
+  const stmt = db.prepare('SELECT * FROM budget_sources WHERE project_id = ? ORDER BY date DESC, created_at DESC')
   stmt.bind([projectId])
 
   const results: BudgetSource[] = []
@@ -24,6 +24,8 @@ export function getAllBudgetSources(projectId: string): BudgetSource[] {
       label: row.label as string,
       amount: row.amount as number,
       usedAmount: row.used_amount as number,
+      date: (row.date as string) || '',
+      note: (row.note as string) || undefined,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     })
@@ -41,9 +43,9 @@ export function insertBudgetSource(source: Omit<BudgetSource, 'createdAt' | 'upd
   const now = new Date().toISOString()
 
   db.run(
-    `INSERT INTO budget_sources (id, project_id, label, amount, used_amount, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [id, source.projectId, source.label, source.amount, source.usedAmount, now, now]
+    `INSERT INTO budget_sources (id, project_id, label, amount, used_amount, date, note, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, source.projectId, source.label, source.amount, source.usedAmount, source.date, source.note ?? null, now, now]
   )
 
   return { ...source, id, createdAt: now, updatedAt: now }
@@ -54,7 +56,7 @@ export function updateBudgetSource(id: string, updates: Partial<BudgetSource>): 
   if (!db) throw new Error('Database not initialized')
 
   const setClauses: string[] = []
-  const values: (string | number)[] = []
+  const values: (string | number | null)[] = []
 
   if (updates.label !== undefined) {
     setClauses.push('label = ?')
@@ -67,6 +69,14 @@ export function updateBudgetSource(id: string, updates: Partial<BudgetSource>): 
   if (updates.usedAmount !== undefined) {
     setClauses.push('used_amount = ?')
     values.push(updates.usedAmount)
+  }
+  if (updates.date !== undefined) {
+    setClauses.push('date = ?')
+    values.push(updates.date)
+  }
+  if (updates.note !== undefined) {
+    setClauses.push('note = ?')
+    values.push(updates.note ?? null)
   }
 
   if (setClauses.length === 0) return

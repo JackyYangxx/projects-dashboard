@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon, { type IconName } from '@/components/Icon'
 import * as XLSX from 'xlsx'
-import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
 import StatsCard from '@/components/StatsCard'
 import ProjectTable from '@/components/ProjectTable'
@@ -264,13 +263,10 @@ const Dashboard: React.FC = () => {
   const isFilteredEmpty = !isLoading && projects.length > 0 && filteredProjects.length === 0
 
   return (
-    <div className="min-h-screen bg-surface-base relative">
-      <Sidebar />
+    <div className="min-h-screen">
+      <Header title="项目看板" />
 
-      <div className="ml-64 relative z-10">
-        <Header title="项目看板" />
-
-        <main className="p-5 lg:p-7 max-w-[1600px]">
+      <main className="p-5 lg:p-7 max-w-[1600px]">
           {/* Hero */}
           <div ref={headerRef} className="flex items-end justify-between mb-6 gap-4">
             <div className="min-w-0">
@@ -506,7 +502,6 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </main>
-      </div>
     </div>
   )
 }

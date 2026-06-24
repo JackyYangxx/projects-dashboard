@@ -157,31 +157,12 @@ async function doInitDatabase(): Promise<Database> {
       label TEXT NOT NULL,
       amount REAL DEFAULT 0,
       used_amount REAL DEFAULT 0,
+      date TEXT DEFAULT '',
+      note TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     )
   `)
-
-  // Migrate existing projects to budget_sources
-  const existingProjects = db.exec('SELECT id, total_amount, used_amount FROM projects')
-  const existingSources = db.exec('SELECT DISTINCT project_id FROM budget_sources')
-
-  const projectsWithSources = new Set((existingSources[0]?.values || []).map(row => row[0] as string))
-  const projectRows = existingProjects[0]?.values || []
-
-  for (const row of projectRows) {
-    const projectId = row[0] as string
-    const totalAmount = row[1] as number
-    const usedAmount = row[2] as number
-
-    if (!projectsWithSources.has(projectId)) {
-      const now = new Date().toISOString()
-      db.run(`
-        INSERT INTO budget_sources (id, project_id, label, amount, used_amount, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `, [crypto.randomUUID(), projectId, '默认来源', totalAmount || 0, usedAmount || 0, now, now])
-    }
-  }
 
   // Load seed data if database is empty
   if (!seeded) {
@@ -230,6 +211,26 @@ async function doInitDatabase(): Promise<Database> {
     }
   } else {
     console.log('[DB] Skipping seed, already seeded')
+  }
+
+  // Migrate projects without budget_sources: create a default source from totalAmount/usedAmount
+  const existingProjects = db.exec('SELECT id, total_amount, used_amount FROM projects')
+  const existingSources = db.exec('SELECT DISTINCT project_id FROM budget_sources')
+  const projectsWithSources = new Set((existingSources[0]?.values || []).map(row => row[0] as string))
+  const projectRows = existingProjects[0]?.values || []
+
+  for (const row of projectRows) {
+    const projectId = row[0] as string
+    const totalAmount = row[1] as number
+    const usedAmount = row[2] as number
+
+    if (!projectsWithSources.has(projectId)) {
+      const now = new Date().toISOString()
+      db.run(`
+        INSERT INTO budget_sources (id, project_id, label, amount, used_amount, date, note, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [crypto.randomUUID(), projectId, '默认来源', totalAmount || 0, usedAmount || 0, now.slice(0, 10), null, now, now])
+    }
   }
 
   // Verify

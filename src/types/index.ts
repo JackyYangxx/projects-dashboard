@@ -48,6 +48,8 @@ export interface BudgetSource {
   label: string
   amount: number
   usedAmount: number
+  date: string
+  note?: string
   createdAt: string
   updatedAt: string
 }

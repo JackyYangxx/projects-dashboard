@@ -1,5 +1,6 @@
 import { Component, ReactNode } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
+import Sidebar from '@/components/Sidebar'
 import Dashboard from '@/pages/Dashboard'
 import ProjectDetail from '@/pages/ProjectDetail'
 import ProjectForm from '@/pages/ProjectForm'
@@ -40,12 +41,17 @@ function App() {
   return (
     <ErrorBoundary>
       <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/project/new" element={<ProjectForm />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/code-review" element={<CodeReview />} />
-        </Routes>
+        <div className="min-h-screen bg-surface-base">
+          <Sidebar />
+          <div className="ml-64 relative z-10">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/project/new" element={<ProjectForm />} />
+              <Route path="/project/:id" element={<ProjectDetail />} />
+              <Route path="/code-review" element={<CodeReview />} />
+            </Routes>
+          </div>
+        </div>
       </HashRouter>
     </ErrorBoundary>
   )
