@@ -87,3 +87,26 @@ input[type="number"] {
     transition-duration: 0.01ms !important;
   }
 }
+/* DiffViewer — DiffLine */
+.diff-line {
+  display: grid;
+  grid-template-columns: 48px 24px 1fr;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre;
+}
+.diff-line-num { color: #9ca3af; text-align: right; padding-right: 8px; user-select: none; }
+.diff-line-prefix { color: #6b7280; user-select: none; }
+.diff-line.add { background: #e6f4ea; }
+.diff-line.add .diff-line-content { color: #22863a; }
+.diff-line.del { background: #fde8e8; }
+.diff-line.del .diff-line-content { color: #b42318; }
+.diff-line.context { background: transparent; }
+.diff-line.highlight-pulse {
+  animation: highlight-pulse 1.5s ease-out;
+}
+@keyframes highlight-pulse {
+  0% { background-color: #fef08a; }
+  100% { background-color: inherit; }
+}
