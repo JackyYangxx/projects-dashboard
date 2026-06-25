@@ -141,7 +141,7 @@ async function doInitDatabase(): Promise<Database> {
   try {
     db.run(`ALTER TABLE mr_review_records ADD COLUMN diff TEXT DEFAULT ''`)
   } catch {
-    // column already exists — ignore
+    // SQLite throws "duplicate column name" when column already exists; safe to ignore on re-init.
   }
 
   // Create review_reports table
