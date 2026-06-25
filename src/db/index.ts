@@ -130,11 +130,19 @@ async function doInitDatabase(): Promise<Database> {
       mr_title TEXT NOT NULL,
       mr_url TEXT NOT NULL,
       status TEXT DEFAULT 'pending',
+      diff TEXT DEFAULT '',
       issues TEXT DEFAULT '[]',
       reviewed_at TEXT,
       created_at TEXT
     )
   `)
+
+  // Migration: add diff column to existing tables (idempotent)
+  try {
+    db.run(`ALTER TABLE mr_review_records ADD COLUMN diff TEXT DEFAULT ''`)
+  } catch {
+    // column already exists — ignore
+  }
 
   // Create review_reports table
   db.run(`
