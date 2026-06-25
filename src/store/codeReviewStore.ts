@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { MCPService, Skill, CodeReview, LLMConfig, MRReviewRecord } from '@/types'
+import type { MCPService, Skill, CodeReview, LLMConfig, MRReviewRecord, ReviewIssue } from '@/types'
 import {
   getAllMCPServices, insertMCPService, updateMCPService, deleteMCPService,
   getAllSkills, insertSkill, updateSkill, deleteSkill,
@@ -346,13 +346,33 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
               system: systemPrompt,
               messages: [{
                 role: 'user',
-                content: `请分析以下 MR 的代码变更，识别问题：\n\nMR: ${mr.title}\nURL: ${mr.url}\n\nDiff:\n${diff}`
+                content: [
+                  '请分析以下 MR 的代码变更，识别问题。',
+                  '',
+                  `MR: ${mr.title}`,
+                  `URL: ${mr.url}`,
+                  '',
+                  'Diff:',
+                  diff,
+                  '',
+                  '请严格按以下 JSON 数组格式返回（不要 Markdown 代码块包裹）：',
+                  '[{',
+                  '  "severity": "critical" | "warning" | "suggestion",',
+                  '  "title": "一句话标题",',
+                  '  "description": "详细说明",',
+                  '  "filePath": "相对路径，例如 utils/cache.ts",',
+                  '  "codeSnippet": "diff 中引发问题的那一两行代码原文（不要带 +/- 前缀）"',
+                  '}]',
+                  '',
+                  '如果某个问题是整体性的、不针对具体代码行，codeSnippet 返回空字符串。',
+                ].join('\n')
               }]
             })
           })
 
           const data = await response.json()
-          issues = parseIssuesFromResponse(data)
+          const text = (data as { content?: Array<{ text?: string }> })?.content?.[0]?.text ?? ''
+          issues = buildResolvedIssues(text, diff)
         } catch (err) {
           console.error('[Review] LLM analysis failed for', mr.title, err)
         }
@@ -366,6 +386,7 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
           mrTitle: mr.title,
           mrUrl: mr.url,
           status: issues.length > 0 ? 'completed' : 'failed',
+          diff,
           issues,
           reviewedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -542,33 +563,43 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
 }))
 
 // Helper function to parse issues from LLM response
-function parseIssuesFromResponse(data: unknown): MRReviewRecord['issues'] {
-  try {
-    const content = (data as { content?: Array<{ text?: string }> })?.content
-    if (!content || !Array.isArray(content)) return []
+import { parseDiff } from '@/utils/diffParser'
+import { resolveIssues, type AIResponseIssue } from '@/utils/issueResolver'
 
-    const text = content[0]?.text || ''
-    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/)
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[1])
-      if (Array.isArray(parsed)) {
-        return parsed.map((r: {
-          severity?: string
-          title?: string
-          description?: string
-          filePath?: string
-          lineRange?: string
-        }) => ({
-          severity: (r.severity as 'critical' | 'warning' | 'suggestion') || 'suggestion',
-          title: r.title || '',
-          description: r.description || '',
-          filePath: r.filePath,
-          lineRange: r.lineRange,
-        }))
-      }
-    }
-  } catch (err) {
-    console.error('[parseIssuesFromResponse]', err)
+interface RawAIResponse {
+  severity?: string
+  title?: string
+  description?: string
+  filePath?: string
+  codeSnippet?: string
+}
+
+function parseIssuesFromResponse(text: string): AIResponseIssue[] {
+  const jsonMatch = text.match(/\[[\s\S]*\]/)
+  if (!jsonMatch) return []
+  let raw: unknown
+  try {
+    raw = JSON.parse(jsonMatch[0])
+  } catch {
+    return []
   }
-  return []
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((item): item is RawAIResponse => typeof item === 'object' && item !== null)
+    .map(item => ({
+      severity: (['critical', 'warning', 'suggestion'].includes(item.severity ?? '')
+        ? item.severity
+        : 'warning') as AIResponseIssue['severity'],
+      title: String(item.title ?? ''),
+      description: String(item.description ?? ''),
+      filePath: String(item.filePath ?? ''),
+      codeSnippet: String(item.codeSnippet ?? ''),
+    }))
+    .filter(i => i.title.length > 0)
+}
+
+function buildResolvedIssues(text: string, diff: string): ReviewIssue[] {
+  const rawIssues = parseIssuesFromResponse(text)
+  const parsed = parseDiff(diff)
+  return resolveIssues(rawIssues, parsed)
 }
