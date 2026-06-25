@@ -185,10 +185,13 @@ export function insertMRReviewRecord(record: MRReviewRecord): void {
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
   db.run(
-    `INSERT INTO mr_review_records (id, project_id, project_name, mr_id, mr_title, mr_url, status, issues, reviewed_at, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [record.id, record.projectId, record.projectName, record.mrId, record.mrTitle,
-     record.mrUrl, record.status, JSON.stringify(record.issues), record.reviewedAt, record.createdAt]
+    `INSERT INTO mr_review_records (id, project_id, project_name, mr_id, mr_title, mr_url, status, diff, issues, reviewed_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      record.id, record.projectId, record.projectName, record.mrId, record.mrTitle,
+      record.mrUrl, record.status, record.diff, JSON.stringify(record.issues),
+      record.reviewedAt, record.createdAt,
+    ]
   )
 }
 
@@ -200,6 +203,8 @@ export function getMRReviewRecordsByProject(projectId: string): MRReviewRecord[]
     [projectId]
   )
   if (!result[0]) return []
+  const columns = result[0].columns
+  const diffIdx = columns.indexOf('diff')
   return result[0].values.map(row => ({
     id: row[0] as string,
     projectId: row[1] as string,
@@ -208,7 +213,8 @@ export function getMRReviewRecordsByProject(projectId: string): MRReviewRecord[]
     mrTitle: row[4] as string,
     mrUrl: row[5] as string,
     status: row[6] as 'pending' | 'reviewing' | 'completed' | 'failed',
-    issues: JSON.parse(row[7] as string),
+    diff: diffIdx >= 0 ? (row[diffIdx] as string ?? '') : '',
+    issues: JSON.parse(row[7] as string) as MRReviewRecord['issues'],
     reviewedAt: row[8] as string,
     createdAt: row[9] as string,
   }))
@@ -220,6 +226,7 @@ export function updateMRReviewRecord(id: string, updates: Partial<MRReviewRecord
   const fields: string[] = []
   const vals: (string | number)[] = []
   if (updates.status !== undefined) { fields.push('status = ?'); vals.push(updates.status) }
+  if (updates.diff !== undefined) { fields.push('diff = ?'); vals.push(updates.diff) }
   if (updates.issues !== undefined) { fields.push('issues = ?'); vals.push(JSON.stringify(updates.issues)) }
   if (updates.reviewedAt !== undefined) { fields.push('reviewed_at = ?'); vals.push(updates.reviewedAt) }
   if (fields.length === 0) return
@@ -240,6 +247,8 @@ export function getAllMRReviewRecords(): MRReviewRecord[] {
   if (!db) return []
   const result = db.exec('SELECT * FROM mr_review_records ORDER BY created_at DESC')
   if (!result[0]) return []
+  const columns = result[0].columns
+  const diffIdx = columns.indexOf('diff')
   return result[0].values.map(row => ({
     id: row[0] as string,
     projectId: row[1] as string,
@@ -248,7 +257,8 @@ export function getAllMRReviewRecords(): MRReviewRecord[] {
     mrTitle: row[4] as string,
     mrUrl: row[5] as string,
     status: row[6] as 'pending' | 'reviewing' | 'completed' | 'failed',
-    issues: JSON.parse(row[7] as string),
+    diff: diffIdx >= 0 ? (row[diffIdx] as string ?? '') : '',
+    issues: JSON.parse(row[7] as string) as MRReviewRecord['issues'],
     reviewedAt: row[8] as string,
     createdAt: row[9] as string,
   }))

@@ -119,6 +119,19 @@ export interface LLMConfig {
   createdAt: string
 }
 
+export type IssueSeverity = 'critical' | 'warning' | 'suggestion'
+
+export interface ReviewIssue {
+  id: string
+  severity: IssueSeverity
+  title: string
+  description: string
+  filePath: string
+  codeSnippet: string
+  lineNumber?: number
+  resolved: boolean
+}
+
 export interface MRReviewRecord {
   id: string
   projectId: string
@@ -127,13 +140,8 @@ export interface MRReviewRecord {
   mrTitle: string
   mrUrl: string
   status: 'pending' | 'reviewing' | 'completed' | 'failed'
-  issues: Array<{
-    severity: 'critical' | 'warning' | 'suggestion'
-    title: string
-    description: string
-    filePath?: string
-    lineRange?: string
-  }>
+  diff: string
+  issues: ReviewIssue[]
   reviewedAt: string
   createdAt: string
 }
