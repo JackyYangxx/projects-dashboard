@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Icon from './Icon'
 import type { MRReviewRecord } from '@/types'
+import { MRReviewResult } from './MRReviewResult'
 
 interface Props {
   recordsByProject: Map<string, MRReviewRecord[]>
@@ -85,26 +86,7 @@ export default function MRReviewTabs({ recordsByProject, onViewOnline }: Props) 
                   <span>|</span>
                   <span>{record.issues.length} 个问题</span>
                 </div>
-                <div className="mt-2 space-y-2">
-                  {record.issues.map((issue, idx) => (
-                    <div key={idx} className="text-sm bg-surface-secondary rounded-lg p-3">
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium mr-2 ${
-                        issue.severity === 'critical' ? 'bg-red-500/10 text-red-600'
-                          : issue.severity === 'warning' ? 'bg-yellow-500/10 text-yellow-600'
-                          : 'bg-blue-500/10 text-blue-600'
-                      }`}>
-                        {issue.severity === 'critical' ? '严重' : issue.severity === 'warning' ? '警告' : '建议'}
-                      </span>
-                      <span className="font-medium">{issue.title}</span>
-                      {issue.filePath && (
-                        <span className="text-xs text-on-surface-tertiary ml-2 font-mono">
-                          {issue.filePath}{issue.lineRange ? `:${issue.lineRange}` : ''}
-                        </span>
-                      )}
-                      <div className="text-xs text-on-surface-secondary mt-1">{issue.description}</div>
-                    </div>
-                  ))}
-                </div>
+                <MRReviewResult record={record} />
               </div>
               <button
                 onClick={() => onViewOnline(record.mrUrl)}
