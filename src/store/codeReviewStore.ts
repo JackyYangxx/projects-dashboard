@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { MCPService, Skill, CodeReview, LLMConfig, MRReviewRecord, ReviewIssue } from '@/types'
+import type { MCPService, Skill, CodeReview, LLMConfig, MRReviewRecord, ReviewIssue, IssueSeverity } from '@/types'
 import {
   getAllMCPServices, insertMCPService, updateMCPService, deleteMCPService,
   getAllSkills, insertSkill, updateSkill, deleteSkill,
@@ -9,6 +9,10 @@ import {
   deleteMRReviewRecord, deleteAllMRReviewRecords,
 } from '@/db/codeReviewDao'
 import { useProjectStore } from './projectStore'
+import { parseDiff } from '@/utils/diffParser'
+import { resolveIssues, type AIResponseIssue } from '@/utils/issueResolver'
+
+const VALID_SEVERITIES: readonly IssueSeverity[] = ['critical', 'warning', 'suggestion']
 
 export type ReviewStreamEvent =
   | { type: 'chunk'; content: string }
@@ -562,10 +566,6 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
   },
 }))
 
-// Helper function to parse issues from LLM response
-import { parseDiff } from '@/utils/diffParser'
-import { resolveIssues, type AIResponseIssue } from '@/utils/issueResolver'
-
 interface RawAIResponse {
   severity?: string
   title?: string
@@ -574,28 +574,76 @@ interface RawAIResponse {
   codeSnippet?: string
 }
 
-function parseIssuesFromResponse(text: string): AIResponseIssue[] {
-  const jsonMatch = text.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) return []
-  let raw: unknown
-  try {
-    raw = JSON.parse(jsonMatch[0])
-  } catch {
-    return []
+/**
+ * Find the first balanced `[ ... ]` substring in `text`, starting at the first `[`.
+ * Correctly handles nested arrays/objects in JSON values and trailing prose
+ * containing stray `[` / `]` characters. Returns null if no balanced pair exists.
+ */
+function extractFirstJsonArray(text: string): string | null {
+  const start = text.indexOf('[')
+  if (start === -1) return null
+  let depth = 0
+  let inString = false
+  let escape = false
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i]
+    if (inString) {
+      if (escape) {
+        escape = false
+      } else if (ch === '\\') {
+        escape = true
+      } else if (ch === '"') {
+        inString = false
+      }
+      continue
+    }
+    if (ch === '"') {
+      inString = true
+    } else if (ch === '[') {
+      depth++
+    } else if (ch === ']') {
+      depth--
+      if (depth === 0) return text.slice(start, i + 1)
+    }
   }
-  if (!Array.isArray(raw)) return []
-  return raw
-    .filter((item): item is RawAIResponse => typeof item === 'object' && item !== null)
-    .map(item => ({
-      severity: (['critical', 'warning', 'suggestion'].includes(item.severity ?? '')
-        ? item.severity
-        : 'warning') as AIResponseIssue['severity'],
-      title: String(item.title ?? ''),
-      description: String(item.description ?? ''),
-      filePath: String(item.filePath ?? ''),
-      codeSnippet: String(item.codeSnippet ?? ''),
-    }))
-    .filter(i => i.title.length > 0)
+  return null
+}
+
+export function parseIssuesFromResponse(text: string): AIResponseIssue[] {
+  // Walk forward through every balanced [...] in the text and try to JSON.parse
+  // each one. The first one that parses successfully wins; this handles the
+  // common case of leading prose like "see [README] for context" before the
+  // real JSON payload.
+  let cursor = 0
+  while (cursor < text.length) {
+    const jsonText = extractFirstJsonArray(text.slice(cursor))
+    if (!jsonText) return []
+    const offset = text.indexOf('[', cursor)
+    try {
+      const raw = JSON.parse(jsonText)
+      if (Array.isArray(raw)) {
+        return raw
+          .filter((item): item is RawAIResponse => typeof item === 'object' && item !== null)
+          .map(item => ({
+            // Most AI issues that omit severity are still actionable concerns worth surfacing,
+            // so default to "warning" rather than the lowest-priority "suggestion".
+            severity: (VALID_SEVERITIES as readonly string[]).includes(item.severity ?? '')
+              ? (item.severity as IssueSeverity)
+              : 'warning',
+            title: String(item.title ?? ''),
+            description: String(item.description ?? ''),
+            filePath: String(item.filePath ?? ''),
+            codeSnippet: String(item.codeSnippet ?? ''),
+          }))
+          .filter(i => i.title.length > 0)
+      }
+      // Parsed but not an array — keep scanning.
+    } catch (err) {
+      console.error('[Review] JSON parse failed at offset', offset, err)
+    }
+    cursor = offset + jsonText.length
+  }
+  return []
 }
 
 function buildResolvedIssues(text: string, diff: string): ReviewIssue[] {
