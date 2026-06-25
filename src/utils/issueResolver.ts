@@ -69,6 +69,8 @@ function findExact(snippet: string, file: ParsedFile): number | null {
 }
 
 function findFuzzy(snippet: string, file: ParsedFile): number | null {
+  // Single-line only: matches one snippet line against one hunk line.
+  // Multi-line snippets that fail exact match fall through to unresolved.
   const target = normalize(snippet)
   for (const hunk of file.hunks) {
     for (const line of hunk.lines) {
