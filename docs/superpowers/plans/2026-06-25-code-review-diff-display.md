@@ -714,7 +714,7 @@ git commit -m "feat(issueResolver): resolve codeSnippet to exact line number"
 
 - [ ] **Step 1: Update `MRReviewRecord` to add `diff` and `projectName`, add `ReviewIssue` type**
 
-In `src/types/index.ts`, replace the existing `MRReviewRecord` interface (lines 122-139) with:
+In `src/types/index.ts`, replace the existing `MRReviewRecord` interface (lines 122-139) — note that the existing DAO already reads `projectName` (row[2]) but the type never declared it, so we add it now — with:
 
 ```ts
 export type IssueSeverity = 'critical' | 'warning' | 'suggestion'
@@ -920,21 +920,29 @@ git commit -m "feat(db): persist MRReviewRecord.diff for diff viewer"
 **Files:**
 - Modify: `src/store/codeReviewStore.ts`
 
-- [ ] **Step 1: Read current prompt and `parseIssuesFromResponse` to understand exact lines**
+The store has these relevant sections (verified against current source):
+- Line 2: `import type { ... MRReviewRecord } from '@/types'`
+- Line 349: user prompt with `"请分析以下 MR 的代码变更"`
+- Line 355: `issues = parseIssuesFromResponse(data)`
+- Line 361-372: `MRReviewRecord` construction
+- Line 545-574: `parseIssuesFromResponse(data)` implementation
 
-Run: `grep -n "parseIssuesFromResponse\|请分析以下\|codeSnippet\|lineRange" src/store/codeReviewStore.ts`
-Expected: shows line numbers for `parseIssuesFromResponse` (around line 545) and the user prompt (around line 349). Use these line numbers in the next step.
+- [ ] **Step 1: Update the user prompt (line 349) to request `codeSnippet`**
 
-- [ ] **Step 2: Update the user prompt to request `codeSnippet`**
-
-In `src/store/codeReviewStore.ts`, replace the user prompt (around line 349) — find the string starting with `"请分析以下 MR 的代码变更"` and replace with:
+In `src/store/codeReviewStore.ts`, find this block inside the `messages[0].content` template literal:
 
 ```ts
-const userPrompt = [
+content: `请分析以下 MR 的代码变更，识别问题：\n\nMR: ${mr.title}\nURL: ${mr.url}\n\nDiff:\n${diff}`
+```
+
+Replace it with:
+
+```ts
+content: [
   '请分析以下 MR 的代码变更，识别问题。',
   '',
-  'MR: ' + mr.title,
-  'URL: ' + mr.url,
+  `MR: ${mr.title}`,
+  `URL: ${mr.url}`,
   '',
   'Diff:',
   diff,
@@ -952,9 +960,9 @@ const userPrompt = [
 ].join('\n')
 ```
 
-- [ ] **Step 3: Replace `parseIssuesFromResponse` to return raw AI issues (without line resolution)**
+- [ ] **Step 2: Replace `parseIssuesFromResponse` (lines 545-574) to return raw AI issues (text → AIResponseIssue[])**
 
-In `src/store/codeReviewStore.ts`, replace `parseIssuesFromResponse` (around line 545-574) with:
+The existing function takes `data: unknown` and returns `MRReviewRecord['issues']`. We change it to take a `text: string` and return `AIResponseIssue[]`. Replace the function body with:
 
 ```ts
 import { parseDiff } from '@/utils/diffParser'
@@ -993,9 +1001,11 @@ function parseIssuesFromResponse(text: string): AIResponseIssue[] {
 }
 ```
 
-- [ ] **Step 4: Add a helper that builds a complete `ReviewIssue[]` from raw AI output + diff**
+Note: the existing function strips a Markdown code block (` ```json ... ``` `). The new regex `/\[[\s\S]*\]/` matches the raw JSON array whether or not wrapped in Markdown. If you want to also support the wrapped case, use `text.replace(/^```json\n?|```$/g, '')` before the regex — add that line if your existing LLM returns wrapped responses. To match the original behavior, keep it as written above and rely on the LLM prompt instruction to return raw JSON.
 
-In `src/store/codeReviewStore.ts`, after `parseIssuesFromResponse`, add:
+- [ ] **Step 3: Add `buildResolvedIssues` helper after `parseIssuesFromResponse`**
+
+After the `parseIssuesFromResponse` function (around line 575), add:
 
 ```ts
 function buildResolvedIssues(text: string, diff: string): ReviewIssue[] {
@@ -1005,37 +1015,57 @@ function buildResolvedIssues(text: string, diff: string): ReviewIssue[] {
 }
 ```
 
-- [ ] **Step 5: Update the call site in `startBatchReview` to use `buildResolvedIssues` and pass `diff` into the record**
+- [ ] **Step 4: Update the LLM call site (line 355) to extract text and use `buildResolvedIssues`**
 
-In `src/store/codeReviewStore.ts`, in `startBatchReview`, find where `parseIssuesFromResponse(responseText)` is called and where `MRReviewRecord` is constructed. Replace the construction with code that uses `buildResolvedIssues` and includes `diff`. Locate the block that creates the record (search for `insertMRReviewRecord` or `MRReviewRecord` construction) and update it:
+Replace:
 
 ```ts
-// Find this pattern:
-const issues = parseIssuesFromResponse(responseText)
-const record: MRReviewRecord = {
-  ...,
-  issues,
-  ...
-}
+const data = await response.json()
+issues = parseIssuesFromResponse(data)
+```
 
-// Replace with:
-const issues = buildResolvedIssues(responseText, diff)
+with:
+
+```ts
+const data = await response.json()
+const text = (data as { content?: Array<{ text?: string }> })?.content?.[0]?.text ?? ''
+issues = buildResolvedIssues(text, diff)
+```
+
+- [ ] **Step 5: Add `diff` to the `MRReviewRecord` construction (lines 361-372)**
+
+Replace the existing `const record: MRReviewRecord = { ... }` block with:
+
+```ts
 const record: MRReviewRecord = {
-  ...,
+  id: crypto.randomUUID(),
+  projectId,
+  projectName: project.name,
+  mrId: mr.id,
+  mrTitle: mr.title,
+  mrUrl: mr.url,
+  status: issues.length > 0 ? 'completed' : 'failed',
   diff,
   issues,
-  ...
+  reviewedAt: new Date().toISOString(),
+  createdAt: new Date().toISOString(),
 }
 ```
 
-If the existing code uses a different shape, ensure the final record sets `diff: diff` and `issues: buildResolvedIssues(responseText, diff)`.
+(The only field that changed vs. the original is the addition of `diff,`.)
 
-- [ ] **Step 6: Import new types and add `ReviewIssue` to the type import**
+- [ ] **Step 6: Update top-level type imports (line 2)**
 
-In `src/store/codeReviewStore.ts`, find the existing import line that brings in `MRReviewRecord` from `@/types` and update it:
+Replace the import:
 
 ```ts
-import type { MRReviewRecord, ReviewIssue } from '@/types'
+import type { MCPService, Skill, CodeReview, LLMConfig, MRReviewRecord } from '@/types'
+```
+
+with:
+
+```ts
+import type { MCPService, Skill, CodeReview, LLMConfig, MRReviewRecord, ReviewIssue } from '@/types'
 ```
 
 - [ ] **Step 7: Run TypeScript compile**
@@ -2054,8 +2084,13 @@ git commit -m "feat(DiffViewer): layout switcher + localStorage + scroll coordin
 
 - [ ] **Step 1: Read current `MRReviewTabs.tsx` to understand its inner structure**
 
-Run: `wc -l src/components/MRReviewTabs.tsx && head -60 src/components/MRReviewTabs.tsx`
-Expected: 124 lines, with Tabs/TabPanel + inline issue list rendering.
+The current file has:
+- Lines 1-3: imports (no MRReviewResult yet)
+- Line 5-8: `Props` interface (`recordsByProject`, `onViewOnline`)
+- Lines 10-26: state + filter logic (project-level filter on records)
+- Lines 28-67: project tabs + severity filter buttons
+- Lines 70-118: per-record rendering, with issue list at lines 88-107
+- Lines 119-122: empty state
 
 - [ ] **Step 2: Create `MRReviewResult.tsx`**
 
@@ -2063,7 +2098,7 @@ Create file `src/components/MRReviewResult.tsx`:
 
 ```tsx
 import { useState } from 'react'
-import type { MRReviewRecord, ReviewIssue } from '@/types'
+import type { MRReviewRecord } from '@/types'
 import { DiffViewer } from './DiffViewer'
 
 interface Props {
@@ -2110,35 +2145,39 @@ export function MRReviewResult({ record, onRerun }: Props) {
 }
 ```
 
-- [ ] **Step 3: Modify `MRReviewTabs.tsx` to use `MRReviewResult`**
+- [ ] **Step 3: Add the import to `MRReviewTabs.tsx` (top of file)**
 
-In `src/components/MRReviewTabs.tsx`:
-- Add import: `import { MRReviewResult } from './MRReviewResult'`
-- Find the section that renders each project's issue list (search for `record.issues` or `issues.map`). Replace that block with:
+In `src/components/MRReviewTabs.tsx`, after line 3 (`import type { MRReviewRecord } from '@/types'`), add:
 
 ```tsx
-<MRReviewResult record={record} onRerun={onRerun} />
+import { MRReviewResult } from './MRReviewResult'
 ```
 
-If the existing code passes per-record props, adjust the signature; `MRReviewResult` accepts `record: MRReviewRecord` and optional `onRerun`.
+- [ ] **Step 4: Replace the inline issue list in `MRReviewTabs.tsx` (lines 88-107) with `<MRReviewResult>`**
 
-If the existing code expected a callback like `onRerun(record.id)`, update the call:
+In `src/components/MRReviewTabs.tsx`, find lines 88-107 (the `<div className="mt-2 space-y-2">{record.issues.map(...)}</div>` block) and replace with:
 
 ```tsx
-<MRReviewResult record={record} onRerun={() => onRerun?.(record.id)} />
+                <MRReviewResult record={record} />
 ```
 
-- [ ] **Step 4: Run TypeScript compile**
+The surrounding card layout (lines 72-118) stays — keep the project dot, MR title link, issue count, "查看线上" button. The inner content switches from inline issue rendering to the diff viewer.
+
+- [ ] **Step 5: Update the issue count display (line 86)**
+
+The line currently reads `record.issues.length`. After our refactor, this stays the same (we still count all issues including unresolved). No change needed.
+
+- [ ] **Step 6: Run TypeScript compile**
 
 Run: `npx tsc --noEmit`
 Expected: no errors.
 
-- [ ] **Step 5: Run all unit tests**
+- [ ] **Step 7: Run all unit tests**
 
 Run: `npm test`
 Expected: all pass.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add src/components/MRReviewResult.tsx src/components/MRReviewTabs.tsx
