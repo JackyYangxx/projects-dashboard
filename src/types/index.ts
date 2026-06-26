@@ -77,20 +77,6 @@ export interface Project {
   updatedAt: string
 }
 
-export interface CodeReview {
-  id: string
-  projectId: string
-  repository: string
-  branch: string
-  severity: 'critical' | 'warning' | 'suggestion'
-  title: string
-  description: string
-  filePath?: string
-  lineRange?: string
-  aiTrace: string
-  createdAt: string
-}
-
 export interface MCPService {
   id: string
   name: string
@@ -115,6 +101,7 @@ export interface LLMConfig {
   modelName: string
   modelUrl: string
   apiKey: string
+  apiType: 'openai' | 'anthropic'
   enabled: boolean
   createdAt: string
 }
@@ -143,16 +130,6 @@ export interface MRReviewRecord {
   diff: string
   issues: ReviewIssue[]
   reviewedAt: string
-  createdAt: string
-}
-
-export interface ReviewReport {
-  id: string
-  name: string
-  projectIds: string
-  totalMrCount: number
-  totalIssueCount: number
-  issuesPreview: string
   createdAt: string
 }
 

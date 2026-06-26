@@ -5,10 +5,12 @@
 ## Commands
 
 ```bash
-npm run dev           # Vite dev server only (http://localhost:5173)
-npm run electron:dev  # Full Electron + Vite (use this for development)
+npm run dev           # Vite dev server only — for browser testing
+npm run electron:dev  # Full Electron + Vite — when user says "启动应用", use THIS
 npm run electron:build # Build + package
 ```
+
+> **启动应用** = `npm run electron:dev`（Electron 桌面应用），不是浏览器。除非用户明确说"浏览器"或"web"。
 
 ## Release Build
 

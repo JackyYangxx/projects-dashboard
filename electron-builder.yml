@@ -1,5 +1,5 @@
 appId: com.projects-dashboard.app
-productName: 项目管理看板
+productName: Project Dashboard
 
 directories:
   output: release

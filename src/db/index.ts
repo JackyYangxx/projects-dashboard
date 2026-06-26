@@ -18,15 +18,20 @@ async function doInitDatabase(): Promise<Database> {
 
   console.log('[DB] Loading WASM...')
 
-  let wasmBinary: ArrayBuffer
+  let wasmBinary: ArrayBuffer | undefined
   if (window.electronAPI?.getWasmBinary) {
-    console.log('[DB] Using IPC to get WASM binary')
-    const binary = await window.electronAPI.getWasmBinary()
-    const uint8 = new Uint8Array(binary)
-    wasmBinary = uint8.buffer.slice(uint8.byteOffset, uint8.byteOffset + uint8.byteLength)
-    console.log('[DB] WASM loaded via IPC, binary size:', wasmBinary.byteLength)
-  } else {
-    console.log('[DB] Using fetch for WASM (dev mode)')
+    try {
+      console.log('[DB] Using IPC to get WASM binary')
+      const binary = await window.electronAPI.getWasmBinary()
+      const uint8 = new Uint8Array(binary)
+      wasmBinary = uint8.buffer.slice(uint8.byteOffset, uint8.byteOffset + uint8.byteLength)
+      console.log('[DB] WASM loaded via IPC, binary size:', wasmBinary.byteLength)
+    } catch (err) {
+      console.warn('[DB] IPC wasm load failed, falling back to fetch:', err)
+    }
+  }
+  if (!wasmBinary) {
+    console.log('[DB] Using fetch for WASM')
     const wasmUrl = window.location.origin + '/sql-wasm.wasm'
     const wasmResponse = await fetch(wasmUrl)
     wasmBinary = await wasmResponse.arrayBuffer()
@@ -115,10 +120,18 @@ async function doInitDatabase(): Promise<Database> {
       model_name TEXT NOT NULL,
       model_url TEXT NOT NULL,
       api_key TEXT NOT NULL,
+      api_type TEXT DEFAULT 'anthropic',
       enabled INTEGER DEFAULT 1,
       created_at TEXT
     )
   `)
+
+  // Migration: add api_type column to existing llm_config rows (idempotent)
+  try {
+    db.run(`ALTER TABLE llm_config ADD COLUMN api_type TEXT DEFAULT 'anthropic'`)
+  } catch {
+    // Column already exists — safe to ignore on re-init.
+  }
 
   // Create mr_review_records table
   db.run(`
@@ -212,11 +225,11 @@ async function doInitDatabase(): Promise<Database> {
         )
         console.log('[DB] Inserted:', project.name)
       }
-      seeded = true
       console.log('[DB] Seed complete, seeded flag set to true')
     } else {
       console.log('[DB] Skipping seed, count != 0')
     }
+    seeded = true
   } else {
     console.log('[DB] Skipping seed, already seeded')
   }

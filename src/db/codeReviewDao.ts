@@ -1,5 +1,5 @@
 import { getDatabase } from './index'
-import type { MCPService, Skill, CodeReview, LLMConfig, MRReviewRecord, ReviewReport } from '@/types'
+import type { MCPService, Skill, LLMConfig, MRReviewRecord } from '@/types'
 
 // ── LLM Config ──────────────────────────────────────────────
 
@@ -7,9 +7,9 @@ export function insertLLMConfig(cfg: LLMConfig): void {
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
   db.run(
-    `INSERT INTO llm_config (id, model_name, model_url, api_key, enabled, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [cfg.id, cfg.modelName, cfg.modelUrl, cfg.apiKey, cfg.enabled ? 1 : 0, cfg.createdAt]
+    `INSERT INTO llm_config (id, model_name, model_url, api_key, api_type, enabled, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [cfg.id, cfg.modelName, cfg.modelUrl, cfg.apiKey, cfg.apiType, cfg.enabled ? 1 : 0, cfg.createdAt]
   )
 }
 
@@ -18,13 +18,16 @@ export function getAllLLMConfigs(): LLMConfig[] {
   if (!db) return []
   const result = db.exec('SELECT * FROM llm_config ORDER BY created_at DESC')
   if (!result[0]) return []
+  const cols = result[0].columns
+  const idx = (name: string) => cols.indexOf(name)
   return result[0].values.map(row => ({
-    id: row[0] as string,
-    modelName: row[1] as string,
-    modelUrl: row[2] as string,
-    apiKey: row[3] as string,
-    enabled: row[4] === 1,
-    createdAt: row[5] as string,
+    id: row[idx('id')] as string,
+    modelName: row[idx('model_name')] as string,
+    modelUrl: row[idx('model_url')] as string,
+    apiKey: row[idx('api_key')] as string,
+    apiType: (row[idx('api_type')] as string || 'anthropic') as 'openai' | 'anthropic',
+    enabled: row[idx('enabled')] === 1,
+    createdAt: row[idx('created_at')] as string,
   }))
 }
 
@@ -36,6 +39,7 @@ export function updateLLMConfig(id: string, updates: Partial<LLMConfig>): void {
   if (updates.modelName !== undefined) { fields.push('model_name = ?'); vals.push(updates.modelName) }
   if (updates.modelUrl !== undefined) { fields.push('model_url = ?'); vals.push(updates.modelUrl) }
   if (updates.apiKey !== undefined) { fields.push('api_key = ?'); vals.push(updates.apiKey) }
+  if (updates.apiType !== undefined) { fields.push('api_type = ?'); vals.push(updates.apiType) }
   if (updates.enabled !== undefined) { fields.push('enabled = ?'); vals.push(updates.enabled ? 1 : 0) }
   if (fields.length === 0) return
   vals.push(id)
@@ -138,47 +142,6 @@ export function deleteSkill(id: string): void {
   getDatabase()?.run('DELETE FROM skills WHERE id = ?', [id])
 }
 
-// ── Code Reviews ──────────────────────────────────────────────
-
-export function insertCodeReview(record: CodeReview): void {
-  const db = getDatabase()
-  if (!db) throw new Error('Database not initialized')
-  db.run(
-    `INSERT INTO code_reviews (id, project_id, repository, branch, severity, title, description, file_path, line_range, ai_trace, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [record.id, record.projectId, record.repository, record.branch, record.severity,
-     record.title, record.description, record.filePath || '', record.lineRange || '',
-     record.aiTrace, record.createdAt]
-  )
-}
-
-export function getCodeReviewsByProject(projectId: string): CodeReview[] {
-  const db = getDatabase()
-  if (!db) return []
-  const result = db.exec(
-    `SELECT * FROM code_reviews WHERE project_id = ? ORDER BY created_at DESC`,
-    [projectId]
-  )
-  if (!result[0]) return []
-  return result[0].values.map(row => ({
-    id: row[0] as string,
-    projectId: row[1] as string,
-    repository: row[2] as string,
-    branch: row[3] as string,
-    severity: row[4] as 'critical' | 'warning' | 'suggestion',
-    title: row[5] as string,
-    description: row[6] as string,
-    filePath: row[7] as string,
-    lineRange: row[8] as string,
-    aiTrace: row[9] as string,
-    createdAt: row[10] as string,
-  }))
-}
-
-export function deleteCodeReview(id: string): void {
-  getDatabase()?.run('DELETE FROM code_reviews WHERE id = ?', [id])
-}
-
 // ── MR Review Records ──────────────────────────────────────────────
 
 export function insertMRReviewRecord(record: MRReviewRecord): void {
@@ -264,35 +227,3 @@ export function getAllMRReviewRecords(): MRReviewRecord[] {
   }))
 }
 
-// ── Review Reports ──────────────────────────────────────────────
-
-export function insertReviewReport(report: ReviewReport): void {
-  const db = getDatabase()
-  if (!db) throw new Error('Database not initialized')
-  db.run(
-    `INSERT INTO review_reports (id, name, project_ids, total_mr_count, total_issue_count, issues_preview, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [report.id, report.name, report.projectIds, report.totalMrCount, report.totalIssueCount,
-     report.issuesPreview, report.createdAt]
-  )
-}
-
-export function getAllReviewReports(): ReviewReport[] {
-  const db = getDatabase()
-  if (!db) return []
-  const result = db.exec('SELECT * FROM review_reports ORDER BY created_at DESC')
-  if (!result[0]) return []
-  return result[0].values.map(row => ({
-    id: row[0] as string,
-    name: row[1] as string,
-    projectIds: row[2] as string,
-    totalMrCount: row[3] as number,
-    totalIssueCount: row[4] as number,
-    issuesPreview: row[5] as string,
-    createdAt: row[6] as string,
-  }))
-}
-
-export function deleteReviewReport(id: string): void {
-  getDatabase()?.run('DELETE FROM review_reports WHERE id = ?', [id])
-}

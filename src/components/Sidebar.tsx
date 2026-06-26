@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Icon, { type IconName } from './Icon'
 import TruncatedText from './TruncatedText'
-import { animateLogoPulse, animateStatusDot } from '@/utils/animations'
+import { animateLogoPulse } from '@/utils/animations'
 
 interface NavItem {
   label: string
@@ -19,12 +19,12 @@ const Sidebar: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const logoRef = useRef<HTMLDivElement>(null)
-  const statusDotRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     if (logoRef.current) animateLogoPulse(logoRef.current)
-    if (statusDotRef.current) animateStatusDot(statusDotRef.current)
   }, [])
+
+  const isSettingsActive = location.pathname === '/settings'
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 bg-sidebar-bg flex flex-col z-20 border-r border-sidebar-border shadow-sidebar">
@@ -88,12 +88,29 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
 
-      {/* Footer accent */}
-      <div className="px-5 py-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-2 text-[11px] font-body text-sidebar-text/60">
-          <span ref={statusDotRef} className="w-1.5 h-1.5 rounded-full bg-primary-400" />
-          <span className="truncate">本地数据 · 已同步</span>
-        </div>
+      {/* Settings entry (bottom) */}
+      <div className="px-3 py-3 border-t border-sidebar-border">
+        <button
+          onClick={() => navigate('/settings')}
+          aria-current={isSettingsActive ? 'page' : undefined}
+          className={`group w-full relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-md text-sm font-body transition-all duration-200 cursor-pointer ${
+            isSettingsActive
+              ? 'font-semibold text-sidebar-text-active bg-sidebar-active-bg'
+              : 'text-sidebar-text hover:text-sidebar-text-strong hover:bg-sidebar-bg-hover'
+          }`}
+        >
+          {isSettingsActive && (
+            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary-500 rounded-r-full" />
+          )}
+          <Icon
+            name="settings"
+            size={18}
+            className={`transition-colors ${isSettingsActive ? 'text-primary-600' : 'text-sidebar-text/80 group-hover:text-sidebar-text-strong'}`}
+          />
+          <span className="truncate">
+            <TruncatedText text="设置" maxChars={12} />
+          </span>
+        </button>
       </div>
     </aside>
   )

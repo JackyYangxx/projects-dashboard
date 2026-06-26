@@ -53,18 +53,20 @@ export default function MCPConfigPanel() {
           <button onClick={handleSave} className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm">保存</button>
         </div>
       )}
-      <ul className="space-y-2">
+      <ul>
         {mcps.map(mcp => (
-          <li key={mcp.id} className="flex items-center gap-2">
-            <input type="checkbox" checked={mcp.enabled} onChange={e => toggleMCP(mcp.id, e.target.checked)} />
-            <div className="flex-1">
-              <span className="text-sm">{mcp.name}</span>
-              <span className="block text-xs text-on-surface-tertiary truncate">{mcp.url}</span>
+          <li key={mcp.id} className="pt-4 pb-4 border-b border-outline/50 first:pt-0 last:border-b-0 last:pb-0">
+            <div className="flex items-center gap-2">
+              <input type="checkbox" checked={mcp.enabled} onChange={e => toggleMCP(mcp.id, e.target.checked)} />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm truncate block">{mcp.name}</span>
+                <span className="block text-xs text-on-surface-tertiary truncate">{mcp.url}</span>
+              </div>
+              <button onClick={() => removeMCP(mcp.id)} className="text-xs text-red-500 hover:underline shrink-0">删除</button>
             </div>
-            <button onClick={() => removeMCP(mcp.id)} className="text-xs text-red-500 hover:underline">删除</button>
           </li>
         ))}
-        {mcps.length === 0 && <li className="text-sm text-on-surface-tertiary">暂无 MCP 配置</li>}
+        {mcps.length === 0 && <li className="text-sm text-on-surface-tertiary py-2">暂无 MCP 配置</li>}
       </ul>
     </div>
   )
