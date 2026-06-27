@@ -126,14 +126,12 @@ export default function LLMConfigPanel() {
           {testing ? '测试中...' : '测试连接'}
         </button>
         <div className="flex-1" />
-        {editingId !== NEW_ID && (
-          <button
-            onClick={resetForm}
-            className="px-4 py-2 border border-outline text-on-surface-primary rounded-lg text-sm hover:bg-surface-secondary transition-colors"
-          >
-            取消
-          </button>
-        )}
+        <button
+          onClick={resetForm}
+          className="px-4 py-2 border border-outline text-on-surface-primary rounded-lg text-sm hover:bg-surface-secondary transition-colors"
+        >
+          取消
+        </button>
         <button
           onClick={handleSave}
           className="px-4 py-2 bg-primary-500 text-white rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors"
