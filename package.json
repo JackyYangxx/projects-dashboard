@@ -1,6 +1,6 @@
 {
   "name": "project-dashboard",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "author": "Project Dashboard",
   "description": "项目管理看板 - 跟踪从立项到落地的全流程节点",
   "main": "dist-electron/main.js",
