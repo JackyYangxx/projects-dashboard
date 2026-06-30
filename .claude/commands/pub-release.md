@@ -34,23 +34,15 @@ git tag "v${NEW_VERSION}"
 git push origin "v${NEW_VERSION}"
 ```
 
-### 7. 本地构建
+### 7. 等待 CI 构建并自动发布
 
-```bash
-rm -rf dist dist-electron release && npm run build && npx electron-builder --win --x64
-```
+Tag 推送后，GitHub Actions (`build-windows.yml`) 自动：
+- 在 Windows 环境构建 Electron 应用（NSIS 安装包）
+- 创建并**直接发布**正式 release，附上 .exe 安装包
 
-在 macOS 上通过 electron-builder 交叉编译 Windows x64 NSIS 安装包（`electron-builder.yml` 已配置 `win.target: nsis/x64`）。
+### 8. 报告结果
 
-### 8. 创建 Release 并上传
-
-```bash
-gh release create "v${NEW_VERSION}" release/*.exe --title "v${NEW_VERSION}" --notes "Release v${NEW_VERSION}"
-```
-
-`gh release create` 直接创建**正式发布**（非 draft）。
-
-### 9. 报告结果
-
-输出 release 页面链接：
+CI 完成后即可在以下链接查看已发布的 release：
 `https://github.com/JackyYangxx/projects-dashboard/releases/tag/v${NEW_VERSION}`
+
+> **注意**：NSIS 安装包无法在 macOS 上交叉编译，因此由 GitHub Actions 在 Windows runner 上完成构建。
