@@ -10,8 +10,9 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
     totalAmount: 2240000,
     usedAmount: 1680000,
     progress: 75,
-    repository: 'https://github.com/example/brand-refresh',
-    branch: 'main',
+    repositories: [
+      { id: 'r1', url: 'https://github.com/example/brand-refresh', branch: 'main', note: '主仓库' },
+    ],
     subProgress: {
       architecture: 80,
       uiux: 90,
@@ -77,8 +78,9 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
     totalAmount: 1916000,
     usedAmount: 804720,
     progress: 42,
-    repository: 'https://github.com/example/ui-design',
-    branch: 'develop',
+    repositories: [
+      { id: 'r1', url: 'https://github.com/example/ui-design', branch: 'develop', note: '主仓库' },
+    ],
     subProgress: {
       architecture: 30,
       uiux: 60,
@@ -124,8 +126,9 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
     totalAmount: 40600000,
     usedAmount: 4060000,
     progress: 10,
-    repository: 'https://github.com/example/global-roadmap',
-    branch: 'main',
+    repositories: [
+      { id: 'r1', url: 'https://github.com/example/global-roadmap', branch: 'main', note: '主仓库' },
+    ],
     subProgress: {
       architecture: 15,
       uiux: 5,
