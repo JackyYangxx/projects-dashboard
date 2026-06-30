@@ -72,7 +72,19 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
   selectedProjectIds: [],
   isReviewing: false,
   reviewProgress: null,
-  mrReviewRecords: [],
+  mrReviewRecords: [{
+    id: 'mock-1',
+    projectId: 'mock-project',
+    projectName: '示例项目',
+    mrId: 'mock-mr-1',
+    mrTitle: '示例 MR: 修复登录页面样式',
+    mrUrl: 'https://example.com/mr/1',
+    status: 'completed' as const,
+    diff: 'diff --git a/src/login.ts b/src/login.ts\n--- a/src/login.ts\n+++ b/src/login.ts\n@@ -1,3 +1,3 @@\n-old line\n+new line',
+    issues: [],
+    reviewedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  }],
   reviewError: null,
 
   // LLM Config
@@ -251,33 +263,36 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
 
     for (const projectId of projectIds) {
       const project = projects.find(p => p.id === projectId)
-      if (!project || !project.repository) continue
+      if (!project || project.repositories.length === 0) continue
 
-      // 1. Get MR list via MCP
-      set({
-        reviewProgress: {
-          projectId,
-          projectName: project.name,
-          mrTitle: '获取 MR 列表...',
-          progress: 0,
-          completed: 0,
-          total: 0
-        }
-      })
+      for (const repo of project.repositories) {
+        if (!repo.url) continue
 
-      let mrs: Array<{ id: string; title: string; url: string; state: string }> = []
-      try {
-        const mrListResult = await window.mcpAPI?.invokeTool({
-          url: mcpConfig.url,
-          authHeader: mcpConfig.authHeader,
-          toolName: 'listMRs',
-          toolArgs: { repository: project.repository, branch: project.branch }
+        // 1. Get MR list via MCP for each repo
+        set({
+          reviewProgress: {
+            projectId,
+            projectName: repo.note ? `${project.name} (${repo.note})` : project.name,
+            mrTitle: '获取 MR 列表...',
+            progress: 0,
+            completed: 0,
+            total: 0
+          }
         })
-        mrs = (mrListResult as { mrs?: Array<{ id: string; title: string; url: string; state: string }> })?.mrs || []
-      } catch (err) {
-        console.error('[Review] Failed to get MR list for', project.name, err)
-        continue
-      }
+
+        let mrs: Array<{ id: string; title: string; url: string; state: string }> = []
+        try {
+          const mrListResult = await window.mcpAPI?.invokeTool({
+            url: mcpConfig.url,
+            authHeader: mcpConfig.authHeader,
+            toolName: 'listMRs',
+            toolArgs: { repository: repo.url, branch: repo.branch }
+          })
+          mrs = (mrListResult as { mrs?: Array<{ id: string; title: string; url: string; state: string }> })?.mrs || []
+        } catch (err) {
+          console.error('[Review] Failed to get MR list for', project.name, repo.url, err)
+          continue
+        }
 
       set(state => ({
         reviewProgress: { ...state.reviewProgress!, total: mrs.length }
@@ -302,7 +317,7 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
             url: mcpConfig.url,
             authHeader: mcpConfig.authHeader,
             toolName: 'getMRDetails',
-            toolArgs: { mrId: mr.id, repository: project.repository }
+            toolArgs: { mrId: mr.id, repository: repo.url }
           })
           diff = (detailResult as { diff?: string })?.diff || ''
         } catch (err) {
@@ -418,6 +433,7 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
             progress: ((i + 1) / mrs.length) * 100
           }
         }))
+      }
       }
     }
 
