@@ -186,8 +186,21 @@ const Dashboard: React.FC = () => {
               progress,
               totalAmount,
               usedAmount,
-              repository: String(row['代码仓'] || ''),
-              branch: String(row['分支'] || ''),
+              repositories: (() => {
+                const repos: import('@/types').Repository[] = []
+                for (let i = 1; i <= 3; i++) {
+                  const url = String(row[`代码仓${i}`] || '').trim()
+                  if (url) {
+                    repos.push({
+                      id: crypto.randomUUID(),
+                      url,
+                      branch: String(row[`分支${i}`] || 'main').trim(),
+                      note: String(row[`备注${i}`] || '').trim() || undefined,
+                    })
+                  }
+                }
+                return repos
+              })(),
               tag: String(row['标签'] || ''),
               subProgress: {
                 architecture: Number(row['进展_架构']) || 0,
@@ -218,12 +231,12 @@ const Dashboard: React.FC = () => {
 
   const handleDownloadTemplate = () => {
     const requiredHeaders = ['项目名称', '产品线', '负责人', '总预算', '已用预算']
-    const optionalHeaders = ['代码仓', '分支']
+    const optionalHeaders = ['代码仓1', '分支1', '备注1', '代码仓2', '分支2', '备注2', '代码仓3', '分支3', '备注3']
     const headerRow = [
       ...requiredHeaders,
       ...optionalHeaders,
     ]
-    const sampleRow = ['示例项目', '示例产品线', '张三', 100000, 50000, '', '']
+    const sampleRow = ['示例项目', '示例产品线', '张三', 100000, 50000, '', '', '', '', '', '', '', '', '']
     const wsData = [headerRow, sampleRow]
     const ws = XLSX.utils.aoa_to_sheet(wsData)
     for (let col = 0; col < requiredHeaders.length; col++) {
@@ -246,8 +259,16 @@ const Dashboard: React.FC = () => {
       '总预算': p.totalAmount,
       '已用预算': p.usedAmount,
       '预算执行率': p.totalAmount > 0 ? Math.round((p.usedAmount / p.totalAmount) * 100) : 0,
-      '代码仓': p.repository || '',
-      '分支': p.branch || '',
+      ...((): Record<string, string> => {
+        const cols: Record<string, string> = {}
+        p.repositories.forEach((r, i) => {
+          const n = i + 1
+          cols[`代码仓${n}`] = r.url
+          cols[`分支${n}`] = r.branch || ''
+          cols[`备注${n}`] = r.note || ''
+        })
+        return cols
+      })(),
       '标签': p.tag,
       '进展_架构': p.subProgress.architecture,
       '进展_UIUX': p.subProgress.uiux,

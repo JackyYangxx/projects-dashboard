@@ -24,6 +24,7 @@ export const IMPORT_REQUIRED_HEADERS = [
 ] as const
 
 export const IMPORT_OPTIONAL_HEADERS = [
-  '代码仓',
-  '分支',
+  '代码仓1', '分支1', '备注1',
+  '代码仓2', '分支2', '备注2',
+  '代码仓3', '分支3', '备注3',
 ] as const
