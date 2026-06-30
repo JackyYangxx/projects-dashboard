@@ -37,15 +37,15 @@ git push origin "v${NEW_VERSION}"
 ### 7. 本地构建
 
 ```bash
-rm -rf dist dist-electron release && npm run electron:build
+rm -rf dist dist-electron release && npm run build && npx electron-builder --win --x64
 ```
 
-electron-builder 在 macOS 上交叉编译 Windows x64 ZIP（`electron-builder.yml` 已配置 `win.target: zip/x64`）。
+在 macOS 上通过 electron-builder 交叉编译 Windows x64 NSIS 安装包（`electron-builder.yml` 已配置 `win.target: nsis/x64`）。
 
 ### 8. 创建 Release 并上传
 
 ```bash
-gh release create "v${NEW_VERSION}" release/*.zip --title "v${NEW_VERSION}" --notes "Release v${NEW_VERSION}"
+gh release create "v${NEW_VERSION}" release/*.exe --title "v${NEW_VERSION}" --notes "Release v${NEW_VERSION}"
 ```
 
 `gh release create` 直接创建**正式发布**（非 draft）。
