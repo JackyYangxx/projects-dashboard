@@ -9,5 +9,3 @@ src/**/*.js
 .DS_Store
 stitch_
 .worktrees
-docs/app-icon/*.png
-docs/app-icon/*.ico
