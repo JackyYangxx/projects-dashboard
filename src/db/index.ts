@@ -63,13 +63,33 @@ async function doInitDatabase(): Promise<Database> {
       milestones TEXT DEFAULT '[]',
       timeline TEXT DEFAULT '[]',
       leader TEXT DEFAULT '',
-      repository TEXT DEFAULT '',
-      branch TEXT DEFAULT '',
+      repositories TEXT DEFAULT '[]',
       created_at TEXT,
       updated_at TEXT
     )
   `)
   console.log('[DB] Table created')
+
+  // Migration: convert old repository/branch columns to repositories JSON array
+  try {
+    const colCheck = db.exec("PRAGMA table_info(projects)")
+    const columnNames = colCheck[0]?.values.map((row) => row[1] as string) || []
+    if (columnNames.includes('repository') && !columnNames.includes('repositories')) {
+      console.log('[DB] Migrating repository/branch to repositories JSON array...')
+      db.run("ALTER TABLE projects ADD COLUMN repositories TEXT DEFAULT '[]'")
+      const oldRows = db.exec("SELECT id, repository, branch FROM projects")
+      for (const row of oldRows[0]?.values || []) {
+        const [rid, oldRepo, oldBranch] = row as [string, string, string]
+        const repos = oldRepo
+          ? JSON.stringify([{ id: crypto.randomUUID(), url: oldRepo, branch: oldBranch || 'main' }])
+          : '[]'
+        db.run("UPDATE projects SET repositories = ? WHERE id = ?", [repos, rid])
+      }
+      console.log('[DB] Migration complete')
+    }
+  } catch (err) {
+    console.error('[DB] Migration failed:', err)
+  }
 
   // Create mcp_services table
   db.run(`
@@ -198,8 +218,8 @@ async function doInitDatabase(): Promise<Database> {
         db.run(
           `INSERT INTO projects (
             id, name, product_line, status, tag, total_amount, used_amount,
-            progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repository, branch, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repositories, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             crypto.randomUUID(),
             project.name,
@@ -217,8 +237,7 @@ async function doInitDatabase(): Promise<Database> {
             JSON.stringify(project.milestones || []),
             JSON.stringify(project.timeline),
             project.leader,
-            project.repository || '',
-            project.branch || '',
+            JSON.stringify(project.repositories || []),
             now,
             now,
           ]
