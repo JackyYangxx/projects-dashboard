@@ -7,7 +7,7 @@ import StatsCard from '@/components/StatsCard'
 import ProjectTable from '@/components/ProjectTable'
 import { useProjectStore } from '@/store/projectStore'
 import { upsert } from '@/db/projectDao'
-import { STATUS_LABELS, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
+import { STATUS_LABELS, STATUS_MAP, VALID_STATUSES, IMPORT_REQUIRED_HEADERS } from '@/constants/project'
 import { animateStaggerIn, animateFadeIn } from '@/utils/animations'
 import type { Project } from '@/types'
 
@@ -134,8 +134,11 @@ const Dashboard: React.FC = () => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = '.xlsx,.xls'
+    input.style.display = 'none'
+    document.body.appendChild(input)
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0]
+      document.body.removeChild(input)
       if (!file) return
 
       const reader = new FileReader()
@@ -167,11 +170,16 @@ const Dashboard: React.FC = () => {
             const leader = String(row['负责人'] || '').trim()
             if (!name || !leader) { skipCount++; continue }
 
+            const statusLabel = String(row['状态'] || '').trim()
+            const statusKey = statusLabel ? (STATUS_MAP[statusLabel as keyof typeof STATUS_MAP] || (VALID_STATUSES.includes(statusLabel as typeof VALID_STATUSES[number]) ? statusLabel : null)) : null
+            if (statusLabel && !statusKey) { skipCount++; continue }
+
             const progress = Number(row['项目进展']) || 0
             const totalAmount = Number(row['总预算']) || 0
             const usedAmount = Number(row['已用预算']) || 0
 
             upsert({
+              status: (statusKey || 'ongoing') as Project['status'],
               name,
               productLine: String(row['产品线'] || ''),
               leader,
@@ -212,13 +220,13 @@ const Dashboard: React.FC = () => {
     const requiredHeaders = ['项目名称', '产品线', '负责人', '总预算', '已用预算']
     const optionalHeaders = ['代码仓', '分支']
     const headerRow = [
-      ...requiredHeaders.map(h => `${h}*`),
+      ...requiredHeaders,
       ...optionalHeaders,
     ]
     const sampleRow = ['示例项目', '示例产品线', '张三', 100000, 50000, '', '']
     const wsData = [headerRow, sampleRow]
     const ws = XLSX.utils.aoa_to_sheet(wsData)
-    for (let col = 0; col < 5; col++) {
+    for (let col = 0; col < requiredHeaders.length; col++) {
       const cellRef = XLSX.utils.encode_cell({ r: 1, c: col })
       if (!ws[cellRef]) ws[cellRef] = {}
       ws[cellRef].s = { fill: { fgColor: { rgb: 'E0E0E0' } } }
@@ -313,109 +321,122 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Filter + Action bar */}
-          {!isLoading && projects.length > 0 && (
+          {!isLoading && (
             <div ref={filterRef} className="mb-3 flex flex-wrap items-center gap-2 relative z-10">
-              {/* Status filter */}
-              <div ref={statusMenuRef} className="relative">
-                <button
-                  onClick={() => {
-                    setShowStatusMenu(v => !v)
-                    setShowMonthMenu(false)
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
-                    statusFilter !== 'all'
-                      ? 'bg-primary-50 border-primary-200 text-primary-700'
-                      : 'bg-white border-outline text-on-surface-secondary hover:border-primary-300'
-                  }`}
-                >
-                  <Icon name="filter" size={14} className={statusFilter !== 'all' ? 'text-primary-500' : 'text-on-surface-tertiary'} />
-                  <span>状态：{statusFilter === 'all' ? '全部' : STATUS_LABELS[statusFilter]}</span>
-                  <Icon name="chevron_down" size={14} className="opacity-60" />
-                </button>
-                {showStatusMenu && (
-                  <div className="absolute z-[60] mt-1 w-40 bg-white border border-outline rounded-md shadow-lg py-1">
-                    {STATUS_CHIPS.map((s) => (
-                      <button
-                        key={s.key}
-                        onClick={() => {
-                          setStatusFilter(s.key)
-                          setShowStatusMenu(false)
-                        }}
-                        className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 flex items-center gap-2 cursor-pointer ${
-                          statusFilter === s.key ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
-                        }`}
-                      >
-                        <Icon name={s.icon} size={14} className={statusFilter === s.key ? 'text-primary-500' : 'text-on-surface-tertiary'} />
-                        {s.label}
-                      </button>
-                    ))}
+              {projects.length > 0 ? (
+                <>
+                  {/* Status filter */}
+                  <div ref={statusMenuRef} className="relative">
+                    <button
+                      onClick={() => {
+                        setShowStatusMenu(v => !v)
+                        setShowMonthMenu(false)
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
+                        statusFilter !== 'all'
+                          ? 'bg-primary-50 border-primary-200 text-primary-700'
+                          : 'bg-white border-outline text-on-surface-secondary hover:border-primary-300'
+                      }`}
+                    >
+                      <Icon name="filter" size={14} className={statusFilter !== 'all' ? 'text-primary-500' : 'text-on-surface-tertiary'} />
+                      <span>状态：{statusFilter === 'all' ? '全部' : STATUS_LABELS[statusFilter]}</span>
+                      <Icon name="chevron_down" size={14} className="opacity-60" />
+                    </button>
+                    {showStatusMenu && (
+                      <div className="absolute z-[60] mt-1 w-40 bg-white border border-outline rounded-md shadow-lg py-1">
+                        {STATUS_CHIPS.map((s) => (
+                          <button
+                            key={s.key}
+                            onClick={() => {
+                              setStatusFilter(s.key)
+                              setShowStatusMenu(false)
+                            }}
+                            className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 flex items-center gap-2 cursor-pointer ${
+                              statusFilter === s.key ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
+                            }`}
+                          >
+                            <Icon name={s.icon} size={14} className={statusFilter === s.key ? 'text-primary-500' : 'text-on-surface-tertiary'} />
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Month filter */}
-              <div ref={monthMenuRef} className="relative">
-                <button
-                  onClick={() => {
-                    setShowMonthMenu(v => !v)
-                    setShowStatusMenu(false)
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
-                    monthFilter !== '全部'
-                      ? 'bg-primary-50 border-primary-200 text-primary-700'
-                      : 'bg-white border-outline text-on-surface-secondary hover:border-primary-300'
-                  }`}
-                >
-                  <span>月份：{monthFilter}</span>
-                  <Icon name="chevron_down" size={14} className="opacity-60" />
-                </button>
-                {showMonthMenu && (
-                  <div className="absolute z-[60] mt-1 w-32 max-h-64 overflow-y-auto bg-white border border-outline rounded-md shadow-lg py-1">
-                    {MONTHS.map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => {
-                          setMonthFilter(m)
-                          setShowMonthMenu(false)
-                        }}
-                        className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 cursor-pointer ${
-                          monthFilter === m ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
-                        }`}
-                      >
-                        {m}
-                      </button>
-                    ))}
+                  {/* Month filter */}
+                  <div ref={monthMenuRef} className="relative">
+                    <button
+                      onClick={() => {
+                        setShowMonthMenu(v => !v)
+                        setShowStatusMenu(false)
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
+                        monthFilter !== '全部'
+                          ? 'bg-primary-50 border-primary-200 text-primary-700'
+                          : 'bg-white border-outline text-on-surface-secondary hover:border-primary-300'
+                      }`}
+                    >
+                      <span>月份：{monthFilter}</span>
+                      <Icon name="chevron_down" size={14} className="opacity-60" />
+                    </button>
+                    {showMonthMenu && (
+                      <div className="absolute z-[60] mt-1 w-32 max-h-64 overflow-y-auto bg-white border border-outline rounded-md shadow-lg py-1">
+                        {MONTHS.map((m) => (
+                          <button
+                            key={m}
+                            onClick={() => {
+                              setMonthFilter(m)
+                              setShowMonthMenu(false)
+                            }}
+                            className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 cursor-pointer ${
+                              monthFilter === m ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {(statusFilter !== 'all' || monthFilter !== '全部') && (
-                <button
-                  onClick={() => { setStatusFilter('all'); setMonthFilter('全部') }}
-                  className="inline-flex items-center gap-1 px-2 h-9 text-xs font-body text-on-surface-tertiary hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors cursor-pointer"
-                >
-                  <Icon name="filter_alt_off" size={12} />
-                  清除筛选
-                </button>
+                  {(statusFilter !== 'all' || monthFilter !== '全部') && (
+                    <button
+                      onClick={() => { setStatusFilter('all'); setMonthFilter('全部') }}
+                      className="inline-flex items-center gap-1 px-2 h-9 text-xs font-body text-on-surface-tertiary hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors cursor-pointer"
+                    >
+                      <Icon name="filter_alt_off" size={12} />
+                      清除筛选
+                    </button>
+                  )}
+
+                  <span className="text-xs font-body text-on-surface-tertiary ml-1">
+                    共 <span className="font-mono font-semibold text-primary-600 tabular-nums">{filteredProjects.length}</span> 条结果
+                  </span>
+                </>
+              ) : (
+                <span className="text-xs font-body text-on-surface-tertiary">
+                  暂无项目，可通过导入或新增项目开始
+                </span>
               )}
 
-              <span className="text-xs font-body text-on-surface-tertiary ml-1">
-                共 <span className="font-mono font-semibold text-primary-600 tabular-nums">{filteredProjects.length}</span> 条结果
-              </span>
-
               <div className="ml-auto flex items-center gap-2">
-                {/* Import */}
-                <div className="relative import-menu-container">
+                {/* Import split button */}
+                <div className="relative import-menu-container flex group">
                   <button
-                    onClick={() => setShowImportMenu(v => !v)}
-                    className="inline-flex items-center justify-center gap-1.5 w-[96px] h-9 px-3 bg-white border border-outline text-on-surface-secondary rounded-md text-sm font-body font-medium hover:border-primary-300 hover:text-primary-600 transition-colors cursor-pointer whitespace-nowrap"
+                    onClick={handleImport}
+                    className="inline-flex items-center justify-center gap-1.5 h-9 px-3 bg-white border border-outline text-on-surface-secondary rounded-l-md text-sm font-body font-medium group-hover:border-primary-300 group-hover:text-primary-600 transition-colors cursor-pointer whitespace-nowrap border-r-0"
                   >
                     <Icon name="upload_file" size={14} />
                     导入
+                  </button>
+                  <button
+                    onClick={() => setShowImportMenu(v => !v)}
+                    className="inline-flex items-center justify-center w-7 h-9 bg-white border border-outline text-on-surface-secondary rounded-r-md group-hover:border-primary-300 group-hover:text-primary-600 transition-colors cursor-pointer border-l-0"
+                  >
                     <Icon name="chevron_down" size={12} className="opacity-60" />
                   </button>
                   {showImportMenu && (
-                    <div className="absolute z-[60] right-0 mt-1 w-44 bg-white border border-outline rounded-md shadow-lg py-1">
+                    <div className="absolute z-[60] right-0 top-full mt-1 w-44 bg-white border border-outline rounded-md shadow-lg py-1">
                       <button
                         onClick={() => { setShowImportMenu(false); handleImport() }}
                         className="w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 text-on-surface-primary cursor-pointer flex items-center gap-2"
