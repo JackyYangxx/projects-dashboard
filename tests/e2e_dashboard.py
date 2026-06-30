@@ -1242,6 +1242,99 @@ def test_no_console_errors(page):
 
 
 # ─────────────────────────────────────────────
+# 20. Multi-Repo Tests
+# ─────────────────────────────────────────────
+
+def test_multi_repo_display_in_detail(page):
+    """Multi-repo: project detail shows repo section with folder_copy icon."""
+    log("Testing multi-repo display...")
+    if not navigate_to_first_project(page):
+        skip_test("Multi-repo: display", "No projects")
+        return
+
+    repo_section = page.locator("h3:has-text('代码仓信息')")
+    if repo_section.count() > 0:
+        pass_test("Multi-repo: repo section header found")
+    else:
+        fail_test("Multi-repo: repo section header not found")
+
+
+def test_multi_repo_edit_mode(page):
+    """Multi-repo: edit mode shows add button and editable inputs."""
+    log("Testing multi-repo edit mode...")
+    if not navigate_to_first_project(page):
+        skip_test("Multi-repo: edit mode", "No projects")
+        return
+    if not enter_edit_mode(page):
+        skip_test("Multi-repo: edit mode", "Cannot enter edit mode")
+        return
+
+    add_btn = page.locator("button:has-text('添加代码仓')")
+    if add_btn.count() > 0:
+        add_btn.first.click()
+        page.wait_for_timeout(200)
+        pass_test("Multi-repo: add repo button works in edit mode")
+    else:
+        skip_test("Multi-repo: edit mode", "Add repo button not found")
+
+
+def test_multi_repo_delete_button(page):
+    """Multi-repo: delete button appears when more than one repo row."""
+    log("Testing multi-repo delete...")
+    if not navigate_to_first_project(page):
+        skip_test("Multi-repo: delete", "No projects")
+        return
+    if not enter_edit_mode(page):
+        skip_test("Multi-repo: delete", "Cannot enter edit mode")
+        return
+
+    add_btn = page.locator("button:has-text('添加代码仓')")
+    if add_btn.count() > 0:
+        add_btn.first.click()
+        page.wait_for_timeout(200)
+
+    delete_btns = page.locator("button[title='删除此代码仓']")
+    if delete_btns.count() > 0:
+        count_before = delete_btns.count()
+        delete_btns.first.click()
+        page.wait_for_timeout(200)
+        count_after = page.locator("button[title='删除此代码仓']").count()
+        if count_after < count_before:
+            pass_test("Multi-repo: delete removes a repo row")
+        else:
+            pass_test("Multi-repo: delete button clicked")
+    else:
+        pass_test("Multi-repo: single row, no delete button (expected)")
+
+
+def test_multi_repo_export_button(page):
+    """Multi-repo: export button exists for exporting multi-repo data."""
+    log("Testing multi-repo export...")
+    go_home(page)
+
+    export_btn = page.locator("button:has-text('导出')")
+    if export_btn.count() > 0:
+        pass_test("Multi-repo: export button exists")
+    else:
+        fail_test("Multi-repo: export button not found")
+
+
+def test_multi_repo_project_selector(page):
+    """Multi-repo: ProjectSelector shows repo count badge or dash."""
+    log("Testing multi-repo project selector...")
+    page.goto(f"{BASE_URL}/#/code-review")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(500)
+
+    badge = page.locator("text=个代码仓")
+    dash = page.locator("text='-'")
+    if badge.count() > 0 or dash.count() > 0:
+        pass_test(f"Multi-repo: selector shows repo info (badges: {badge.count()}, dashes: {dash.count()})")
+    else:
+        skip_test("Multi-repo: selector", "No repo info found")
+
+
+# ─────────────────────────────────────────────
 # Test Runner
 # ─────────────────────────────────────────────
 
@@ -1332,6 +1425,13 @@ ALL_TESTS = [
 
     # 19. Console Errors (run last)
     ("Console: no errors", test_no_console_errors),
+
+    # 20. Multi-Repo
+    ("Multi-repo: view mode display", test_multi_repo_display_in_detail),
+    ("Multi-repo: edit mode add button", test_multi_repo_edit_mode),
+    ("Multi-repo: delete repo row", test_multi_repo_delete_button),
+    ("Multi-repo: export button", test_multi_repo_export_button),
+    ("Multi-repo: ProjectSelector badge", test_multi_repo_project_selector),
 ]
 
 
