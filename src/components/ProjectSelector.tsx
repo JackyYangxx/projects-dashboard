@@ -58,8 +58,10 @@ export default function ProjectSelector({ selectedIds, onChange }: Props) {
                 />
               </td>
               <td className="px-4 py-3 text-sm font-medium text-on-surface-primary">{project.name}</td>
-              <td className="px-4 py-3 text-sm text-on-surface-tertiary font-mono truncate max-w-[300px]">
-                {project.repository || '-'}
+              <td className="px-4 py-3 text-sm text-on-surface-tertiary truncate max-w-[300px]">
+                {project.repositories.length > 0
+                  ? `${project.repositories.length}个代码仓`
+                  : '-'}
               </td>
             </tr>
           ))}
