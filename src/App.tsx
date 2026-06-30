@@ -44,7 +44,7 @@ function App() {
       <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="min-h-screen bg-surface-base">
           <Sidebar />
-          <div className="ml-64 relative z-10">
+          <div className="ml-64 relative z-30">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/project/new" element={<ProjectForm />} />
