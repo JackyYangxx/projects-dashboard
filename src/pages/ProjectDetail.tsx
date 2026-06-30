@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -7,7 +7,7 @@ import Icon from '@/components/Icon'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
 import PrevNextNav from '@/components/PrevNextNav'
-import type { BudgetSource } from '@/types'
+import type { BudgetSource, Repository } from '@/types'
 import { getAllBudgetSources, insertBudgetSource, updateBudgetSource, deleteBudgetSource } from '@/db/budgetSourceDao'
 
 const ProjectDetail: React.FC = () => {
@@ -50,20 +50,8 @@ const ProjectDetail: React.FC = () => {
   )
   const [newMilestoneStatus, setNewMilestoneStatus] = useState<'pending' | 'completed' | 'delayed'>('pending')
   const [newMilestoneDescription, setNewMilestoneDescription] = useState('')
-  const [repoEditRepository, setRepoEditRepository] = useState('')
-  const [repoEditBranch, setRepoEditBranch] = useState('')
-  const [isRepoEditing, setIsRepoEditing] = useState(false)
+  const [editRepos, setEditRepos] = useState<Repository[]>([])
   const [budgetSources, setBudgetSources] = useState<BudgetSource[]>([])
-
-  // Initialize budget edit states when entering edit mode
-  const prevIsReadOnlyRef = useRef(isReadOnly)
-  useEffect(() => {
-    if (prevIsReadOnlyRef.current && !isReadOnly && project) {
-      // Auto-enter repo edit mode
-      setIsRepoEditing(true)
-    }
-    prevIsReadOnlyRef.current = isReadOnly
-  }, [isReadOnly, project])
 
   // Reset milestone form state when modal closes
   useEffect(() => {
@@ -78,8 +66,11 @@ const ProjectDetail: React.FC = () => {
   // Initialize repo edit state when project loads
   useEffect(() => {
     if (project) {
-      setRepoEditRepository(project.repository || '')
-      setRepoEditBranch(project.branch || '')
+      setEditRepos(
+        project.repositories.length > 0
+          ? project.repositories.map(r => ({ ...r }))
+          : [{ id: crypto.randomUUID(), url: '', branch: 'main' }]
+      )
     }
   }, [project])
 
@@ -196,11 +187,9 @@ const ProjectDetail: React.FC = () => {
   const handleRepoSave = () => {
     if (!project) return
     updateProject(project.id, {
-      repository: repoEditRepository,
-      branch: repoEditBranch,
+      repositories: editRepos.filter(r => r.url.trim()),
       updatedAt: new Date().toISOString(),
     })
-    setIsRepoEditing(false)
   }
 
   const formatCurrency = (amount: number) => {
@@ -285,89 +274,102 @@ const ProjectDetail: React.FC = () => {
           {/* Row 0: Repository Info Card */}
           <div className="col-span-12">
             <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
-                  <Icon name="folder_copy" size={16} />
-                  代码仓信息
-                </h3>
-                {!isReadOnly && !isRepoEditing && (
-                  <button
-                    onClick={() => setIsRepoEditing(true)}
-                    className="inline-flex items-center h-7 px-2.5 text-xs font-body font-medium text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
-                  >
-                    编辑
-                  </button>
-                )}
+              <div className="flex items-center gap-2 mb-4">
+                <Icon name="folder_copy" size={16} />
+                <h3 className="text-sm font-body font-medium text-on-surface-secondary">代码仓信息</h3>
               </div>
 
-              {isRepoEditing ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-body text-on-surface-tertiary mb-1.5">代码仓</label>
-                      <input
-                        type="text"
-                        value={repoEditRepository}
-                        onChange={(e) => setRepoEditRepository(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setRepoEditRepository(project.repository || '')
-                            setRepoEditBranch(project.branch || '')
-                            setIsRepoEditing(false)
-                          }
-                        }}
-                        className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
-                        placeholder="https://github.com/org/repo"
-                        autoFocus
-                      />
+              {!isReadOnly ? (
+                <div className="space-y-3">
+                  {editRepos.map((repo, idx) => (
+                    <div key={repo.id} className="grid grid-cols-12 gap-2 items-start">
+                      <div className="col-span-5">
+                        <input
+                          type="text"
+                          value={repo.url}
+                          onChange={e => {
+                            const next = [...editRepos]
+                            next[idx] = { ...next[idx], url: e.target.value }
+                            setEditRepos(next)
+                          }}
+                          className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                          placeholder="https://github.com/org/repo"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <input
+                          type="text"
+                          value={repo.branch}
+                          onChange={e => {
+                            const next = [...editRepos]
+                            next[idx] = { ...next[idx], branch: e.target.value }
+                            setEditRepos(next)
+                          }}
+                          className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                          placeholder="main"
+                        />
+                      </div>
+                      <div className="col-span-4">
+                        <input
+                          type="text"
+                          value={repo.note || ''}
+                          onChange={e => {
+                            const next = [...editRepos]
+                            next[idx] = { ...next[idx], note: e.target.value }
+                            setEditRepos(next)
+                          }}
+                          className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                          placeholder="备注（可选）"
+                        />
+                      </div>
+                      <div className="col-span-1 flex items-center justify-center pt-0.5">
+                        {editRepos.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setEditRepos(editRepos.filter((_, i) => i !== idx))}
+                            className="w-8 h-8 flex items-center justify-center rounded-md text-on-surface-tertiary hover:text-red-500 hover:bg-red-50 transition-colors"
+                            title="删除此代码仓"
+                          >
+                            <Icon name="delete" size={16} />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-body text-on-surface-tertiary mb-1.5">分支</label>
-                      <input
-                        type="text"
-                        value={repoEditBranch}
-                        onChange={(e) => setRepoEditBranch(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            setRepoEditRepository(project.repository || '')
-                            setRepoEditBranch(project.branch || '')
-                            setIsRepoEditing(false)
-                          }
-                        }}
-                        className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
-                        placeholder="main"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRepoEditRepository(project.repository || '')
-                        setRepoEditBranch(project.branch || '')
-                        setIsRepoEditing(false)
-                      }}
-                      className="inline-flex items-center h-8 px-3 border border-outline rounded-md text-xs font-body text-on-surface-primary hover:bg-surface-hover transition-colors"
-                    >
-                      取消
-                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setEditRepos([...editRepos, { id: crypto.randomUUID(), url: '', branch: 'main' }])}
+                    className="inline-flex items-center gap-1.5 h-8 px-3 border border-dashed border-outline rounded-md text-xs font-body text-on-surface-tertiary hover:border-primary-300 hover:text-primary-600 transition-colors"
+                  >
+                    <Icon name="add" size={14} />
+                    添加代码仓
+                  </button>
+                  <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={handleRepoSave}
                       className="inline-flex items-center h-8 px-3 bg-primary-500 text-white rounded-md text-xs font-body font-medium hover:bg-primary-600 transition-colors"
                     >
-                      保存
+                      保存代码仓
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="text-sm font-body text-on-surface-primary">
-                  {project.repository || project.branch ? (
-                    <span>
-                      {project.repository && <span className="font-mono">{project.repository}</span>}
-                      {project.repository && project.branch && <span className="text-on-surface-tertiary mx-1">@</span>}
-                      {project.branch && <span className="font-mono">{project.branch}</span>}
-                    </span>
+                  {project.repositories.length > 0 ? (
+                    <div className="space-y-2">
+                      {project.repositories.map(repo => (
+                        <div key={repo.id} className="flex items-center gap-2 py-1.5 px-3 bg-surface-base rounded-md">
+                          <Icon name="folder_copy" size={14} className="text-on-surface-tertiary flex-shrink-0" />
+                          <span className="font-mono text-xs">{repo.url}</span>
+                          <span className="text-on-surface-tertiary">@</span>
+                          <span className="font-mono text-xs">{repo.branch || '—'}</span>
+                          {repo.note && (
+                            <span className="text-xs text-on-surface-tertiary ml-2">({repo.note})</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <span className="text-on-surface-tertiary">未设置代码仓</span>
                   )}
@@ -677,15 +679,13 @@ const ProjectDetail: React.FC = () => {
                 </div>
               )}
 
-              {!isReadOnly && (
-                <button
-                  onClick={() => setShowMemberModal(true)}
-                  className="mt-4 h-9 border border-dashed border-outline rounded-md text-sm font-body text-on-surface-tertiary hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Icon name="add" size={14} />
-                  添加成员
-                </button>
-              )}
+              <button
+                onClick={() => setShowMemberModal(true)}
+                className="mt-4 h-9 border border-dashed border-outline rounded-md text-sm font-body text-on-surface-tertiary hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Icon name="add" size={14} />
+                添加成员
+              </button>
             </div>
           </div>
           </div>
