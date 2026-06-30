@@ -33,6 +33,13 @@ export interface Milestone {
   description?: string
 }
 
+export interface Repository {
+  id: string
+  url: string
+  branch: string
+  note?: string
+}
+
 export interface TimelineEvent {
   date: string
   version: string
@@ -71,8 +78,7 @@ export interface Project {
   milestones: Milestone[]
   timeline: TimelineEvent[]
   leader: string
-  repository: string
-  branch: string
+  repositories: Repository[]
   createdAt: string
   updatedAt: string
 }
