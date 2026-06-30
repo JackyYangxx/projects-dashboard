@@ -13,6 +13,12 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('[App] Unhandled promise rejection:', event.reason)
 })
 
+// Redirect pathname to hash for HashRouter compatibility (e.g. /code-review → /#/code-review)
+// Only in dev mode: under file:// protocol, pathname is a filesystem path, not a route
+if (window.location.protocol !== 'file:' && window.location.pathname !== '/' && !window.location.hash) {
+  window.location.hash = window.location.pathname
+}
+
 console.log('[App] Starting, window.location.href:', window.location.href)
 console.log('[App] Starting database initialization...')
 initDatabase()
