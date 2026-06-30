@@ -1,5 +1,5 @@
 import { getDatabase } from './index'
-import type { Project, SubProgress, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone } from '../types'
+import type { Project, Repository, SubProgress, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone } from '../types'
 import type { SqlValue } from 'sql.js'
 import { generateAvatarUrl } from '../utils/avatar'
 
@@ -56,8 +56,7 @@ export function findAll(): Project[] {
       createdAt: rowObj.created_at as string,
       updatedAt: rowObj.updated_at as string,
       leader: rowObj.leader as string,
-      repository: rowObj.repository as string,
-      branch: rowObj.branch as string,
+      repositories: parseJsonField<Repository[]>(rowObj.repositories, []),
     }
   })
 }
@@ -96,8 +95,7 @@ export function findById(id: string): Project | undefined {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     leader: row.leader as string,
-    repository: row.repository as string,
-    branch: row.branch as string,
+    repositories: parseJsonField<Repository[]>(row.repositories, []),
   }
 }
 
@@ -122,8 +120,8 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
   db.run(
     `INSERT INTO projects (
       id, name, product_line, status, tag, total_amount, used_amount,
-      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repository, branch, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repositories, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       project.name,
@@ -141,8 +139,7 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
       JSON.stringify(project.milestones || []),
       JSON.stringify(project.timeline),
       project.leader,
-      project.repository || '',
-      project.branch || '',
+      JSON.stringify(project.repositories || []),
       now,
       now,
     ]
@@ -218,13 +215,9 @@ export function update(id: string, updates: Partial<Project>): void {
     setClauses.push('leader = ?')
     values.push(updates.leader)
   }
-  if (updates.repository !== undefined) {
-    setClauses.push('repository = ?')
-    values.push(updates.repository)
-  }
-  if (updates.branch !== undefined) {
-    setClauses.push('branch = ?')
-    values.push(updates.branch)
+  if (updates.repositories !== undefined) {
+    setClauses.push('repositories = ?')
+    values.push(JSON.stringify(updates.repositories))
   }
 
   setClauses.push('updated_at = ?')
@@ -249,8 +242,7 @@ export function upsert(projectData: {
   progress: number
   totalAmount: number
   usedAmount: number
-  repository?: string
-  branch?: string
+  repositories?: Repository[]
   tag?: string
   subProgress?: Project['subProgress']
   notes?: string
@@ -289,13 +281,9 @@ export function upsert(projectData: {
       updates.unshift('status = ?')
       values.unshift(projectData.status)
     }
-    if (projectData.repository !== undefined) {
-      updates.push('repository = ?')
-      values.push(projectData.repository)
-    }
-    if (projectData.branch !== undefined) {
-      updates.push('branch = ?')
-      values.push(projectData.branch)
+    if (projectData.repositories !== undefined) {
+      updates.push('repositories = ?')
+      values.push(JSON.stringify(projectData.repositories))
     }
 
     db.run(`UPDATE projects SET ${updates.join(', ')} WHERE id = ?`, [...values, existingId])
@@ -308,8 +296,7 @@ export function upsert(projectData: {
       progress: projectData.progress,
       totalAmount: projectData.totalAmount,
       usedAmount: projectData.usedAmount,
-      repository: projectData.repository || '',
-      branch: projectData.branch || '',
+      repositories: projectData.repositories || [],
       tag: projectData.tag ?? '',
       subProgress: projectData.subProgress ?? { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
       notes: projectData.notes ?? '',
@@ -341,8 +328,7 @@ export function upsert(projectData: {
       milestones: projectData.milestones ?? [],
       timeline: projectData.timeline ?? [],
       leader: projectData.leader,
-      repository: projectData.repository || '',
-      branch: projectData.branch || '',
+      repositories: projectData.repositories || [],
     }
     return create(newProject)
   }
