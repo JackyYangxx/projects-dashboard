@@ -2,6 +2,8 @@ import type { Project } from '../types'
 
 export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
   {
+    projectId: 'PRJ-2026-001',
+    ext1: '', ext2: '', ext3: '', ext4: '', ext5: '',
     name: '战略品牌重塑',
     leader: '张明',
     productLine: '营销云',
@@ -70,6 +72,8 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
     ],
   },
   {
+    projectId: 'PRJ-2026-002',
+    ext1: '', ext2: '', ext3: '', ext4: '', ext5: '',
     name: '次世代界面设计',
     leader: '王芳',
     productLine: 'UI 系统',
@@ -118,6 +122,8 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
     ],
   },
   {
+    projectId: 'PRJ-2026-003',
+    ext1: '', ext2: '', ext3: '', ext4: '', ext5: '',
     name: '全球扩张路线图',
     leader: '',
     productLine: '运营策略',

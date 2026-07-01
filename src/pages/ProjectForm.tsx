@@ -10,6 +10,7 @@ const ProjectForm: React.FC = () => {
   const { addProject } = useProjectStore()
 
   const [formData, setFormData] = useState({
+    projectId: '',
     name: '',
     productLine: '',
     status: 'ongoing' as Project['status'],
@@ -35,6 +36,7 @@ const ProjectForm: React.FC = () => {
       }] : []
 
       await addProject({
+        projectId: formData.projectId,
         name: formData.name,
         productLine: formData.productLine,
         status: formData.status,
@@ -53,6 +55,7 @@ const ProjectForm: React.FC = () => {
         repositories: formData.repositoryUrl.trim()
           ? [{ id: crypto.randomUUID(), url: formData.repositoryUrl.trim(), branch: formData.branch }]
           : [],
+        ext1: '', ext2: '', ext3: '', ext4: '', ext5: '',
       })
       navigate('/')
     } finally {
@@ -72,7 +75,7 @@ const ProjectForm: React.FC = () => {
         <h1 className="text-base font-heading font-semibold text-on-surface-primary">新增项目</h1>
       </nav>
 
-      <main className="max-w-2xl mx-auto p-6">
+      <main className="max-w-3xl mx-auto p-6 xl:p-8">
         <form onSubmit={handleSubmit} className="bg-surface-elevated rounded-xl p-6 space-y-6">
           <div>
             <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
@@ -87,6 +90,19 @@ const ProjectForm: React.FC = () => {
               placeholder="输入项目名称"
               autoFocus
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">
+              项目编号
+            </label>
+            <input
+              type="text"
+              value={formData.projectId}
+              onChange={(e) => setFormData(prev => ({ ...prev, projectId: e.target.value }))}
+              className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+              placeholder="输入项目编号，如 PRJ-2026-001"
             />
           </div>
 

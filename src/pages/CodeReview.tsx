@@ -49,7 +49,7 @@ export default function CodeReview() {
         <h1 className="text-base font-heading font-semibold text-on-surface-primary">AI 代码评审</h1>
       </nav>
 
-      <main className="max-w-[1600px] mx-auto p-6 pb-20">
+      <main className="max-w-[1920px] mx-auto p-6 xl:p-8 pb-20">
         <div className="mb-4">
           <h3 className="font-heading text-sm font-medium mb-3">评审项目选择</h3>
           <ProjectSelector selectedIds={selectedProjectIds} onChange={selectProjects} />

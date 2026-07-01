@@ -63,6 +63,7 @@ export interface BudgetSource {
 
 export interface Project {
   id: string
+  projectId: string
   name: string
   productLine: string
   status: 'ongoing' | 'completed' | 'paused'
@@ -79,6 +80,11 @@ export interface Project {
   timeline: TimelineEvent[]
   leader: string
   repositories: Repository[]
+  ext1: string
+  ext2: string
+  ext3: string
+  ext4: string
+  ext5: string
   createdAt: string
   updatedAt: string
 }

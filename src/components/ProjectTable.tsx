@@ -125,6 +125,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 项目
               </th>
               <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                项目编号
+              </th>
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                 产品线
               </th>
               <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
@@ -147,7 +150,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           <tbody ref={tbodyRef}>
             {visibleProjects.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
+                <td colSpan={8} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
                   <div className="flex flex-col items-center gap-2">
                     <Icon name="inbox" className="text-4xl text-on-surface-tertiary" />
                     <span>暂无项目数据</span>
@@ -190,6 +193,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         )}
                       </div>
                     </div>
+                  </td>
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                    <span className="text-xs font-mono text-on-surface-secondary">
+                      {project.projectId || '—'}
+                    </span>
                   </td>
                   <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                     <TruncatedText

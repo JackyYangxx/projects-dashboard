@@ -59,5 +59,9 @@ describe('project constants', () => {
       expect(IMPORT_OPTIONAL_HEADERS.some(h => h.startsWith('代码仓'))).toBe(true)
       expect(IMPORT_OPTIONAL_HEADERS.some(h => h.startsWith('分支'))).toBe(true)
     })
+
+    it('contains 项目编号 for custom project ID', () => {
+      expect(IMPORT_OPTIONAL_HEADERS).toContain('项目编号')
+    })
   })
 })

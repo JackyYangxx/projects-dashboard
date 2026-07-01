@@ -261,16 +261,16 @@ const ProjectDetail: React.FC = () => {
             {project.status === 'ongoing' ? '进行中' : project.status === 'completed' ? '已完成' : '已暂停'}
           </span>
           <span className="text-xs font-body text-on-surface-tertiary font-mono">
-            #{project.id.slice(0, 8)}
+            {project.projectId ? `${project.projectId} · ` : ''}#{project.id.slice(0, 8)}
           </span>
         </div>
       </nav>
 
       {/* Main Content - Bento Grid */}
-      <main className="max-w-[1600px] mx-auto p-5 lg:p-7 pb-24 lg:pb-24">
-        <div className="grid grid-cols-12 gap-4">
+      <main className="max-w-[1920px] mx-auto p-5 lg:p-7 xl:p-8 pb-24 lg:pb-24">
+        <div className="grid grid-cols-12 gap-4 xl:gap-6">
           {/* Left column - main content */}
-          <div className="col-span-12 lg:col-span-8 space-y-4">
+          <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-4">
           {/* Row 0: Repository Info Card */}
           <div className="col-span-12">
             <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
@@ -691,7 +691,7 @@ const ProjectDetail: React.FC = () => {
           </div>
 
           {/* Right column - project notes (always editable, scrollable sidebar) */}
-          <div className="col-span-12 lg:col-span-4">
+          <div className="col-span-12 lg:col-span-4 xl:col-span-3">
             <div className="lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto pr-1 space-y-4">
               {/* Note History Accordion */}
               {project.noteHistory.length > 0 && (

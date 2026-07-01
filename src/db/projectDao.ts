@@ -57,6 +57,12 @@ export function findAll(): Project[] {
       updatedAt: rowObj.updated_at as string,
       leader: rowObj.leader as string,
       repositories: parseJsonField<Repository[]>(rowObj.repositories, []),
+      projectId: rowObj.project_id as string,
+      ext1: rowObj.ext1 as string,
+      ext2: rowObj.ext2 as string,
+      ext3: rowObj.ext3 as string,
+      ext4: rowObj.ext4 as string,
+      ext5: rowObj.ext5 as string,
     }
   })
 }
@@ -96,6 +102,12 @@ export function findById(id: string): Project | undefined {
     updatedAt: row.updated_at as string,
     leader: row.leader as string,
     repositories: parseJsonField<Repository[]>(row.repositories, []),
+    projectId: row.project_id as string,
+    ext1: row.ext1 as string,
+    ext2: row.ext2 as string,
+    ext3: row.ext3 as string,
+    ext4: row.ext4 as string,
+    ext5: row.ext5 as string,
   }
 }
 
@@ -120,8 +132,8 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
   db.run(
     `INSERT INTO projects (
       id, name, product_line, status, tag, total_amount, used_amount,
-      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repositories, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repositories, project_id, ext1, ext2, ext3, ext4, ext5, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       project.name,
@@ -140,6 +152,12 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
       JSON.stringify(project.timeline),
       project.leader,
       JSON.stringify(project.repositories || []),
+      project.projectId || '',
+      project.ext1 || '',
+      project.ext2 || '',
+      project.ext3 || '',
+      project.ext4 || '',
+      project.ext5 || '',
       now,
       now,
     ]
@@ -219,6 +237,30 @@ export function update(id: string, updates: Partial<Project>): void {
     setClauses.push('repositories = ?')
     values.push(JSON.stringify(updates.repositories))
   }
+  if (updates.projectId !== undefined) {
+    setClauses.push('project_id = ?')
+    values.push(updates.projectId)
+  }
+  if (updates.ext1 !== undefined) {
+    setClauses.push('ext1 = ?')
+    values.push(updates.ext1)
+  }
+  if (updates.ext2 !== undefined) {
+    setClauses.push('ext2 = ?')
+    values.push(updates.ext2)
+  }
+  if (updates.ext3 !== undefined) {
+    setClauses.push('ext3 = ?')
+    values.push(updates.ext3)
+  }
+  if (updates.ext4 !== undefined) {
+    setClauses.push('ext4 = ?')
+    values.push(updates.ext4)
+  }
+  if (updates.ext5 !== undefined) {
+    setClauses.push('ext5 = ?')
+    values.push(updates.ext5)
+  }
 
   setClauses.push('updated_at = ?')
   values.push(new Date().toISOString())
@@ -242,6 +284,7 @@ export function upsert(projectData: {
   progress: number
   totalAmount: number
   usedAmount: number
+  projectId?: string
   repositories?: Repository[]
   tag?: string
   subProgress?: Project['subProgress']
@@ -251,6 +294,11 @@ export function upsert(projectData: {
   scope?: Project['scope']
   milestones?: Project['milestones']
   timeline?: Project['timeline']
+  ext1?: string
+  ext2?: string
+  ext3?: string
+  ext4?: string
+  ext5?: string
 }): Project {
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
@@ -285,6 +333,30 @@ export function upsert(projectData: {
       updates.push('repositories = ?')
       values.push(JSON.stringify(projectData.repositories))
     }
+    if (projectData.projectId !== undefined) {
+      updates.push('project_id = ?')
+      values.push(projectData.projectId)
+    }
+    if (projectData.ext1 !== undefined) {
+      updates.push('ext1 = ?')
+      values.push(projectData.ext1)
+    }
+    if (projectData.ext2 !== undefined) {
+      updates.push('ext2 = ?')
+      values.push(projectData.ext2)
+    }
+    if (projectData.ext3 !== undefined) {
+      updates.push('ext3 = ?')
+      values.push(projectData.ext3)
+    }
+    if (projectData.ext4 !== undefined) {
+      updates.push('ext4 = ?')
+      values.push(projectData.ext4)
+    }
+    if (projectData.ext5 !== undefined) {
+      updates.push('ext5 = ?')
+      values.push(projectData.ext5)
+    }
 
     db.run(`UPDATE projects SET ${updates.join(', ')} WHERE id = ?`, [...values, existingId])
     // Return updated data directly — no need to re-query
@@ -304,6 +376,12 @@ export function upsert(projectData: {
       scope: projectData.scope ?? [],
       milestones: projectData.milestones ?? [],
       timeline: projectData.timeline ?? [],
+      projectId: projectData.projectId ?? '',
+      ext1: projectData.ext1 ?? '',
+      ext2: projectData.ext2 ?? '',
+      ext3: projectData.ext3 ?? '',
+      ext4: projectData.ext4 ?? '',
+      ext5: projectData.ext5 ?? '',
     }
   } else {
     const newTeam: TeamMember[] = [{
@@ -313,6 +391,12 @@ export function upsert(projectData: {
       avatar: generateAvatarUrl(projectData.leader),
     }]
     const newProject = {
+      projectId: projectData.projectId ?? '',
+      ext1: projectData.ext1 ?? '',
+      ext2: projectData.ext2 ?? '',
+      ext3: projectData.ext3 ?? '',
+      ext4: projectData.ext4 ?? '',
+      ext5: projectData.ext5 ?? '',
       name: projectData.name,
       productLine: projectData.productLine,
       status: projectData.status ?? 'paused',

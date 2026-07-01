@@ -48,6 +48,7 @@ async function doInitDatabase(): Promise<Database> {
   db.run(`
     CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,
+      project_id TEXT DEFAULT '',
       name TEXT NOT NULL,
       product_line TEXT DEFAULT '',
       status TEXT DEFAULT 'ongoing',
@@ -64,6 +65,11 @@ async function doInitDatabase(): Promise<Database> {
       timeline TEXT DEFAULT '[]',
       leader TEXT DEFAULT '',
       repositories TEXT DEFAULT '[]',
+      ext1 TEXT DEFAULT '',
+      ext2 TEXT DEFAULT '',
+      ext3 TEXT DEFAULT '',
+      ext4 TEXT DEFAULT '',
+      ext5 TEXT DEFAULT '',
       created_at TEXT,
       updated_at TEXT
     )
@@ -217,11 +223,12 @@ async function doInitDatabase(): Promise<Database> {
       for (const project of seedProjects) {
         db.run(
           `INSERT INTO projects (
-            id, name, product_line, status, tag, total_amount, used_amount,
-            progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repositories, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            id, project_id, name, product_line, status, tag, total_amount, used_amount,
+            progress, sub_progress, notes, note_history, team, scope, milestones, timeline, leader, repositories, ext1, ext2, ext3, ext4, ext5, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             crypto.randomUUID(),
+            '',
             project.name,
             project.productLine,
             project.status,
@@ -238,6 +245,11 @@ async function doInitDatabase(): Promise<Database> {
             JSON.stringify(project.timeline),
             project.leader,
             JSON.stringify(project.repositories || []),
+            '',
+            '',
+            '',
+            '',
+            '',
             now,
             now,
           ]

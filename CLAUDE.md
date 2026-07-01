@@ -85,3 +85,4 @@ Light Tech Theme. Full spec: `docs/ui-design-system.md`.
 3. **Surgical changes** — Touch only what's required. Match existing style. Don't improve adjacent code.
 4. **Verify** — Define success criteria before starting. State a brief plan with checks for multi-step tasks.
 5. **Mature components** — Prefer shadcn/ui, Radix, stable npm packages over rolling your own.
+6. **Batch editing**: When applying the same type of change to multiple files, list each file's baseline first to identify differences. Don't assume all files follow the same pattern — verify individually before making changes. After editing, check TS + tests + visual verification.

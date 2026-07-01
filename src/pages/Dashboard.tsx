@@ -167,6 +167,7 @@ const Dashboard: React.FC = () => {
 
           for (const row of json) {
             const name = String(row['项目名称'] || '').trim()
+            const projectCode = String(row['项目编号'] || '').trim()
             const leader = String(row['负责人'] || '').trim()
             if (!name || !leader) { skipCount++; continue }
 
@@ -179,6 +180,7 @@ const Dashboard: React.FC = () => {
             const usedAmount = Number(row['已用预算']) || 0
 
             upsert({
+              projectId: projectCode,
               status: (statusKey || 'ongoing') as Project['status'],
               name,
               productLine: String(row['产品线'] || ''),
@@ -230,13 +232,13 @@ const Dashboard: React.FC = () => {
   }
 
   const handleDownloadTemplate = () => {
-    const requiredHeaders = ['项目名称', '产品线', '负责人', '总预算', '已用预算']
+    const requiredHeaders = ['项目名称', '项目编号', '产品线', '负责人', '总预算', '已用预算']
     const optionalHeaders = ['代码仓1', '分支1', '备注1', '代码仓2', '分支2', '备注2', '代码仓3', '分支3', '备注3']
     const headerRow = [
       ...requiredHeaders,
       ...optionalHeaders,
     ]
-    const sampleRow = ['示例项目', '示例产品线', '张三', 100000, 50000, '', '', '', '', '', '', '', '', '']
+    const sampleRow = ['示例项目', 'PRJ-2026-001', '示例产品线', '张三', 100000, 50000, '', '', '', '', '', '', '', '']
     const wsData = [headerRow, sampleRow]
     const ws = XLSX.utils.aoa_to_sheet(wsData)
     for (let col = 0; col < requiredHeaders.length; col++) {
@@ -251,6 +253,7 @@ const Dashboard: React.FC = () => {
 
   const handleExport = () => {
     const exportData = projects.map(p => ({
+      '项目编号': p.projectId || '',
       '项目名称': p.name,
       '产品线': p.productLine,
       '负责人': p.leader,
@@ -295,7 +298,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen">
       <Header title="项目看板" />
 
-      <main className="p-5 lg:p-7 max-w-[1600px]">
+      <main className="p-5 lg:p-7 xl:p-8 max-w-[1920px] mx-auto">
           {/* Hero */}
           <div ref={headerRef} className="flex items-end justify-between mb-6 gap-4">
             <div className="min-w-0">
