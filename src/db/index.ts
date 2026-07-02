@@ -41,8 +41,22 @@ async function doInitDatabase(): Promise<Database> {
   const SQL = await initSqlJs({ wasmBinary })
   console.log('[DB] SQL.js initialized')
 
-  db = new SQL.Database()
-  console.log('[DB] Database created')
+  // Try to load existing database from disk
+  let savedBuffer: Uint8Array | null = null
+  if (window.electronAPI?.loadDatabase) {
+    try {
+      const loaded = await window.electronAPI.loadDatabase()
+      if (loaded) {
+        savedBuffer = new Uint8Array(loaded)
+        console.log('[DB] Loaded saved database from disk, size:', savedBuffer.byteLength)
+      }
+    } catch (err) {
+      console.warn('[DB] Failed to load saved database:', err)
+    }
+  }
+
+  db = savedBuffer ? new SQL.Database(savedBuffer) : new SQL.Database()
+  console.log('[DB] Database created' + (savedBuffer ? ' (from disk)' : ' (in-memory)'))
 
   // Create projects table
   db.run(`
@@ -217,7 +231,7 @@ async function doInitDatabase(): Promise<Database> {
     const count = result[0]?.values[0]?.[0] as number || 0
     console.log('[DB] Current project count:', count, 'seeded flag:', seeded)
 
-    if (count === 0) {
+    if (count === 0 && !savedBuffer) {
       console.log('[DB] Seeding', seedProjects.length, 'projects...')
       const now = new Date().toISOString()
       for (const project of seedProjects) {
@@ -228,7 +242,7 @@ async function doInitDatabase(): Promise<Database> {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             crypto.randomUUID(),
-            '',
+            project.projectId || '',
             project.name,
             project.productLine,
             project.status,
@@ -257,6 +271,7 @@ async function doInitDatabase(): Promise<Database> {
         console.log('[DB] Inserted:', project.name)
       }
       console.log('[DB] Seed complete, seeded flag set to true')
+      persistDatabase()
     } else {
       console.log('[DB] Skipping seed, count != 0')
     }
@@ -295,6 +310,17 @@ async function doInitDatabase(): Promise<Database> {
 
 export function getDatabase(): Database | null {
   return db
+}
+
+export function persistDatabase(): void {
+  if (!db || !window.electronAPI?.saveDatabase) return
+  try {
+    const data = db.export()
+    window.electronAPI.saveDatabase(Array.from(data))
+    console.log('[DB] Database persisted to disk')
+  } catch (err) {
+    console.error('[DB] Failed to persist database:', err)
+  }
 }
 
 export type { Database }

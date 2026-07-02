@@ -13,22 +13,13 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'tnum';
   }
 
-  /* Custom scrollbar - visible on Windows */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  /* Hide scrollbar to prevent layout shift */
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-outline rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary-500;
+  html::-webkit-scrollbar {
+    display: none;
   }
 
   /* Selection color */
@@ -63,6 +54,15 @@
   /* Tabular numbers for data */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Hide scrollbar but keep scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
 

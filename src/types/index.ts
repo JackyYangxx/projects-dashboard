@@ -159,6 +159,8 @@ declare global {
       getAppVersion?: () => Promise<string>
       getPlatform?: () => Promise<string>
       getWasmBinary?: () => Promise<Uint8Array>
+      loadDatabase?: () => Promise<Uint8Array | null>
+      saveDatabase?: (data: number[]) => boolean
     }
     mcpAPI?: {
       listTools: (params: { url: string; authHeader?: string }) => Promise<unknown>

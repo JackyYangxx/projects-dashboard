@@ -1,4 +1,4 @@
-import { getDatabase } from './index'
+import { getDatabase, persistDatabase } from './index'
 import type { MCPService, Skill, LLMConfig, MRReviewRecord } from '@/types'
 
 // ── LLM Config ──────────────────────────────────────────────
@@ -11,6 +11,7 @@ export function insertLLMConfig(cfg: LLMConfig): void {
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [cfg.id, cfg.modelName, cfg.modelUrl, cfg.apiKey, cfg.apiType, cfg.enabled ? 1 : 0, cfg.createdAt]
   )
+  persistDatabase()
 }
 
 export function getAllLLMConfigs(): LLMConfig[] {
@@ -44,10 +45,12 @@ export function updateLLMConfig(id: string, updates: Partial<LLMConfig>): void {
   if (fields.length === 0) return
   vals.push(id)
   db.run(`UPDATE llm_config SET ${fields.join(', ')} WHERE id = ?`, vals)
+  persistDatabase()
 }
 
 export function deleteLLMConfig(id: string): void {
   getDatabase()?.run('DELETE FROM llm_config WHERE id = ?', [id])
+  persistDatabase()
 }
 
 // ── MCP Services ──────────────────────────────────────────────
@@ -60,6 +63,7 @@ export function insertMCPService(svc: MCPService): void {
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [svc.id, svc.name, svc.url, svc.authHeader || '', JSON.stringify(svc.tools || []), svc.enabled ? 1 : 0, svc.createdAt]
   )
+  persistDatabase()
 }
 
 export function getAllMCPServices(): MCPService[] {
@@ -91,10 +95,12 @@ export function updateMCPService(id: string, updates: Partial<MCPService>): void
   if (fields.length === 0) return
   vals.push(id)
   db.run(`UPDATE mcp_services SET ${fields.join(', ')} WHERE id = ?`, vals)
+  persistDatabase()
 }
 
 export function deleteMCPService(id: string): void {
   getDatabase()?.run('DELETE FROM mcp_services WHERE id = ?', [id])
+  persistDatabase()
 }
 
 // ── Skills ─────────────────────────────────────────────────────
@@ -107,6 +113,7 @@ export function insertSkill(skill: Skill): void {
      VALUES (?, ?, ?, ?, ?, ?)`,
     [skill.id, skill.name, skill.description || '', skill.content, skill.enabled ? 1 : 0, skill.createdAt]
   )
+  persistDatabase()
 }
 
 export function getAllSkills(): Skill[] {
@@ -136,10 +143,12 @@ export function updateSkill(id: string, updates: Partial<Skill>): void {
   if (fields.length === 0) return
   vals.push(id)
   db.run(`UPDATE skills SET ${fields.join(', ')} WHERE id = ?`, vals)
+  persistDatabase()
 }
 
 export function deleteSkill(id: string): void {
   getDatabase()?.run('DELETE FROM skills WHERE id = ?', [id])
+  persistDatabase()
 }
 
 // ── MR Review Records ──────────────────────────────────────────────
@@ -156,6 +165,7 @@ export function insertMRReviewRecord(record: MRReviewRecord): void {
       record.reviewedAt, record.createdAt,
     ]
   )
+  persistDatabase()
 }
 
 export function getMRReviewRecordsByProject(projectId: string): MRReviewRecord[] {
@@ -195,14 +205,17 @@ export function updateMRReviewRecord(id: string, updates: Partial<MRReviewRecord
   if (fields.length === 0) return
   vals.push(id)
   db.run(`UPDATE mr_review_records SET ${fields.join(', ')} WHERE id = ?`, vals)
+  persistDatabase()
 }
 
 export function deleteMRReviewRecord(id: string): void {
   getDatabase()?.run('DELETE FROM mr_review_records WHERE id = ?', [id])
+  persistDatabase()
 }
 
 export function deleteAllMRReviewRecords(): void {
   getDatabase()?.run('DELETE FROM mr_review_records')
+  persistDatabase()
 }
 
 export function getAllMRReviewRecords(): MRReviewRecord[] {

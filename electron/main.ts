@@ -118,6 +118,29 @@ ipcMain.handle('get-wasm-binary', () => {
   return fs.readFileSync(wasmPath)
 })
 
+const dbPath = path.join(app.getPath('userData'), 'projects-dashboard.db')
+
+ipcMain.handle('db:load', () => {
+  try {
+    if (fs.existsSync(dbPath)) {
+      return fs.readFileSync(dbPath)
+    }
+    return null
+  } catch (err) {
+    console.error('[DB] Failed to load database file:', err)
+    return null
+  }
+})
+
+ipcMain.on('db:save', (_event, data: number[]) => {
+  try {
+    fs.writeFileSync(dbPath, Buffer.from(data))
+    console.log('[DB] Database saved to disk, size:', data.length)
+  } catch (err) {
+    console.error('[DB] Failed to save database file:', err)
+  }
+})
+
 // MCP handlers
 ipcMain.handle('mcp:list-tools', async (_event, { url, authHeader }) => {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }

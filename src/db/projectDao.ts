@@ -1,4 +1,4 @@
-import { getDatabase } from './index'
+import { getDatabase, persistDatabase } from './index'
 import type { Project, Repository, SubProgress, TeamMember, ScopeItem, TimelineEvent, NoteHistory, Milestone } from '../types'
 import type { SqlValue } from 'sql.js'
 import { generateAvatarUrl } from '../utils/avatar'
@@ -163,6 +163,7 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
     ]
   )
 
+  persistDatabase()
   return { ...project, team, id, createdAt: now, updatedAt: now } as Project
 }
 
@@ -267,6 +268,7 @@ export function update(id: string, updates: Partial<Project>): void {
   values.push(id)
 
   db.run(`UPDATE projects SET ${setClauses.join(', ')} WHERE id = ?`, values)
+  persistDatabase()
 }
 
 export function remove(id: string): void {
@@ -274,6 +276,7 @@ export function remove(id: string): void {
   if (!db) throw new Error('Database not initialized')
 
   db.run('DELETE FROM projects WHERE id = ?', [id])
+  persistDatabase()
 }
 
 export function upsert(projectData: {
@@ -359,6 +362,7 @@ export function upsert(projectData: {
     }
 
     db.run(`UPDATE projects SET ${updates.join(', ')} WHERE id = ?`, [...values, existingId])
+    persistDatabase()
     // Return updated data directly — no need to re-query
     return {
       ...findById(existingId)!,

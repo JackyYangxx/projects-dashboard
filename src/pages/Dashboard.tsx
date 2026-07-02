@@ -29,6 +29,7 @@ const Dashboard: React.FC = () => {
   const [showMonthMenu, setShowMonthMenu] = useState(false)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ongoing')
   const [monthFilter, setMonthFilter] = useState<string>('全部')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const headerRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
@@ -74,8 +75,14 @@ const Dashboard: React.FC = () => {
         return date.getMonth() + 1 === monthIdx
       })
     }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter((p) =>
+        p.name.toLowerCase().includes(q) || p.leader.toLowerCase().includes(q)
+      )
+    }
     return result
-  }, [projects, statusFilter, monthFilter])
+  }, [projects, statusFilter, monthFilter, searchQuery])
 
   // Sync filtered IDs for prev/next nav
   useEffect(() => {
@@ -423,9 +430,29 @@ const Dashboard: React.FC = () => {
                     )}
                   </div>
 
-                  {(statusFilter !== 'all' || monthFilter !== '全部') && (
+                  {/* Search */}
+                  <div className="relative">
+                    <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-tertiary pointer-events-none" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="搜索项目名称、责任人..."
+                      className="w-52 h-9 pl-8 pr-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-on-surface-tertiary hover:text-on-surface-primary rounded transition-colors"
+                      >
+                        <Icon name="close" size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {(statusFilter !== 'all' || monthFilter !== '全部' || searchQuery) && (
                     <button
-                      onClick={() => { setStatusFilter('all'); setMonthFilter('全部') }}
+                      onClick={() => { setStatusFilter('all'); setMonthFilter('全部'); setSearchQuery('') }}
                       className="inline-flex items-center gap-1 px-2 h-9 text-xs font-body text-on-surface-tertiary hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors cursor-pointer"
                     >
                       <Icon name="filter_alt_off" size={12} />
@@ -525,10 +552,10 @@ const Dashboard: React.FC = () => {
                   <Icon name="filter_alt_off" size={28} className="text-on-surface-tertiary" />
                   <div className="text-center">
                     <p className="text-sm font-body text-on-surface-primary mb-1">没有匹配的项目</p>
-                    <p className="text-xs font-body text-on-surface-tertiary">试试调整状态或月份筛选条件</p>
+                    <p className="text-xs font-body text-on-surface-tertiary">试试调整筛选条件或搜索关键词</p>
                   </div>
                   <button
-                    onClick={() => { setStatusFilter('all'); setMonthFilter('全部') }}
+                    onClick={() => { setStatusFilter('all'); setMonthFilter('全部'); setSearchQuery('') }}
                     className="mt-1 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-body text-primary-600 hover:bg-primary-50 rounded-lg transition-colors cursor-pointer"
                   >
                     清除筛选

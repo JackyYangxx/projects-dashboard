@@ -52,6 +52,8 @@ const ProjectDetail: React.FC = () => {
   const [newMilestoneDescription, setNewMilestoneDescription] = useState('')
   const [editRepos, setEditRepos] = useState<Repository[]>([])
   const [budgetSources, setBudgetSources] = useState<BudgetSource[]>([])
+  const [isEditingTag, setIsEditingTag] = useState(false)
+  const [tagInput, setTagInput] = useState('')
 
   // Reset milestone form state when modal closes
   useEffect(() => {
@@ -184,13 +186,6 @@ const ProjectDetail: React.FC = () => {
     updateProject(project.id, { notes: html, updatedAt: new Date().toISOString() })
   }
 
-  const handleRepoSave = () => {
-    if (!project) return
-    updateProject(project.id, {
-      repositories: editRepos.filter(r => r.url.trim()),
-      updatedAt: new Date().toISOString(),
-    })
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('zh-CN', {
@@ -217,7 +212,7 @@ const ProjectDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-surface-base">
+    <div className="min-h-screen bg-surface-base flex flex-col">
       {/* Top Navigation Bar */}
       <nav className="h-14 bg-white border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
         <button
@@ -232,9 +227,38 @@ const ProjectDetail: React.FC = () => {
           <h1 className="text-base font-heading font-semibold text-on-surface-primary truncate">
             {project.name}
           </h1>
-          <span className="px-2 py-0.5 bg-primary-50 text-primary-700 border border-primary-200 rounded text-xs font-body font-medium flex-shrink-0">
-            {project.tag}
-          </span>
+          {isEditingTag ? (
+            <input
+              type="text"
+              value={tagInput}
+              autoFocus
+              onChange={e => setTagInput(e.target.value)}
+              onBlur={() => {
+                updateProject(project.id, { tag: tagInput, updatedAt: new Date().toISOString() })
+                setIsEditingTag(false)
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                if (e.key === 'Escape') setIsEditingTag(false)
+              }}
+              className="w-28 h-7 px-2 bg-white border border-primary-400 rounded text-xs font-body text-on-surface-primary focus:outline-none focus:ring-2 focus:ring-primary-500/15"
+            />
+          ) : (
+            <span
+              onClick={() => {
+                if (isReadOnly) return
+                setTagInput(project.tag)
+                setIsEditingTag(true)
+              }}
+              className={`px-2 py-0.5 rounded text-xs font-body font-medium flex-shrink-0 ${
+                project.tag
+                  ? 'bg-primary-50 text-primary-700 border border-primary-200'
+                  : 'text-on-surface-tertiary border border-dashed border-outline'
+              } ${!isReadOnly ? 'cursor-pointer hover:bg-primary-100 hover:border-primary-300' : ''}`}
+            >
+              {project.tag || '添加标签'}
+            </span>
+          )}
         </div>
         <div className="ml-auto flex items-center gap-2">
           <button
@@ -267,10 +291,10 @@ const ProjectDetail: React.FC = () => {
       </nav>
 
       {/* Main Content - Bento Grid */}
-      <main className="max-w-[1920px] mx-auto p-5 lg:p-7 xl:p-8 pb-24 lg:pb-24">
+      <main className="max-w-[1920px] mx-auto w-full p-5 lg:p-7 xl:p-8 flex-1 pb-[60px] lg:pb-[60px] xl:pb-[60px]">
         <div className="grid grid-cols-12 gap-4 xl:gap-6">
           {/* Left column - main content */}
-          <div className="col-span-12 lg:col-span-8 xl:col-span-9 space-y-4">
+          <div className="col-span-12 lg:col-span-7 space-y-4">
           {/* Row 0: Repository Info Card */}
           <div className="col-span-12">
             <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
@@ -291,6 +315,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], url: e.target.value }
                             setEditRepos(next)
+                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="https://github.com/org/repo"
@@ -304,6 +329,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], branch: e.target.value }
                             setEditRepos(next)
+                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="main"
@@ -317,6 +343,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], note: e.target.value }
                             setEditRepos(next)
+                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="备注（可选）"
@@ -326,7 +353,11 @@ const ProjectDetail: React.FC = () => {
                         {editRepos.length > 1 && (
                           <button
                             type="button"
-                            onClick={() => setEditRepos(editRepos.filter((_, i) => i !== idx))}
+                            onClick={() => {
+                              const next = editRepos.filter((_, i) => i !== idx)
+                              setEditRepos(next)
+                              updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                            }}
                             className="w-8 h-8 flex items-center justify-center rounded-md text-on-surface-tertiary hover:text-red-500 hover:bg-red-50 transition-colors"
                             title="删除此代码仓"
                           >
@@ -338,21 +369,16 @@ const ProjectDetail: React.FC = () => {
                   ))}
                   <button
                     type="button"
-                    onClick={() => setEditRepos([...editRepos, { id: crypto.randomUUID(), url: '', branch: 'main' }])}
+                    onClick={() => {
+                      const next = [...editRepos, { id: crypto.randomUUID(), url: '', branch: 'main' }]
+                      setEditRepos(next)
+                      updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                    }}
                     className="inline-flex items-center gap-1.5 h-8 px-3 border border-dashed border-outline rounded-md text-xs font-body text-on-surface-tertiary hover:border-primary-300 hover:text-primary-600 transition-colors"
                   >
                     <Icon name="add" size={14} />
                     添加代码仓
                   </button>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleRepoSave}
-                      className="inline-flex items-center h-8 px-3 bg-primary-500 text-white rounded-md text-xs font-body font-medium hover:bg-primary-600 transition-colors"
-                    >
-                      保存代码仓
-                    </button>
-                  </div>
                 </div>
               ) : (
                 <div className="text-sm font-body text-on-surface-primary">
@@ -364,6 +390,11 @@ const ProjectDetail: React.FC = () => {
                           <span className="font-mono text-xs">{repo.url}</span>
                           <span className="text-on-surface-tertiary">@</span>
                           <span className="font-mono text-xs">{repo.branch || '—'}</span>
+                          {project.projectId && (
+                            <span className="text-xs font-mono text-on-surface-tertiary ml-auto border border-outline px-1.5 py-0.5 rounded">
+                              {project.projectId}
+                            </span>
+                          )}
                           {repo.note && (
                             <span className="text-xs text-on-surface-tertiary ml-2">({repo.note})</span>
                           )}
@@ -587,6 +618,12 @@ const ProjectDetail: React.FC = () => {
                 </div>
                 <div className="space-y-3 pt-4 border-t border-outline">
                   <div>
+                    <p className="text-xs font-body text-on-surface-tertiary mb-1">已获取</p>
+                    <p className="w-full text-right text-lg font-heading font-semibold text-on-surface-primary tabular-nums px-2">
+                      {formatCurrency(totalBudget)}
+                    </p>
+                  </div>
+                  <div>
                     <p className="text-xs font-body text-on-surface-tertiary mb-1">总预算</p>
                     {isEditingTotalBudget ? (
                       <input
@@ -618,17 +655,11 @@ const ProjectDetail: React.FC = () => {
                         }}
                         disabled={isReadOnly}
                         title={isReadOnly ? '' : '点击编辑'}
-                        className={`w-full text-right text-lg font-heading font-semibold text-on-surface-primary tabular-nums ${isReadOnly ? '' : 'hover:bg-surface-hover rounded px-2 -mx-2 cursor-text'}`}
+                        className={`w-full text-right text-lg font-heading font-semibold text-on-surface-primary tabular-nums px-2 ${isReadOnly ? '' : 'hover:bg-surface-hover rounded -mx-2 cursor-text'}`}
                       >
                         {formatCurrency(project.totalAmount)}
                       </button>
                     )}
-                  </div>
-                  <div>
-                    <p className="text-xs font-body text-on-surface-tertiary mb-1">已获取</p>
-                    <p className="text-lg font-heading font-semibold text-on-surface-primary tabular-nums text-right">
-                      {formatCurrency(totalBudget)}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -679,30 +710,34 @@ const ProjectDetail: React.FC = () => {
                 </div>
               )}
 
+              {!isReadOnly && (
               <button
                 onClick={() => setShowMemberModal(true)}
-                className="mt-4 h-9 border border-dashed border-outline rounded-md text-sm font-body text-on-surface-tertiary hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-1.5"
+                className="mt-4 w-full h-9 border border-dashed border-outline rounded-md text-sm font-body text-on-surface-tertiary hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-1.5"
               >
                 <Icon name="add" size={14} />
                 添加成员
               </button>
+              )}
             </div>
           </div>
           </div>
 
-          {/* Right column - project notes (always editable, scrollable sidebar) */}
-          <div className="col-span-12 lg:col-span-4 xl:col-span-3">
-            <div className="lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto pr-1 space-y-4">
-              {/* Note History Accordion */}
+          {/* Right column - project notes (fixed height, scrollable history, editor at bottom) */}
+          <div className="col-span-12 lg:col-span-5">
+            <div className="lg:sticky lg:top-[72px] lg:max-h-[calc(100vh-88px)] lg:flex lg:flex-col pr-1">
+              {/* Note History Accordion - takes remaining space, scrollable */}
               {project.noteHistory.length > 0 && (
-                <div className="bg-white border border-outline rounded-lg overflow-hidden shadow-card">
+                <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide mb-4">
+                  <div className="bg-white border border-outline rounded-lg overflow-hidden shadow-card">
                   <div
                     className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-surface-hover/40 transition-colors"
                     onClick={() => {
                       if (expandedHistoryIds.size > 0) {
                         setExpandedHistoryIds(new Set())
                       } else {
-                        setExpandedHistoryIds(new Set(project.noteHistory.map(e => e.id)))
+                        const latestId = project.noteHistory[project.noteHistory.length - 1]?.id
+                        setExpandedHistoryIds(latestId ? new Set([latestId]) : new Set())
                       }
                     }}
                   >
@@ -760,9 +795,12 @@ const ProjectDetail: React.FC = () => {
                     </div>
                   )}
                 </div>
+                </div>
               )}
 
-              {/* Project Notes Card */}
+              {/* Project Notes Card - fixed at bottom, always visible */}
+              <div className="flex-shrink-0">
+              {!isReadOnly && (
               <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
@@ -795,10 +833,25 @@ const ProjectDetail: React.FC = () => {
                   </button>
                 </div>
               </div>
+              )}
+              </div>
             </div>
           </div>
         </div>
       </main>
+      {/* Prev/Next Navigation - fixed at bottom within right panel */}
+      <div className="fixed bottom-0 left-64 right-0 z-10">
+        <div className="max-w-[1920px] mx-auto w-full">
+          <PrevNextNav
+            prevId={prevId}
+            nextId={nextId}
+            currentIndex={displayIndex}
+            total={filteredProjectIds.length}
+            onPrev={() => prevId && navigate(`/project/${prevId}`)}
+            onNext={() => nextId && navigate(`/project/${nextId}`)}
+          />
+        </div>
+      </div>
 
       {/* Team Member Add Modal */}
       {showMemberModal && (
@@ -973,14 +1026,6 @@ const ProjectDetail: React.FC = () => {
           </div>
         </div>
       )}
-      <PrevNextNav
-        prevId={prevId}
-        nextId={nextId}
-        currentIndex={displayIndex}
-        total={filteredProjectIds.length}
-        onPrev={() => prevId && navigate(`/project/${prevId}`)}
-        onNext={() => nextId && navigate(`/project/${nextId}`)}
-      />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { getDatabase } from './index'
+import { getDatabase, persistDatabase } from './index'
 import type { BudgetSource } from '../types'
 
 function generateId(): string {
@@ -48,6 +48,7 @@ export function insertBudgetSource(source: Omit<BudgetSource, 'createdAt' | 'upd
     [id, source.projectId, source.label, source.amount, source.usedAmount, source.date, source.note ?? null, now, now]
   )
 
+  persistDatabase()
   return { ...source, id, createdAt: now, updatedAt: now }
 }
 
@@ -86,6 +87,7 @@ export function updateBudgetSource(id: string, updates: Partial<BudgetSource>): 
   values.push(id)
 
   db.run(`UPDATE budget_sources SET ${setClauses.join(', ')} WHERE id = ?`, values)
+  persistDatabase()
 }
 
 export function deleteBudgetSource(id: string): void {
@@ -93,6 +95,7 @@ export function deleteBudgetSource(id: string): void {
   if (!db) throw new Error('Database not initialized')
 
   db.run('DELETE FROM budget_sources WHERE id = ?', [id])
+  persistDatabase()
 }
 
 export function deleteBudgetSourcesByProject(projectId: string): void {
@@ -100,4 +103,5 @@ export function deleteBudgetSourcesByProject(projectId: string): void {
   if (!db) throw new Error('Database not initialized')
 
   db.run('DELETE FROM budget_sources WHERE project_id = ?', [projectId])
+  persistDatabase()
 }

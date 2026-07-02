@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { seedProjects } from '@/data/seedData'
 
 describe('seedData', () => {
-  it('has 3 seed projects', () => {
-    expect(seedProjects).toHaveLength(3)
+  it('has 53 seed projects', () => {
+    expect(seedProjects).toHaveLength(53)
   })
 
   it('each seed project has a projectId', () => {

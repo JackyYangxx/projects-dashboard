@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './styles/globals.css'
-import { initDatabase } from './db'
+import { initDatabase, persistDatabase } from './db'
 
 // Global unhandled error handlers
 window.addEventListener('error', (event) => {
@@ -11,6 +11,11 @@ window.addEventListener('error', (event) => {
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('[App] Unhandled promise rejection:', event.reason)
+})
+
+// Persist database on page close
+window.addEventListener('beforeunload', () => {
+  persistDatabase()
 })
 
 // Redirect pathname to hash for HashRouter compatibility (e.g. /code-review → /#/code-review)

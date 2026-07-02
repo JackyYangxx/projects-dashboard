@@ -32,7 +32,7 @@ const PrevNextNav: React.FC<PrevNextNavProps> = ({
   }, [prevId, nextId, onPrev, onNext])
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-12 bg-white border-t border-outline flex items-center justify-between px-6">
+    <div className="h-12 bg-white border-t border-outline flex items-center justify-between px-6">
       <button
         onClick={onPrev}
         disabled={!prevId}
