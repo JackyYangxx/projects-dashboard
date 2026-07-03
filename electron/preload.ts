@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlatform: () => ipcRenderer.invoke('get-platform'),
   getWasmBinary: () => ipcRenderer.invoke('get-wasm-binary'),
   loadDatabase: () => ipcRenderer.invoke('db:load'),
-  saveDatabase: (data: number[]) => ipcRenderer.sendSync('db:save', data),
+  saveDatabase: (data: number[]) => ipcRenderer.send('db:save', data),
 })
 
 contextBridge.exposeInMainWorld('mcpAPI', {

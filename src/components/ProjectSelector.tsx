@@ -58,9 +58,21 @@ export default function ProjectSelector({ selectedIds, onChange }: Props) {
                 />
               </td>
               <td className="px-4 py-3 text-sm font-medium text-on-surface-primary">{project.name}</td>
-              <td className="px-4 py-3 text-sm text-on-surface-tertiary truncate max-w-[300px]">
+              <td className="px-4 py-3 text-sm text-on-surface-tertiary">
                 {project.repositories.length > 0
-                  ? `${project.repositories.length}个代码仓`
+                  ? project.repositories.map((repo, i) => (
+                      <div key={repo.id} className={i > 0 ? 'mt-0.5' : ''}>
+                        <a
+                          href={repo.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary-500 hover:underline"
+                        >
+                          {repo.url}
+                        </a>
+                        <span className="text-on-surface-tertiary ml-1">({repo.branch})</span>
+                      </div>
+                    ))
                   : '-'}
               </td>
             </tr>
