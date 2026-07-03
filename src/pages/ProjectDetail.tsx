@@ -7,7 +7,8 @@ import Icon from '@/components/Icon'
 import ProgressSlider from '@/components/ProgressSlider'
 import RichEditor from '@/components/RichEditor'
 import PrevNextNav from '@/components/PrevNextNav'
-import type { BudgetSource, Repository } from '@/types'
+import { STATUS_LABELS, VALID_STATUSES } from '@/constants/project'
+import type { BudgetSource, Project, Repository } from '@/types'
 import { getAllBudgetSources, insertBudgetSource, updateBudgetSource, deleteBudgetSource } from '@/db/budgetSourceDao'
 
 const ProjectDetail: React.FC = () => {
@@ -54,6 +55,7 @@ const ProjectDetail: React.FC = () => {
   const [budgetSources, setBudgetSources] = useState<BudgetSource[]>([])
   const [isEditingTag, setIsEditingTag] = useState(false)
   const [tagInput, setTagInput] = useState('')
+  const [isEditingStatus, setIsEditingStatus] = useState(false)
 
   // Reset milestone form state when modal closes
   useEffect(() => {
@@ -273,17 +275,35 @@ const ProjectDetail: React.FC = () => {
             <Icon name={isReadOnly ? 'edit' : 'visibility'} size={15} />
             {isReadOnly ? '编辑' : '编辑中'}
           </button>
-          <span
-            className={`inline-flex items-center px-2 h-7 rounded-md text-xs font-body font-medium border ${
-              project.status === 'ongoing'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : project.status === 'completed'
-                  ? 'bg-primary-50 border-primary-200 text-primary-700'
-                  : 'bg-amber-50 border-amber-200 text-amber-700'
-            }`}
-          >
-            {project.status === 'ongoing' ? '进行中' : project.status === 'completed' ? '已完成' : '已暂停'}
-          </span>
+          {isEditingStatus ? (
+            <select
+              value={project.status}
+              autoFocus
+              onChange={e => {
+                updateProject(project.id, { status: e.target.value as Project['status'], updatedAt: new Date().toISOString() })
+                setIsEditingStatus(false)
+              }}
+              onBlur={() => setIsEditingStatus(false)}
+              className="h-7 px-2 bg-white border border-primary-400 rounded text-xs font-body font-medium text-on-surface-primary focus:outline-none focus:ring-2 focus:ring-primary-500/15"
+            >
+              {VALID_STATUSES.map(s => (
+                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+              ))}
+            </select>
+          ) : (
+            <span
+              onClick={() => { if (!isReadOnly) setIsEditingStatus(true) }}
+              className={`inline-flex items-center px-2 h-7 rounded-md text-xs font-body font-medium border ${
+                project.status === 'ongoing'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  : project.status === 'completed'
+                    ? 'bg-primary-50 border-primary-200 text-primary-700'
+                    : 'bg-amber-50 border-amber-200 text-amber-700'
+              } ${!isReadOnly ? 'cursor-pointer hover:opacity-80' : ''}`}
+            >
+              {STATUS_LABELS[project.status]}
+            </span>
+          )}
           <span className="text-xs font-body text-on-surface-tertiary font-mono">
             {project.projectId ? `${project.projectId} · ` : ''}#{project.id.slice(0, 8)}
           </span>
@@ -798,9 +818,8 @@ const ProjectDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Project Notes Card - fixed at bottom, always visible */}
+              {/* Project Notes Card - always visible */}
               <div className="flex-shrink-0">
-              {!isReadOnly && (
               <div className="bg-white border border-outline rounded-lg p-5 shadow-card">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-body font-medium text-on-surface-secondary flex items-center gap-2">
@@ -808,32 +827,39 @@ const ProjectDetail: React.FC = () => {
                     项目笔记
                   </h3>
                 </div>
-                <RichEditor
-                  value={project.notes}
-                  onChange={handleNotesChange}
-                  placeholder="在此记录项目进展、关键决策和重要事项..."
-                />
-                <div className="flex items-center justify-end gap-2 mt-4">
-                  <button
-                    onClick={() => {
-                      updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
-                    }}
-                    className="inline-flex items-center h-9 px-3 border border-outline rounded-md text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-colors"
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={() => {
-                      const { addNoteHistory } = useProjectStore.getState()
-                      addNoteHistory(project.id, project.notes)
-                    }}
-                    className="inline-flex items-center h-9 px-3 bg-primary-500 text-white rounded-md text-sm font-body font-medium hover:bg-primary-600 transition-colors"
-                  >
-                    保存历史
-                  </button>
-                </div>
+                {isReadOnly ? (
+                  <RichEditor value={project.notes || ''} readOnly placeholder="" />
+                ) : (
+                  <>
+                    <RichEditor
+                      value={project.notes || ''}
+                      onChange={handleNotesChange}
+                      placeholder="在此记录项目进展、关键决策和重要事项..."
+                    />
+                    <div className="flex items-center justify-end gap-2 mt-4">
+                      <button
+                        onClick={() => {
+                          updateProject(project.id, { notes: '', updatedAt: new Date().toISOString() })
+                        }}
+                        className="inline-flex items-center h-9 px-3 border border-outline rounded-md text-sm font-body text-on-surface-primary hover:bg-surface-hover transition-colors"
+                      >
+                        取消
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!project.notes || !project.notes.trim()) return
+                          const { addNoteHistory } = useProjectStore.getState()
+                          addNoteHistory(project.id, project.notes)
+                        }}
+                        disabled={!project.notes || !project.notes.trim()}
+                        className="inline-flex items-center h-9 px-3 bg-primary-500 text-white rounded-md text-sm font-body font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        保存历史
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-              )}
               </div>
             </div>
           </div>
