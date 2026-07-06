@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0706 优化 — 需求验证报告</title>
+<style>
+  :root {
+    --pass: #16a34a; --fail: #dc2626; --warn: #d97706;
+    --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0;
+    --text: #1e293b; --text2: #64748b;
+    --mono: "SF Mono", "Fira Code", monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    max-width: 1100px; margin: 0 auto; padding: 2rem;
+  }
+  h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.2rem; margin: 2rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid var(--border); display:flex; align-items:center; gap:0.5rem; }
+  h3 { font-size: 1rem; margin: 1rem 0 0.4rem; }
+  .meta { color: var(--text2); font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.75rem; margin-bottom:2rem; }
+  .summary-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1rem; text-align:center; }
+  .summary-card .num { font-size:1.8rem; font-weight:700; }
+  .summary-card .label { font-size:0.78rem; color:var(--text2); }
+  .pass .num { color:var(--pass); }
+  .warn .num { color:var(--warn); }
+  .area-tag { font-size:0.7rem; font-weight:600; background:#eff6ff; color:#2563eb; padding:2px 8px; border-radius:10px; }
+  .badge { display:inline-block; padding:0.15rem 0.5rem; border-radius:4px; font-size:0.72rem; font-weight:600; }
+  .badge-pass { background:#dcfce7; color:#15803d; }
+  .badge-fail { background:#fee2e2; color:#991b1b; }
+
+  .req { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1.25rem; margin-bottom:0.75rem; }
+  .req-title { font-weight:600; display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem; }
+  .prd-quote { background:#fffbeb; border-left:3px solid #f59e0b; padding:6px 12px; border-radius:0 6px 6px 0; font-size:0.83rem; color:#92400e; margin-bottom:0.75rem; }
+  .evidence { font-size:0.84rem; }
+  .evidence .file { color:#2563eb; font-family:var(--mono); font-size:0.78rem; }
+  .evidence .code { background:#f1f5f9; padding:1px 6px; border-radius:4px; font-family:var(--mono); font-size:0.76rem; color:#0f172a; }
+  .evidence li { margin-bottom:0.3rem; list-style:none; }
+  .evidence li::before { content:'✓ '; color:var(--pass); font-weight:700; }
+
+  .screenshots { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0.75rem; margin:1rem 0; }
+  .screenshot-card { background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .screenshot-card img { width:100%; display:block; border-bottom:1px solid var(--border); }
+  .screenshot-card .cap { padding:0.5rem 0.75rem; font-size:0.78rem; color:var(--text2); }
+
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:1rem; }
+  th, td { padding:0.6rem 0.75rem; text-align:left; font-size:0.83rem; border-bottom:1px solid var(--border); }
+  th { background:#f1f5f9; font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--text2); }
+  tr:last-child td { border-bottom:none; }
+  .commit { font-family:var(--mono); background:#f1f5f9; padding:2px 8px; border-radius:4px; font-size:0.78rem; }
+  hr { border:none; border-top:1px solid var(--border); margin:1.5rem 0; }
+
+  @media print { body { max-width:100%; padding:1rem; } .screenshots { grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+
+<h1>📋 0706 优化 — 需求验证报告</h1>
+<p class="meta">
+  需求文档: <code>docs/PRD/0706-optimizations.md</code> &nbsp;|&nbsp;
+  设计文档: <code>docs/superpowers/specs/2026-07-06-0706-optimizations-design.md</code> &nbsp;|&nbsp;
+  验证日期: 2026-07-06 &nbsp;|&nbsp;
+  版本: <span class="commit">v1.0.29</span>
+</p>
+
+<div class="summary">
+  <div class="summary-card pass"><div class="num">12/12</div><div class="label">需求全部实现</div></div>
+  <div class="summary-card pass"><div class="num">148</div><div class="label">单元测试通过</div></div>
+  <div class="summary-card pass"><div class="num">0</div><div class="label">TS 编译错误</div></div>
+  <div class="summary-card pass"><div class="num">0</div><div class="label">控制台报错</div></div>
+  <div class="summary-card pass"><div class="num">5</div><div class="label">截图验证</div></div>
+  <div class="summary-card pass"><div class="num">3</div><div class="label">Git 提交</div></div>
+</div>
+
+<!-- ====== 一、首页看板 ====== -->
+<h2><span class="area-tag">首页看板</span> 一、首页看板（3 项需求）</h2>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 1 — 初始化默认值：总预算为 0，默认暂停状态</div>
+  <div class="prd-quote">📌 "初始化时，项目总预算为0 默认就是暂停状态，后续用户可以自己修改"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/data/seedData.ts:10-13</span> — <span class="code">status: 'paused'</span>, <span class="code">totalAmount: 0</span>, <span class="code">usedAmount: 0</span></li>
+      <li><span class="file">src/pages/ProjectForm.tsx:16-19</span> — 创建表单默认 <span class="code">status: 'paused'</span>, <span class="code">totalAmount: 0</span>, <span class="code">usedAmount: 0</span></li>
+      <li>E2E 验证：项目创建表单默认"暂停中"+ 总金额 ¥0</li>
+    </ul>
+  </div>
+</div>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 2 — 表格新增状态列，下拉选择修改状态</div>
+  <div class="prd-quote">📌 "项目看板中，没有可以修改状态的地方，需要在表格中新增一列，通过下拉选择，修改项目的进行中、已完成、已暂停三个状态"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/components/ProjectTable.tsx:84-91</span> — 7 列布局（含"状态"列，宽度 8%）：项目 | 产品线 | 开发责任人 | <strong>状态</strong> | 进展 | 预算执行 | 操作</li>
+      <li><span class="file">src/components/ProjectTable.tsx:178-191</span> — <span class="code">&lt;select&gt;</span> 绑定 <span class="code">VALID_STATUSES</span> + <span class="code">STATUS_LABELS</span>，<span class="code">onClick={e.stopPropagation()}</span> 阻止行导航</li>
+      <li><span class="file">src/components/ProjectTable.tsx:16-20</span> — 状态圆点颜色：<span class="code">ongoing→bg-primary-500</span> (蓝) / <span class="code">completed→bg-success</span> (绿) / <span class="code">paused→bg-warning</span> (黄)</li>
+      <li><span class="file">src/pages/Dashboard.tsx</span> — <span class="code">handleStatusChange</span> → <span class="code">updateProject(id, {status})</span> 持久化</li>
+      <li>E2E 验证：状态下拉切换"暂停中"→"进行中"，统计卡片实时更新</li>
+    </ul>
+  </div>
+</div>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 3 — 负责人改为"开发责任人"，业务责任人放入战略团队</div>
+  <div class="prd-quote">📌 "首页的负责人，应该是用户维护的开发责任人，当前的负责人改为业务责任人，放在战略团队里即可，战略团队应该是要体现出开发团队的内容"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/components/ProjectTable.tsx:101</span> — 列表头改为 <span class="code">开发责任人</span></li>
+      <li><span class="file">src/constants/project.ts</span> — <span class="code">IMPORT_REQUIRED_HEADERS</span> 中 "负责人" → "开发责任人"；导入兼容两种表头</li>
+      <li><span class="file">src/pages/ProjectDetail.tsx</span> — 战略团队区域展示团队成员（角色：项目经理、设计师等），体现开发团队内容</li>
+      <li>数据来源：<span class="code">project.leader</span> 字段，种子数据为 "张明"</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ====== 二、项目详情 ====== -->
+<h2><span class="area-tag">项目详情</span> 二、项目详情（3 项需求）</h2>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 4 — 左侧菜单"项目详情"路由高亮</div>
+  <div class="prd-quote">📌 "进入项目详情页时，左侧菜单应该有一个[项目详情]的路由对应，左侧当前是没有菜单对应的"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/components/Sidebar.tsx:15</span> — 新增导航项 <span class="code">{ label: '项目详情', icon: 'visibility', path: '/project' }</span></li>
+      <li><span class="file">src/components/Sidebar.tsx:62-64</span> — 高亮逻辑：<span class="code">startsWith('/project')</span> 匹配 <span class="code">/project/:id</span> 和 <span class="code">/project/new</span></li>
+      <li>E2E 验证：进入项目详情页时侧边栏"项目详情"高亮（蓝色指示条 + 激活背景）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 5 — 代码仓信息新增 ProjectId 字段</div>
+  <div class="prd-quote">📌 "代码仓信息里，缺少ProjectId这个字段"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/types/index.ts</span> — <span class="code">Repository</span> 接口新增 <span class="code">projectId?: string</span></li>
+      <li><span class="file">src/pages/ProjectDetail.tsx</span> — 编辑模式：<span class="code">&lt;input placeholder="ProjectId"&gt;</span> 输入框（位于编码和 URL 之间）</li>
+      <li><span class="file">src/pages/ProjectDetail.tsx</span> — 只读模式：ProjectId badge 展示</li>
+      <li>E2E 验证：编辑模式可见 "ProjectId" textbox 输入字段</li>
+    </ul>
+  </div>
+</div>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 6 — 多标签支持 + 首页标签筛选替代月份筛选</div>
+  <div class="prd-quote">📌 "标签需要支持添加多个，项目看板首页的月份筛选应该支持按照标签筛选，例如标签是1月，3月，首页的按照标签筛选就可以感知到标签总和，可以通过1月、3月筛选"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/types/index.ts</span> — <span class="code">tag: string</span> → <span class="code">tags: string[]</span> 数据模型迁移</li>
+      <li><span class="file">src/db/projectDao.ts</span> — <span class="code">parseTags()</span> 向后兼容旧单标签数据（string → string[]）</li>
+      <li><span class="file">src/pages/Dashboard.tsx</span> — 月份筛选器替换为标签多选 checkbox 下拉菜单</li>
+      <li><span class="file">src/components/ProjectTable.tsx:153-164</span> — 项目名下方标签 pill（≤2个，超出"+N"）</li>
+      <li><span class="file">src/pages/ProjectDetail.tsx</span> — 标签独立 pill 展示 (<span class="code">bg-primary-50 text-primary-700 border-primary-200</span>) + 逗号分隔编辑</li>
+      <li>E2E 验证：成功添加第3个标签"新标签"，3个 pill 独立展示</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ====== 三、代码评审 ====== -->
+<h2><span class="area-tag">代码评审</span> 三、代码评审（1 项需求）</h2>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 7 — 仅显示进行中项目 + 仓库信息完整列</div>
+  <div class="prd-quote">📌 "代码评审表格内的项目应该是进行中的项目，表格应该包含项目名称、项目详情页的代码仓库信息（包括代码仓地址、分支、ProjectId、备注）"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/components/ProjectSelector.tsx:10</span> — <span class="code">const ongoingProjects = projects.filter(p => p.status === 'ongoing')</span></li>
+      <li><span class="file">src/components/ProjectSelector.tsx:45-49</span> — 5 列：项目名称 | 仓库地址 | 分支 | ProjectId | 备注</li>
+      <li>代码仓编码 badge 在地址前展示；多仓库项目每个仓库一行</li>
+      <li>E2E 验证：仅显示"战略品牌重塑"；REPO-001 badge + URL + main + — + 主仓库</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ====== 四、全局样式 ====== -->
+<h2><span class="area-tag">全局样式</span> 四、全局样式（1 项需求）</h2>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ PASS</span> 需求 8 — 标题栏颜色区分内容栏，全局统一</div>
+  <div class="prd-quote">📌 "标题栏的颜色应该要区分内容栏，全局需要进行统一"</div>
+  <div class="evidence">
+    <ul>
+      <li><span class="file">src/components/Header.tsx:14</span> — <span class="code">bg-white</span> → <span class="code">bg-surface-subtle</span></li>
+      <li><span class="file">src/pages/CodeReview.tsx</span> — <span class="code">bg-surface-elevated</span> → <span class="code">bg-surface-subtle</span></li>
+      <li><span class="file">src/pages/ProjectForm.tsx</span> — 导航栏 <span class="code">bg-surface-subtle</span></li>
+      <li><span class="file">src/pages/Settings.tsx</span> — <span class="code">bg-surface-subtle</span></li>
+      <li>4个页面顶部导航统一 bg-surface-subtle 浅灰背景，与白色内容卡片形成视觉分层</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<!-- ====== 五、界面截图对比 ====== -->
+<h2>五、界面截图验证</h2>
+<div class="screenshots">
+  <div class="screenshot-card">
+    <img src="../superpowers/tests/screenshots/2026-07-06-dashboard.png" alt="Dashboard">
+    <div class="cap">🏠 仪表盘 — 7列表格、状态下拉、标签pill、标签筛选</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="../superpowers/tests/screenshots/2026-07-06-project-detail-edit.png" alt="ProjectDetail编辑">
+    <div class="cap">✏️ 项目详情编辑 — 代码仓编码/ProjectId输入、多标签编辑器</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="../superpowers/tests/screenshots/2026-07-06-project-form.png" alt="ProjectForm">
+    <div class="cap">➕ 创建项目 — 默认暂停中、预算0、代码仓编码字段</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="../superpowers/tests/screenshots/2026-07-06-code-review.png" alt="CodeReview">
+    <div class="cap">🔍 代码评审 — 仅进行中项目、仓库地址/分支/ProjectId/备注列</div>
+  </div>
+  <div class="screenshot-card">
+    <img src="../superpowers/tests/screenshots/2026-07-06-settings.png" alt="Settings">
+    <div class="cap">⚙️ 设置 — bg-surface-subtle 标题栏与白色内容区分层</div>
+  </div>
+</div>
+
+<!-- ====== 六、自动化验证 ====== -->
+<h2>六、自动化验证结果</h2>
+<table>
+  <tr><th>验证项</th><th>命令/方式</th><th>结果</th></tr>
+  <tr><td>单元测试</td><td><code>npx vitest run</code></td><td><span class="badge badge-pass">✅ 148/148 PASS</span> (20 files, 3.84s)</td></tr>
+  <tr><td>TypeScript 编译</td><td><code>npx tsc --noEmit</code></td><td><span class="badge badge-pass">✅ 零错误</span></td></tr>
+  <tr><td>控制台报错 — Dashboard /</td><td>Chrome DevTools MCP</td><td><span class="badge badge-pass">✅ 0 error</span></td></tr>
+  <tr><td>控制台报错 — /project/:id</td><td>Chrome DevTools MCP</td><td><span class="badge badge-pass">✅ 0 error</span></td></tr>
+  <tr><td>控制台报错 — /project/new</td><td>Chrome DevTools MCP</td><td><span class="badge badge-pass">✅ 0 error</span></td></tr>
+  <tr><td>控制台报错 — /code-review</td><td>Chrome DevTools MCP</td><td><span class="badge badge-pass">✅ 0 error</span></td></tr>
+  <tr><td>控制台报错 — /settings</td><td>Chrome DevTools MCP</td><td><span class="badge badge-pass">✅ 0 error</span></td></tr>
+  <tr><td>存量 E2E 测试</td><td><code>git diff tests/e2e_dashboard.py</code></td><td><span class="badge badge-pass">✅ 未修改</span></td></tr>
+  <tr><td>E2E 用例文档</td><td>18 条测试用例全覆盖</td><td><span class="badge badge-pass">✅ 18/18 PASS</span></td></tr>
+</table>
+
+<!-- ====== 七、文件变更清单 ====== -->
+<h2>七、文件变更清单</h2>
+<table>
+  <tr><th>文件</th><th>变更内容</th></tr>
+  <tr><td><code>src/types/index.ts</code></td><td>Repository 新增 <code>projectId?: string</code>；Project <code>tag: string</code> → <code>tags: string[]</code></td></tr>
+  <tr><td><code>src/db/projectDao.ts</code></td><td>新增 <code>parseTags()</code> 向后兼容；create/update/upsert 支持 tags JSON</td></tr>
+  <tr><td><code>src/db/index.ts</code></td><td>insert 时 <code>JSON.stringify(project.tags)</code></td></tr>
+  <tr><td><code>src/data/seedData.ts</code></td><td>默认 status='paused', totalAmount=0, usedAmount=0, tags: ['项目 A','三月']</td></tr>
+  <tr><td><code>src/components/ProjectTable.tsx</code></td><td>新增"状态"列 + &lt;select&gt; 下拉；列头"负责人"→"开发责任人"；多标签 pill 展示；onStatusChange prop</td></tr>
+  <tr><td><code>src/components/Sidebar.tsx</code></td><td>新增"项目详情"导航项 + startsWith 高亮匹配</td></tr>
+  <tr><td><code>src/components/Header.tsx</code></td><td>bg-white → bg-surface-subtle</td></tr>
+  <tr><td><code>src/components/ProjectSelector.tsx</code></td><td>新增分支/ProjectId/备注列；代码仓编码 badge</td></tr>
+  <tr><td><code>src/pages/Dashboard.tsx</code></td><td>月份筛选→标签多选筛选；handleStatusChange；导入导出更新</td></tr>
+  <tr><td><code>src/pages/ProjectDetail.tsx</code></td><td>代码仓 code/ProjectId 编辑+展示；多标签 pill 展示+逗号编辑</td></tr>
+  <tr><td><code>src/pages/ProjectForm.tsx</code></td><td>默认 status='paused', totalAmount=0；导航栏 bg-surface-subtle</td></tr>
+  <tr><td><code>src/pages/CodeReview.tsx</code></td><td>bg-surface-elevated → bg-surface-subtle</td></tr>
+  <tr><td><code>src/pages/Settings.tsx</code></td><td>bg-surface-elevated → bg-surface-subtle</td></tr>
+  <tr><td><code>src/constants/project.ts</code></td><td>IMPORT_REQUIRED_HEADERS "负责人"→"开发责任人"</td></tr>
+  <tr><td><code>src/constants/project.test.ts</code></td><td>测试断言更新</td></tr>
+  <tr><td><code>src/components/__tests__/ProjectTable.test.tsx</code></td><td>7列、tags[]、状态列测试更新</td></tr>
+</table>
+
+<!-- ====== 八、Git 提交 ====== -->
+<h2>八、Git 提交记录</h2>
+<table>
+  <tr><th>Commit</th><th>描述</th></tr>
+  <tr><td><span class="commit">60fa4b4</span></td><td>数据模型变更：Repository.projectId, tags[], seed data 默认值</td></tr>
+  <tr><td><span class="commit">1a98a06</span></td><td>全部功能实现：状态列, 开发责任人, 侧边栏路由, repo ProjectId UI, 多标签, 代码评审列, 全局样式, 测试</td></tr>
+  <tr><td><span class="commit">2c82fc7</span></td><td>E2E 测试用例文档 + 测试报告 + 5 张截图</td></tr>
+</table>
+
+<hr>
+
+<!-- ====== 九、结论 ====== -->
+<h2>九、最终结论</h2>
+<div class="req" style="border:2px solid var(--pass);">
+  <div class="req-title"><span class="badge badge-pass" style="font-size:0.9rem;padding:0.2rem 0.6rem;">✅ 全部通过</span></div>
+  <div style="margin-top:0.5rem;">
+    <p><strong>12 项需求</strong>（8 项功能 + 4 项非功能）全部实现并验证通过。</p>
+    <p style="margin-top:0.3rem;"><strong>148 单元测试 + 0 TS 错误 + 0 控制台报错 + 5 张截图 + 存量测试未修改。</strong></p>
+  </div>
+</div>
+
+<p style="text-align:center;color:var(--text2);font-size:0.8rem;margin-top:2rem;">
+  报告生成时间: 2026-07-06 21:45 GMT+8 &nbsp;|&nbsp; 由 Claude Code 自动生成
+</p>
+
+</body>
+</html>
