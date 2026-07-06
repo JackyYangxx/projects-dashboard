@@ -1,180 +1,409 @@
-# E2E Test Cases: Repository Code Field
+# E2E Test Cases: 0706 Optimizations
 
 **Spec:** `docs/superpowers/specs/2026-07-06-0706-optimizations-design.md`
 **PRD:** `docs/PRD/0706-optimizations.md`
-**Written:** 2026-07-06T17:00:00+08:00
-**Total Cases:** 5
+**Written:** 2026-07-06T21:00:00+08:00
+**Total Cases:** 18
 
 ---
 
-## Test Case 1: Repository Code Badge Display (Read-Only Mode)
+## Area 1: Dashboard — Default Budget & Status
 
-**Test ID:** TC-001
+### Test Case 1.1: New Project Defaults
+
+**Test ID:** TC-DASH-001
 **Priority:** P0
-**Preconditions:**
-- Dev server running at `http://localhost:5173`
-- At least one project exists with a repository that has a `code` value (e.g., `REPO-001` from seed data)
-- Project detail page is in read-only (view) mode
 
-### Steps
+**Preconditions:** Dev server running at `http://localhost:5173`
 
-1. Navigate to `http://localhost:5173` (dashboard)
-2. Click the view button (`aria-label` contains "查看") on the first project row to open its detail page
-3. Verify the page URL contains `/project/`
-4. Locate the "代码仓信息" section header
-5. Inspect the repository row for a code badge element
-
-### Expected Result
-
-- When `repo.code` has a value (e.g., `REPO-001`), a badge is rendered with the code text
-- Badge has CSS classes: `text-xs`, `font-mono`, `text-on-surface-tertiary`, `border`, `border-outline`, `px-1.5`, `py-0.5`, `rounded`
-- Badge appears before the repository URL in the row
-- The old `projectId` badge (which incorrectly showed the project's `projectId`) is no longer present in the repository row
-- When `repo.code` is empty/undefined, no badge is rendered for that repository
-
-### Verification Method
-
-1. **Snapshot check:** Take an a11y snapshot of the page and verify the code text `REPO-001` is present in the repository info section
-2. **DOM check:** Verify the badge element exists with correct CSS classes via `page.locator('.text-xs.font-mono')` within the repo section
-3. **Negative check:** Verify `page.locator('.text-xs.font-mono').filter({ hasText: project.projectId })` does NOT exist (old projectId badge is removed)
-4. **Screenshot:** Capture a screenshot of the repository info card for visual verification
-
----
-
-## Test Case 2: Repository Code Field Editing (Edit Mode)
-
-**Test ID:** TC-002
-**Priority:** P0
-**Preconditions:**
-- Dev server running at `http://localhost:5173`
-- At least one project exists with a repository
-- Project detail page in edit mode
-
-### Steps
-
-1. Navigate to `http://localhost:5173` (dashboard)
-2. Click the view button on the first project to open its detail page
-3. Click the "编辑" button to enter edit mode
-4. Locate the "代码仓信息" section
-5. Find the code input field (placeholder="编码") for the first repository row
-6. Verify the input is rendered with `font-mono` styling
-7. Type a new code value (e.g., `REPO-002`) into the code input
-8. Press Enter or wait for auto-save (debounce)
-9. Toggle back to read-only mode by clicking the "编辑中" (or equivalent) button
-10. Verify the new code value appears as a badge
-
-### Expected Result
-
-- In edit mode, each repository row has a "编码" input field with `font-mono` class
-- The code input is positioned before the URL input in the row layout (col-span-2)
-- The input accepts text and auto-saves on Enter or blur
-- After toggling back to read-only mode, the entered code appears as a badge
-- Adding a new repository via "添加代码仓" creates a row with an empty code input
-- Deleting a repository row works correctly with the code field present
-
-### Verification Method
-
-1. **DOM check in edit mode:** Verify input with placeholder "编码" exists in repository rows
-2. **Layout check:** Verify code input appears before URL input in the grid row
-3. **Auto-save check:** Fill the code input, press Enter, toggle to view mode, verify badge displays the new code
-4. **Add/delete check:** Click "添加代码仓", verify new row has code input; delete a row, verify it's removed
-5. **Screenshot:** Before/after screenshots of edit mode repository rows
-
----
-
-## Test Case 3: Repository Code Field in Project Creation Form
-
-**Test ID:** TC-003
-**Priority:** P1
-**Preconditions:**
-- Dev server running at `http://localhost:5173`
-
-### Steps
-
+**Steps:**
 1. Navigate to `http://localhost:5173/#/project/new`
-2. Verify the form has all expected fields rendered
-3. Locate the "代码仓编码" input field (placeholder: "如 REPO-001")
-4. Verify this field appears before the "代码仓" (URL) input field
-5. Fill in all required fields: project name, product line, leader
-6. Fill the code field with `REPO-TEST`
-7. Fill the repository URL and branch fields
-8. Click "创建项目" to submit
-9. After redirect to dashboard, find and open the newly created project
-10. Verify the repository code badge shows `REPO-TEST`
+2. Inspect the form's default values
 
-### Expected Result
+**Expected Result:**
+- Status field defaults to "暂停中" (paused)
+- Budget (总预算) field defaults to 0
+- Used budget (已用预算) field defaults to 0
 
-- "代码仓编码" input field is rendered with placeholder "如 REPO-001"
-- The code input is positioned before the "代码仓" URL input
-- The field uses `font-mono` styling
-- On submit, the project is created with the repository's `code` field set to the entered value
-- The code value persists and is visible when viewing the project detail page
-
-### Verification Method
-
-1. **Form render check:** Verify input with placeholder "如 REPO-001" exists and is before the "代码仓" input
-2. **End-to-end check:** Submit the form with a code value, navigate to the created project, verify badge exists
-3. **Screenshot:** Capture the form with the code field filled
+**Verification:** Snapshot + screenshot of the form in initial state.
 
 ---
 
-## Test Case 4: Repository Code Badge in Project Selector
+### Test Case 1.2: Status Column with Dropdown
 
-**Test ID:** TC-004
-**Priority:** P1
-**Preconditions:**
-- Dev server running at `http://localhost:5173`
-- At least one project exists with a repository that has a non-empty `code` value
-
-### Steps
-
-1. Navigate to `http://localhost:5173/#/code-review`
-2. Wait for the code review page to load
-3. Locate the project selector component (checkboxes with project info)
-4. For a project whose repository has a `code` value, verify a code badge is displayed
-5. For a project whose repository has an empty/missing `code`, verify no code badge is displayed
-
-### Expected Result
-
-- When `repo.code` exists, a badge with the code text (e.g., `REPO-001`) appears in the repository list item, positioned before the repository URL link
-- When `repo.code` is empty/undefined, no badge is rendered
-- Badge styling matches the read-only detail page badge style
-
-### Verification Method
-
-1. **DOM check:** Verify code badge elements exist in the project selector for projects with repo codes
-2. **Negative check:** Verify no orphaned/empty badge elements exist
-3. **Screenshot:** Capture the project selector section showing code badges
-
----
-
-## Test Case 5: Console Error Check Across All Pages
-
-**Test ID:** TC-005
+**Test ID:** TC-DASH-002
 **Priority:** P0
-**Preconditions:**
-- Dev server running at `http://localhost:5173`
 
-### Steps
+**Preconditions:** Dev server running, at least one project exists
 
-1. Navigate to each page in sequence, monitoring `console.error` messages:
-   - `http://localhost:5173` (Dashboard)
-   - `http://localhost:5173/#/project/new` (Project Form)
-   - Open a project detail page in view mode
-   - Same project detail page in edit mode
-   - `http://localhost:5173/#/code-review` (Code Review)
-   - `http://localhost:5173/#/settings` (Settings)
-2. On each page, wait for `networkidle` and then 500ms for any deferred errors
-3. Collect all `console.error` level messages
+**Steps:**
+1. Navigate to `http://localhost:5173` (dashboard)
+2. Locate the "状态" column header (7th column)
+3. Verify each project row has a `<select>` dropdown in the status column
+4. Change a project's status from "进行中" to "暂停中" via the dropdown
+5. Verify the status dot color changes accordingly
 
-### Expected Result
+**Expected Result:**
+- Table has 7 columns including "状态"
+- Each row has a functional status `<select>` with 3 options: 进行中, 已完成, 暂停中
+- Changing status updates the row's status dot color (blue→yellow, etc.)
+- Clicking the dropdown does NOT navigate to the project detail page (stopPropagation works)
 
-- Zero `console.error` messages across all pages
-- TypeScript compilation passes without errors (`npm run build` succeeds)
-- All existing E2E tests from `tests/e2e_dashboard.py` continue to pass
+**Verification:** Snapshot + screenshot of status dropdown interaction.
 
-### Verification Method
+---
 
-1. **Console listener:** Attach `page.on("console", handler)` filtering for `msg.type() === "error"`
-2. **Build check:** Run `npx tsc --noEmit` and verify zero errors
-3. **Regression check:** Run `python tests/e2e_dashboard.py` against the dev server and verify all tests pass (no new failures introduced)
+### Test Case 1.3: Column Header Rename (负责人 → 开发责任人)
+
+**Test ID:** TC-DASH-003
+**Priority:** P0
+
+**Steps:**
+1. Navigate to `http://localhost:5173`
+2. Inspect the third column header
+
+**Expected Result:**
+- Column header reads "开发责任人" (not "负责人")
+
+**Verification:** Snapshot text check.
+
+---
+
+## Area 2: Dashboard — Multi-Tag Filter
+
+### Test Case 2.1: Tag Filter Replaces Month Filter
+
+**Test ID:** TC-DASH-004
+**Priority:** P0
+
+**Preconditions:** Dev server running, at least one project with tags exists
+
+**Steps:**
+1. Navigate to `http://localhost:5173`
+2. Click the filter dropdown (tag filter button in the toolbar area)
+3. Verify it shows available tags from projects
+4. Select one or more tags
+5. Verify the project list filters to show only matching projects
+
+**Expected Result:**
+- Tag filter button is present (replacing the old month filter)
+- Dropdown shows checkboxes for each unique tag across projects
+- Selecting tags filters the project list
+- Deselecting all tags shows all projects
+- Filter button shows count of selected tags
+
+**Verification:** Snapshot + screenshot of filter interaction.
+
+---
+
+### Test Case 2.2: Multi-Tag Display in Table
+
+**Test ID:** TC-DASH-005
+**Priority:** P1
+
+**Steps:**
+1. Navigate to `http://localhost:5173`
+2. Inspect project rows in the table
+3. Verify tag pills are rendered under project names
+
+**Expected Result:**
+- Projects with tags show up to 2 tag pills under the project name
+- If more than 2 tags, "+N" overflow indicator is shown
+- Tag pills have rounded-full styling with muted colors
+
+**Verification:** Snapshot + screenshot.
+
+---
+
+## Area 3: Project Detail — Sidebar Menu Highlight
+
+### Test Case 3.1: Sidebar "项目详情" Active on /project/:id
+
+**Test ID:** TC-DETAIL-001
+**Priority:** P0
+
+**Steps:**
+1. Navigate to `http://localhost:5173` (dashboard)
+2. Verify sidebar "项目看板" is active, "项目详情" is not
+3. Click "查看" on any project to navigate to `/project/:id`
+4. Verify sidebar "项目详情" is now active (highlighted)
+
+**Expected Result:**
+- Sidebar has "项目详情" menu item
+- It highlights (active state) when on any `/project/:id` page
+- It does NOT highlight when on dashboard `/`
+
+**Verification:** Snapshot + screenshot of sidebar in both states.
+
+---
+
+### Test Case 3.2: Sidebar "项目详情" Active on /project/new
+
+**Test ID:** TC-DETAIL-002
+**Priority:** P1
+
+**Steps:**
+1. Navigate to `http://localhost:5173/#/project/new`
+2. Check sidebar active state
+
+**Expected Result:**
+- "项目详情" is active when on `/project/new`
+
+**Verification:** Snapshot.
+
+---
+
+## Area 4: Project Detail — Repository ProjectId Field
+
+### Test Case 4.1: Repository ProjectId Display (View Mode)
+
+**Test ID:** TC-DETAIL-003
+**Priority:** P0
+
+**Preconditions:** Project exists with a repository that has a `projectId` value
+
+**Steps:**
+1. Navigate to a project detail page in view mode
+2. Locate the "代码仓信息" section
+3. Inspect repository rows for ProjectId badge
+
+**Expected Result:**
+- When `repo.projectId` has a value, a badge with that value appears in the repository row
+- Badge is styled distinctly from the code badge
+- When `repo.projectId` is empty, no badge is rendered
+
+**Verification:** Snapshot + screenshot.
+
+---
+
+### Test Case 4.2: Repository ProjectId Input (Edit Mode)
+
+**Test ID:** TC-DETAIL-004
+**Priority:** P0
+
+**Steps:**
+1. Navigate to a project detail page
+2. Enter edit mode
+3. Locate the "代码仓信息" section
+4. Find the ProjectId input field in the repository edit row
+5. Enter a ProjectId value and save
+
+**Expected Result:**
+- ProjectId input field exists with appropriate placeholder
+- Value persists after save
+- Visible in view mode after toggling back
+
+**Verification:** Snapshot + screenshot before/after.
+
+---
+
+## Area 5: Project Detail — Multi-Tag Support
+
+### Test Case 5.1: Multi-Tag Display in Project Detail
+
+**Test ID:** TC-DETAIL-005
+**Priority:** P0
+
+**Preconditions:** Project exists with multiple tags
+
+**Steps:**
+1. Navigate to a project detail page
+2. Locate the tags section
+3. Inspect the tag display
+
+**Expected Result:**
+- Each tag is rendered as an individual pill (not a single comma-separated string)
+- Tag pills have distinct styling (bg-primary-50, text-primary-700, border-primary-200)
+- Edit button is present next to tags
+
+**Verification:** Snapshot + screenshot.
+
+---
+
+### Test Case 5.2: Multi-Tag Editing
+
+**Test ID:** TC-DETAIL-006
+**Priority:** P0
+
+**Steps:**
+1. Navigate to a project detail page
+2. Click the edit button on tags
+3. Enter comma-separated tags (e.g., "标签A, 标签B, 标签C")
+4. Press Enter or blur to save
+5. Verify tags update to individual pills
+
+**Expected Result:**
+- Clicking edit switches to input mode with comma-separated current tags
+- Saving splits by comma and renders individual pills
+- Empty input removes all tags
+
+**Verification:** Snapshot + screenshot before/after edit.
+
+---
+
+## Area 6: Code Review — Ongoing Projects Only + Repo Columns
+
+### Test Case 6.1: Only Ongoing Projects Shown
+
+**Test ID:** TC-CODE-001
+**Priority:** P0
+
+**Preconditions:** Multiple projects with different statuses exist (ongoing, completed, paused)
+
+**Steps:**
+1. Navigate to `http://localhost:5173/#/code-review`
+2. Inspect the project selector table
+3. Verify which projects appear
+
+**Expected Result:**
+- Only projects with status "ongoing" (进行中) appear in the project selector
+- Completed and paused projects are NOT listed
+
+**Verification:** Snapshot + cross-reference with dashboard project list.
+
+---
+
+### Test Case 6.2: Repository Info Columns in Project Selector
+
+**Test ID:** TC-CODE-002
+**Priority:** P0
+
+**Preconditions:** An ongoing project exists with at least one repository
+
+**Steps:**
+1. Navigate to `http://localhost:5173/#/code-review`
+2. Inspect the repository info columns in the project selector
+
+**Expected Result:**
+- Table includes columns for: 地址, 分支, ProjectId, 备注
+- Each repository in a project is shown as a sub-row with these columns populated
+- Multi-repo projects show multiple sub-rows
+
+**Verification:** Snapshot + screenshot.
+
+---
+
+## Area 7: Global Styles — Title Bar Distinct from Content
+
+### Test Case 7.1: Dashboard Title Bar Background
+
+**Test ID:** TC-GLOBAL-001
+**Priority:** P1
+
+**Steps:**
+1. Navigate to `http://localhost:5173`
+2. Inspect the header/title bar background color
+3. Compare with the content area background color
+
+**Expected Result:**
+- Header background uses `bg-surface-subtle` (visually distinct from white content area)
+- Content area has a different background (white or surface-elevated)
+- Clear visual separation between title bar and content
+
+**Verification:** Screenshot + CSS class inspection.
+
+---
+
+### Test Case 7.2: Code Review Page Title Bar Background
+
+**Test ID:** TC-GLOBAL-002
+**Priority:** P1
+
+**Steps:**
+1. Navigate to `http://localhost:5173/#/code-review`
+2. Inspect the title bar background
+3. Compare with content area
+
+**Expected Result:**
+- Title bar uses `bg-surface-subtle`
+- Content area has different background
+- Visual distinction is clear
+
+**Verification:** Screenshot + CSS class inspection.
+
+---
+
+### Test Case 7.3: Settings Page Title Bar Background
+
+**Test ID:** TC-GLOBAL-003
+**Priority:** P1
+
+**Steps:**
+1. Navigate to `http://localhost:5173/#/settings`
+2. Inspect the title bar background
+
+**Expected Result:**
+- Title bar uses `bg-surface-subtle`
+- Visual distinction from content area
+
+**Verification:** Screenshot + CSS class inspection.
+
+---
+
+## Area 8: Regression — Console Errors
+
+### Test Case 8.1: Zero Console Errors Across All Pages
+
+**Test ID:** TC-REGRESS-001
+**Priority:** P0
+
+**Steps:**
+1. Navigate to each page in sequence:
+   - `/` (Dashboard)
+   - `/project/:id` (view mode)
+   - `/project/:id?edit=true` (edit mode)
+   - `/project/new` (create form)
+   - `/code-review` (Code Review)
+   - `/settings` (Settings)
+2. On each page, wait for rendering to complete
+3. Collect all console.error messages
+
+**Expected Result:**
+- Zero console.error messages on any page
+
+**Verification:** `evaluate_script` to check `console.error` calls.
+
+---
+
+### Test Case 8.2: Unit Tests Pass
+
+**Test ID:** TC-REGRESS-002
+**Priority:** P0
+
+**Steps:**
+1. Run `npx vitest run`
+
+**Expected Result:**
+- All 148 tests pass, 0 failures
+
+**Verification:** Command output.
+
+---
+
+### Test Case 8.3: TypeScript Compilation
+
+**Test ID:** TC-REGRESS-003
+**Priority:** P0
+
+**Steps:**
+1. Run `npx tsc --noEmit`
+
+**Expected Result:**
+- Zero TypeScript errors
+
+**Verification:** Command output.
+
+---
+
+### Test Case 8.4: Existing E2E Tests Not Modified
+
+**Test ID:** TC-REGRESS-004
+**Priority:** P1
+
+**Steps:**
+1. Check git diff for `tests/e2e_dashboard.py`
+
+**Expected Result:**
+- No modifications to existing E2E test files
+
+**Verification:** `git diff tests/e2e_dashboard.py` returns empty.
