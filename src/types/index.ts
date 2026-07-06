@@ -36,6 +36,7 @@ export interface Milestone {
 export interface Repository {
   id: string
   code?: string
+  projectId?: string
   url: string
   branch: string
   note?: string
@@ -68,7 +69,7 @@ export interface Project {
   name: string
   productLine: string
   status: 'ongoing' | 'completed' | 'paused'
-  tag: string
+  tags: string[]
   totalAmount: number
   usedAmount: number
   progress: number

@@ -210,7 +210,7 @@ const Dashboard: React.FC = () => {
                 }
                 return repos
               })(),
-              tag: String(row['标签'] || ''),
+              tags: String(row['标签'] || '').split(/[,，]/).map((t: string) => t.trim()).filter(Boolean),
               subProgress: {
                 architecture: Number(row['进展_架构']) || 0,
                 uiux: Number(row['进展_UIUX']) || 0,
@@ -279,7 +279,7 @@ const Dashboard: React.FC = () => {
         })
         return cols
       })(),
-      '标签': p.tag,
+      '标签': p.tags.join(', '),
       '进展_架构': p.subProgress.architecture,
       '进展_UIUX': p.subProgress.uiux,
       '进展_工程': p.subProgress.engineering,

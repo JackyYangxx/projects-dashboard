@@ -236,7 +236,7 @@ const ProjectDetail: React.FC = () => {
               autoFocus
               onChange={e => setTagInput(e.target.value)}
               onBlur={() => {
-                updateProject(project.id, { tag: tagInput, updatedAt: new Date().toISOString() })
+                updateProject(project.id, { tags: tagInput.split(/[,，]/).map((t: string) => t.trim()).filter(Boolean), updatedAt: new Date().toISOString() })
                 setIsEditingTag(false)
               }}
               onKeyDown={e => {
@@ -249,16 +249,16 @@ const ProjectDetail: React.FC = () => {
             <span
               onClick={() => {
                 if (isReadOnly) return
-                setTagInput(project.tag)
+                setTagInput(project.tags.join(', '))
                 setIsEditingTag(true)
               }}
               className={`px-2 py-0.5 rounded text-xs font-body font-medium flex-shrink-0 ${
-                project.tag
+                project.tags.length > 0
                   ? 'bg-primary-50 text-primary-700 border border-primary-200'
                   : 'text-on-surface-tertiary border border-dashed border-outline'
               } ${!isReadOnly ? 'cursor-pointer hover:bg-primary-100 hover:border-primary-300' : ''}`}
             >
-              {project.tag || '添加标签'}
+              {project.tags.length > 0 ? project.tags.join(', ') : '添加标签'}
             </span>
           )}
         </div>

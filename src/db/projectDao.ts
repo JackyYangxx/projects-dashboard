@@ -18,6 +18,18 @@ function parseJsonField<T>(value: unknown, fallback: T): T {
   return fallback
 }
 
+function parseTags(value: unknown): string[] {
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed = JSON.parse(value)
+      if (Array.isArray(parsed)) return parsed.filter((t): t is string => typeof t === 'string')
+    } catch {
+      return [value.trim()]
+    }
+  }
+  return []
+}
+
 export function findAll(): Project[] {
   const db = getDatabase()
   if (!db) {
@@ -42,7 +54,7 @@ export function findAll(): Project[] {
       name: rowObj.name as string,
       productLine: rowObj.product_line as string,
       status: rowObj.status as Project['status'],
-      tag: rowObj.tag as string,
+      tags: parseTags(rowObj.tag),
       totalAmount: rowObj.total_amount as number,
       usedAmount: rowObj.used_amount as number,
       progress: rowObj.progress as number,
@@ -87,7 +99,7 @@ export function findById(id: string): Project | undefined {
     name: row.name as string,
     productLine: row.product_line as string,
     status: row.status as Project['status'],
-    tag: row.tag as string,
+    tags: parseTags(row.tag),
     totalAmount: row.total_amount as number,
     usedAmount: row.used_amount as number,
     progress: row.progress as number,
@@ -139,7 +151,7 @@ export function create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>)
       project.name,
       project.productLine,
       project.status,
-      project.tag,
+      JSON.stringify(project.tags || []),
       project.totalAmount,
       project.usedAmount,
       project.progress,
@@ -186,9 +198,9 @@ export function update(id: string, updates: Partial<Project>): void {
     setClauses.push('status = ?')
     values.push(updates.status)
   }
-  if (updates.tag !== undefined) {
+  if (updates.tags !== undefined) {
     setClauses.push('tag = ?')
-    values.push(updates.tag)
+    values.push(JSON.stringify(updates.tags))
   }
   if (updates.totalAmount !== undefined) {
     setClauses.push('total_amount = ?')
@@ -289,7 +301,7 @@ export function upsert(projectData: {
   usedAmount: number
   projectId?: string
   repositories?: Repository[]
-  tag?: string
+  tags?: string[]
   subProgress?: Project['subProgress']
   notes?: string
   noteHistory?: Project['noteHistory']
@@ -327,7 +339,7 @@ export function upsert(projectData: {
       : [{ id: crypto.randomUUID(), name: projectData.leader, role: '负责人', avatar: generateAvatarUrl(projectData.leader) }]
 
     const updates: string[] = ['product_line = ?', 'total_amount = ?', 'used_amount = ?', 'progress = ?', 'leader = ?', 'team = ?', 'updated_at = ?', 'tag = ?', 'sub_progress = ?', 'notes = ?', 'note_history = ?', 'scope = ?', 'milestones = ?', 'timeline = ?']
-    const values: SqlValue[] = [projectData.productLine, projectData.totalAmount, projectData.usedAmount, projectData.progress, projectData.leader, JSON.stringify(updatedTeam), now, projectData.tag ?? '', JSON.stringify(projectData.subProgress ?? { architecture: 0, uiux: 0, engineering: 0, qa: 0 }), projectData.notes ?? '', JSON.stringify(projectData.noteHistory ?? []), JSON.stringify(projectData.scope ?? []), JSON.stringify(projectData.milestones ?? []), JSON.stringify(projectData.timeline ?? [])]
+    const values: SqlValue[] = [projectData.productLine, projectData.totalAmount, projectData.usedAmount, projectData.progress, projectData.leader, JSON.stringify(updatedTeam), now, JSON.stringify(projectData.tags ?? []), JSON.stringify(projectData.subProgress ?? { architecture: 0, uiux: 0, engineering: 0, qa: 0 }), projectData.notes ?? '', JSON.stringify(projectData.noteHistory ?? []), JSON.stringify(projectData.scope ?? []), JSON.stringify(projectData.milestones ?? []), JSON.stringify(projectData.timeline ?? [])]
     if (projectData.status !== undefined) {
       updates.unshift('status = ?')
       values.unshift(projectData.status)
@@ -373,7 +385,7 @@ export function upsert(projectData: {
       totalAmount: projectData.totalAmount,
       usedAmount: projectData.usedAmount,
       repositories: projectData.repositories || [],
-      tag: projectData.tag ?? '',
+      tags: projectData.tags ?? [],
       subProgress: projectData.subProgress ?? { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
       notes: projectData.notes ?? '',
       noteHistory: projectData.noteHistory ?? [],
@@ -404,7 +416,7 @@ export function upsert(projectData: {
       name: projectData.name,
       productLine: projectData.productLine,
       status: projectData.status ?? 'paused',
-      tag: projectData.tag ?? '',
+      tags: projectData.tags ?? [],
       totalAmount: projectData.totalAmount,
       usedAmount: projectData.usedAmount,
       progress: projectData.progress,

@@ -143,10 +143,17 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         >
                           {project.name}
                         </span>
-                        {project.tag && (
-                          <p className="text-[11px] font-body text-on-surface-tertiary mt-0.5 truncate" title={project.tag}>
-                            {project.tag}
-                          </p>
+                        {project.tags && project.tags.length > 0 && (
+                          <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                            {project.tags.slice(0, 2).map((t, i) => (
+                              <span key={i} className="text-[10px] font-body text-on-surface-tertiary bg-surface-hover px-1.5 py-0.5 rounded-full truncate max-w-[80px]" title={t}>
+                                {t}
+                              </span>
+                            ))}
+                            {project.tags.length > 2 && (
+                              <span className="text-[10px] font-body text-on-surface-tertiary">+{project.tags.length - 2}</span>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>

@@ -246,7 +246,7 @@ async function doInitDatabase(): Promise<Database> {
             project.name,
             project.productLine,
             project.status,
-            project.tag,
+            JSON.stringify(project.tags || []),
             project.totalAmount,
             project.usedAmount,
             project.progress,

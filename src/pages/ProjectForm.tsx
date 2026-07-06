@@ -42,7 +42,7 @@ const ProjectForm: React.FC = () => {
         productLine: formData.productLine,
         status: formData.status,
         leader: formData.leader.trim(),
-        tag: '',
+        tags: [],
         totalAmount: Number(formData.totalAmount),
         usedAmount: Number(formData.usedAmount),
         progress: 0,
