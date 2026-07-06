@@ -35,6 +35,7 @@ export interface Milestone {
 
 export interface Repository {
   id: string
+  code?: string
   url: string
   branch: string
   note?: string

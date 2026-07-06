@@ -33,14 +33,17 @@ const PrevNextNav: React.FC<PrevNextNavProps> = ({
 
   return (
     <div className="h-12 bg-white border-t border-outline flex items-center justify-between px-6">
-      <button
-        onClick={onPrev}
-        disabled={!prevId}
-        className="flex items-center gap-1.5 h-9 px-3 rounded-md transition-colors hover:bg-surface-hover text-on-surface-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:text-on-surface-tertiary"
-      >
-        <Icon name="chevron_left" size={16} />
-        <span className="font-body text-sm font-medium">Prev</span>
-      </button>
+      {prevId ? (
+        <button
+          onClick={onPrev}
+          className="flex items-center gap-1.5 h-9 px-3 rounded-md transition-colors hover:bg-surface-hover text-on-surface-primary"
+        >
+          <Icon name="chevron_left" size={16} />
+          <span className="font-body text-sm font-medium">Prev</span>
+        </button>
+      ) : (
+        <span />
+      )}
 
       <div className="font-mono tabular-nums text-sm text-on-surface-secondary">
         <span className="font-heading font-semibold text-on-surface-primary">{currentIndex}</span>
@@ -48,14 +51,17 @@ const PrevNextNav: React.FC<PrevNextNavProps> = ({
         <span>{total}</span>
       </div>
 
-      <button
-        onClick={onNext}
-        disabled={!nextId}
-        className="flex items-center gap-1.5 h-9 px-3 rounded-md transition-colors hover:bg-surface-hover text-on-surface-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:text-on-surface-tertiary"
-      >
-        <span className="font-body text-sm font-medium">Next</span>
-        <Icon name="chevron_right" size={16} />
-      </button>
+      {nextId ? (
+        <button
+          onClick={onNext}
+          className="flex items-center gap-1.5 h-9 px-3 rounded-md transition-colors hover:bg-surface-hover text-on-surface-primary"
+        >
+          <span className="font-body text-sm font-medium">Next</span>
+          <Icon name="chevron_right" size={16} />
+        </button>
+      ) : (
+        <span />
+      )}
     </div>
   )
 }

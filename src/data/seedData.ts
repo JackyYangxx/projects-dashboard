@@ -13,7 +13,7 @@ export const seedProjects: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>[] = [
     usedAmount: 1680000,
     progress: 75,
     repositories: [
-      { id: 'r1', url: 'https://github.com/example/brand-refresh', branch: 'main', note: '主仓库' },
+      { id: 'r1', code: 'REPO-001', url: 'https://github.com/example/brand-refresh', branch: 'main', note: '主仓库' },
     ],
     subProgress: {
       architecture: 80,

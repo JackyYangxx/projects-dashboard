@@ -18,6 +18,7 @@ const ProjectForm: React.FC = () => {
     totalAmount: 0,
     usedAmount: 0,
     repositoryUrl: '',
+    repositoryCode: '',
     branch: 'main',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -53,7 +54,7 @@ const ProjectForm: React.FC = () => {
         timeline: [],
         subProgress: { architecture: 0, uiux: 0, engineering: 0, qa: 0 },
         repositories: formData.repositoryUrl.trim()
-          ? [{ id: crypto.randomUUID(), url: formData.repositoryUrl.trim(), branch: formData.branch }]
+          ? [{ id: crypto.randomUUID(), code: formData.repositoryCode.trim() || undefined, url: formData.repositoryUrl.trim(), branch: formData.branch }]
           : [],
         ext1: '', ext2: '', ext3: '', ext4: '', ext5: '',
       })
@@ -138,6 +139,17 @@ const ProjectForm: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, leader: e.target.value })}
               className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
               placeholder="输入负责人姓名"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-body font-medium text-on-surface-secondary mb-2">代码仓编码</label>
+            <input
+              type="text"
+              value={formData.repositoryCode}
+              onChange={(e) => setFormData({ ...formData, repositoryCode: e.target.value })}
+              className="w-full px-3 py-2 bg-surface-base border border-outline rounded-lg text-sm font-body text-on-surface-primary focus:outline-none focus:border-primary-500"
+              placeholder="如 REPO-001"
             />
           </div>
 

@@ -62,6 +62,11 @@ export default function ProjectSelector({ selectedIds, onChange }: Props) {
                 {project.repositories.length > 0
                   ? project.repositories.map((repo, i) => (
                       <div key={repo.id} className={i > 0 ? 'mt-0.5' : ''}>
+                        {repo.code && (
+                          <span className="text-xs font-mono text-on-surface-tertiary border border-outline px-1 py-0.5 rounded mr-1">
+                            {repo.code}
+                          </span>
+                        )}
                         <a
                           href={repo.url}
                           target="_blank"

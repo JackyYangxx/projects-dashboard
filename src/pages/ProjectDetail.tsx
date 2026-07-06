@@ -73,7 +73,7 @@ const ProjectDetail: React.FC = () => {
       setEditRepos(
         project.repositories.length > 0
           ? project.repositories.map(r => ({ ...r }))
-          : [{ id: crypto.randomUUID(), url: '', branch: 'main' }]
+          : [{ id: crypto.randomUUID(), code: '', url: '', branch: 'main' }]
       )
     }
   }, [project])
@@ -305,7 +305,7 @@ const ProjectDetail: React.FC = () => {
             </span>
           )}
           <span className="text-xs font-body text-on-surface-tertiary font-mono">
-            {project.projectId ? `${project.projectId} · ` : ''}#{project.id.slice(0, 8)}
+            #{project.id.slice(0, 8)}
           </span>
         </div>
       </nav>
@@ -327,7 +327,21 @@ const ProjectDetail: React.FC = () => {
                 <div className="space-y-3">
                   {editRepos.map((repo, idx) => (
                     <div key={repo.id} className="grid grid-cols-12 gap-2 items-start">
-                      <div className="col-span-5">
+                      <div className="col-span-2">
+                        <input
+                          type="text"
+                          value={repo.code || ''}
+                          onChange={e => {
+                            const next = [...editRepos]
+                            next[idx] = { ...next[idx], code: e.target.value }
+                            setEditRepos(next)
+                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                          }}
+                          className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                          placeholder="编码"
+                        />
+                      </div>
+                      <div className="col-span-4">
                         <input
                           type="text"
                           value={repo.url}
@@ -355,7 +369,7 @@ const ProjectDetail: React.FC = () => {
                           placeholder="main"
                         />
                       </div>
-                      <div className="col-span-4">
+                      <div className="col-span-3">
                         <input
                           type="text"
                           value={repo.note || ''}
@@ -390,7 +404,7 @@ const ProjectDetail: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const next = [...editRepos, { id: crypto.randomUUID(), url: '', branch: 'main' }]
+                      const next = [...editRepos, { id: crypto.randomUUID(), code: '', url: '', branch: 'main' }]
                       setEditRepos(next)
                       updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
                     }}
@@ -406,17 +420,17 @@ const ProjectDetail: React.FC = () => {
                     <div className="space-y-2">
                       {project.repositories.map(repo => (
                         <div key={repo.id} className="flex items-center gap-2 py-1.5 px-3 bg-surface-base rounded-md">
+                          {repo.code && (
+                            <span className="text-xs font-mono text-on-surface-tertiary border border-outline px-1.5 py-0.5 rounded flex-shrink-0">
+                              {repo.code}
+                            </span>
+                          )}
                           <Icon name="folder_copy" size={14} className="text-on-surface-tertiary flex-shrink-0" />
                           <span className="font-mono text-xs">{repo.url}</span>
                           <span className="text-on-surface-tertiary">@</span>
                           <span className="font-mono text-xs">{repo.branch || '—'}</span>
-                          {project.projectId && (
-                            <span className="text-xs font-mono text-on-surface-tertiary ml-auto border border-outline px-1.5 py-0.5 rounded">
-                              {project.projectId}
-                            </span>
-                          )}
                           {repo.note && (
-                            <span className="text-xs text-on-surface-tertiary ml-2">({repo.note})</span>
+                            <span className="text-xs text-on-surface-tertiary ml-auto">({repo.note})</span>
                           )}
                         </div>
                       ))}

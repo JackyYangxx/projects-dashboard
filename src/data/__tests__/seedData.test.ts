@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { seedProjects } from '@/data/seedData'
 
 describe('seedData', () => {
-  it('has 53 seed projects', () => {
-    expect(seedProjects).toHaveLength(53)
+  it('has 1 seed project', () => {
+    expect(seedProjects).toHaveLength(1)
   })
 
   it('each seed project has a projectId', () => {
@@ -34,15 +34,9 @@ describe('seedData', () => {
     expect(project!.name).toBe('战略品牌重塑')
   })
 
-  it('PRJ-2026-002 is 次世代界面设计', () => {
-    const project = seedProjects.find(p => p.projectId === 'PRJ-2026-002')
-    expect(project).toBeDefined()
-    expect(project!.name).toBe('次世代界面设计')
-  })
-
-  it('PRJ-2026-003 is 全球扩张路线图', () => {
-    const project = seedProjects.find(p => p.projectId === 'PRJ-2026-003')
-    expect(project).toBeDefined()
-    expect(project!.name).toBe('全球扩张路线图')
+  it('PRJ-2026-001 has a repository with code REPO-001', () => {
+    const project = seedProjects.find(p => p.projectId === 'PRJ-2026-001')
+    expect(project!.repositories).toHaveLength(1)
+    expect(project!.repositories[0].code).toBe('REPO-001')
   })
 })
