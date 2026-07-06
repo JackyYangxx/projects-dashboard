@@ -12,6 +12,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: '项目看板', icon: 'dashboard', path: '/' },
+  { label: '项目详情', icon: 'visibility', path: '/project' },
   { label: '代码评审', icon: 'code', path: '/code-review' },
 ]
 
@@ -58,7 +59,9 @@ const Sidebar: React.FC = () => {
         </p>
         <ul className="space-y-0.5">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path
+            const isActive = item.path === '/project'
+              ? location.pathname.startsWith('/project')
+              : location.pathname === item.path
             return (
               <li key={item.path}>
                 <button

@@ -45,7 +45,7 @@ export default function CodeReview() {
 
   return (
     <div className="min-h-screen bg-surface-base">
-      <nav className="h-14 bg-surface-elevated border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
+      <nav className="h-14 bg-surface-subtle border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
         <h1 className="text-base font-heading font-semibold text-on-surface-primary">AI 代码评审</h1>
       </nav>
 

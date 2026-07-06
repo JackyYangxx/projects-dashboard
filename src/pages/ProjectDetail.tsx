@@ -216,7 +216,7 @@ const ProjectDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-base flex flex-col">
       {/* Top Navigation Bar */}
-      <nav className="h-14 bg-white border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
+      <nav className="h-14 bg-surface-subtle border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
         <button
           onClick={() => navigate('/')}
           className="w-9 h-9 flex items-center justify-center rounded-md text-on-surface-secondary hover:bg-surface-hover hover:text-on-surface-primary transition-colors"
@@ -243,23 +243,41 @@ const ProjectDetail: React.FC = () => {
                 if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
                 if (e.key === 'Escape') setIsEditingTag(false)
               }}
-              className="w-28 h-7 px-2 bg-white border border-primary-400 rounded text-xs font-body text-on-surface-primary focus:outline-none focus:ring-2 focus:ring-primary-500/15"
+              placeholder="逗号分隔多个标签"
+              className="w-40 h-7 px-2 bg-white border border-primary-400 rounded text-xs font-body text-on-surface-primary focus:outline-none focus:ring-2 focus:ring-primary-500/15"
             />
           ) : (
-            <span
-              onClick={() => {
-                if (isReadOnly) return
-                setTagInput(project.tags.join(', '))
-                setIsEditingTag(true)
-              }}
-              className={`px-2 py-0.5 rounded text-xs font-body font-medium flex-shrink-0 ${
-                project.tags.length > 0
-                  ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                  : 'text-on-surface-tertiary border border-dashed border-outline'
-              } ${!isReadOnly ? 'cursor-pointer hover:bg-primary-100 hover:border-primary-300' : ''}`}
-            >
-              {project.tags.length > 0 ? project.tags.join(', ') : '添加标签'}
-            </span>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {project.tags.length > 0 ? (
+                project.tags.map((t, i) => (
+                  <span key={i} className="px-2 py-0.5 rounded text-xs font-body font-medium bg-primary-50 text-primary-700 border border-primary-200">
+                    {t}
+                  </span>
+                ))
+              ) : (
+                <span
+                  onClick={() => {
+                    if (isReadOnly) return
+                    setTagInput('')
+                    setIsEditingTag(true)
+                  }}
+                  className={`px-2 py-0.5 rounded text-xs font-body font-medium text-on-surface-tertiary border border-dashed border-outline ${!isReadOnly ? 'cursor-pointer hover:bg-primary-100 hover:border-primary-300' : ''}`}
+                >
+                  添加标签
+                </span>
+              )}
+              {!isReadOnly && project.tags.length > 0 && (
+                <button
+                  onClick={() => {
+                    setTagInput(project.tags.join(', '))
+                    setIsEditingTag(true)
+                  }}
+                  className="w-5 h-5 flex items-center justify-center text-on-surface-tertiary hover:text-primary-600 rounded flex-shrink-0"
+                >
+                  <Icon name="edit" size={12} />
+                </button>
+              )}
+            </div>
           )}
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -341,7 +359,21 @@ const ProjectDetail: React.FC = () => {
                           placeholder="编码"
                         />
                       </div>
-                      <div className="col-span-4">
+                      <div className="col-span-2">
+                        <input
+                          type="text"
+                          value={repo.projectId || ''}
+                          onChange={e => {
+                            const next = [...editRepos]
+                            next[idx] = { ...next[idx], projectId: e.target.value }
+                            setEditRepos(next)
+                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                          }}
+                          className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
+                          placeholder="ProjectId"
+                        />
+                      </div>
+                      <div className="col-span-3">
                         <input
                           type="text"
                           value={repo.url}
@@ -369,7 +401,7 @@ const ProjectDetail: React.FC = () => {
                           placeholder="main"
                         />
                       </div>
-                      <div className="col-span-3">
+                      <div className="col-span-2">
                         <input
                           type="text"
                           value={repo.note || ''}
@@ -380,7 +412,7 @@ const ProjectDetail: React.FC = () => {
                             updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
-                          placeholder="备注（可选）"
+                          placeholder="备注"
                         />
                       </div>
                       <div className="col-span-1 flex items-center justify-center pt-0.5">
@@ -423,6 +455,11 @@ const ProjectDetail: React.FC = () => {
                           {repo.code && (
                             <span className="text-xs font-mono text-on-surface-tertiary border border-outline px-1.5 py-0.5 rounded flex-shrink-0">
                               {repo.code}
+                            </span>
+                          )}
+                          {repo.projectId && (
+                            <span className="text-xs font-mono text-on-surface-tertiary border border-outline px-1.5 py-0.5 rounded flex-shrink-0">
+                              {repo.projectId}
                             </span>
                           )}
                           <Icon name="folder_copy" size={14} className="text-on-surface-tertiary flex-shrink-0" />

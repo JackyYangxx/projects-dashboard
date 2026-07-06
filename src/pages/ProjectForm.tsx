@@ -13,7 +13,7 @@ const ProjectForm: React.FC = () => {
     projectId: '',
     name: '',
     productLine: '',
-    status: 'ongoing' as Project['status'],
+    status: 'paused' as Project['status'],
     leader: '',
     totalAmount: 0,
     usedAmount: 0,
@@ -66,7 +66,7 @@ const ProjectForm: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface-base">
-      <nav className="h-14 bg-surface-elevated border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
+      <nav className="h-14 bg-surface-subtle border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
         <button
           onClick={() => navigate('/')}
           className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-secondary hover:bg-surface-container hover:text-on-surface-primary transition-colors"

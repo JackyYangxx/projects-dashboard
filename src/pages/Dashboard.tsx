@@ -13,7 +13,6 @@ import type { Project } from '@/types'
 
 type StatusFilter = 'all' | Project['status']
 
-const MONTHS = ['全部', '一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
 const STATUS_CHIPS: { key: StatusFilter; label: string; icon: IconName }[] = [
   { key: 'all', label: '全部', icon: 'apps' },
   { key: 'ongoing', label: '进行中', icon: 'play_circle' },
@@ -26,9 +25,9 @@ const Dashboard: React.FC = () => {
   const { projects, isLoading, loadProjects, setFilteredProjectIds } = useProjectStore()
   const [showImportMenu, setShowImportMenu] = useState(false)
   const [showStatusMenu, setShowStatusMenu] = useState(false)
-  const [showMonthMenu, setShowMonthMenu] = useState(false)
+  const [showTagMenu, setShowTagMenu] = useState(false)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ongoing')
-  const [monthFilter, setMonthFilter] = useState<string>('全部')
+  const [tagFilter, setTagFilter] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
 
   const headerRef = useRef<HTMLDivElement>(null)
@@ -36,7 +35,7 @@ const Dashboard: React.FC = () => {
   const statsRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
   const statusMenuRef = useRef<HTMLDivElement>(null)
-  const monthMenuRef = useRef<HTMLDivElement>(null)
+  const tagMenuRef = useRef<HTMLDivElement>(null)
   const glowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -45,7 +44,7 @@ const Dashboard: React.FC = () => {
 
   // Close import / status / month menus when clicking outside
   useEffect(() => {
-    if (!showImportMenu && !showStatusMenu && !showMonthMenu) return
+    if (!showImportMenu && !showStatusMenu && !showTagMenu) return
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       if (showImportMenu && !target.closest('.import-menu-container')) {
@@ -54,13 +53,20 @@ const Dashboard: React.FC = () => {
       if (showStatusMenu && statusMenuRef.current && !statusMenuRef.current.contains(target)) {
         setShowStatusMenu(false)
       }
-      if (showMonthMenu && monthMenuRef.current && !monthMenuRef.current.contains(target)) {
-        setShowMonthMenu(false)
+      if (showTagMenu && tagMenuRef.current && !tagMenuRef.current.contains(target)) {
+        setShowTagMenu(false)
       }
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [showImportMenu, showStatusMenu, showMonthMenu])
+  }, [showImportMenu, showStatusMenu, showTagMenu])
+
+  // Collect all unique tags
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>()
+    projects.forEach(p => p.tags?.forEach(t => { if (t) tagSet.add(t) }))
+    return Array.from(tagSet).sort()
+  }, [projects])
 
   // Filtered projects
   const filteredProjects = useMemo(() => {
@@ -68,21 +74,19 @@ const Dashboard: React.FC = () => {
     if (statusFilter !== 'all') {
       result = result.filter((p) => p.status === statusFilter)
     }
-    if (monthFilter !== '全部') {
-      const monthIdx = MONTHS.indexOf(monthFilter)
-      result = result.filter((p) => {
-        const date = new Date(p.createdAt)
-        return date.getMonth() + 1 === monthIdx
-      })
+    if (tagFilter.length > 0) {
+      result = result.filter((p) => tagFilter.some(t => p.tags?.includes(t)))
     }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
       result = result.filter((p) =>
-        p.name.toLowerCase().includes(q) || p.leader.toLowerCase().includes(q)
+        p.name.toLowerCase().includes(q) ||
+        p.leader.toLowerCase().includes(q) ||
+        p.tags?.some(t => t.toLowerCase().includes(q))
       )
     }
     return result
-  }, [projects, statusFilter, monthFilter, searchQuery])
+  }, [projects, statusFilter, tagFilter, searchQuery])
 
   // Sync filtered IDs for prev/next nav
   useEffect(() => {
@@ -136,6 +140,9 @@ const Dashboard: React.FC = () => {
   const handleDelete = (project: { id: string }) => {
     useProjectStore.getState().deleteProject(project.id)
   }
+  const handleStatusChange = (_project: Project, status: Project['status']) => {
+    useProjectStore.getState().updateProject(_project.id, { status })
+  }
 
   const handleImport = () => {
     const input = document.createElement('input')
@@ -175,7 +182,7 @@ const Dashboard: React.FC = () => {
           for (const row of json) {
             const name = String(row['项目名称'] || '').trim()
             const projectCode = String(row['项目编号'] || '').trim()
-            const leader = String(row['负责人'] || '').trim()
+            const leader = String(row['开发责任人'] || row['负责人'] || '').trim()
             if (!name || !leader) { skipCount++; continue }
 
             const statusLabel = String(row['状态'] || '').trim()
@@ -202,6 +209,8 @@ const Dashboard: React.FC = () => {
                   if (url) {
                     repos.push({
                       id: crypto.randomUUID(),
+                      code: String(row[`代码仓编码${i}`] || '').trim() || undefined,
+                      projectId: String(row[`代码仓ProjectId${i}`] || '').trim() || undefined,
                       url,
                       branch: String(row[`分支${i}`] || 'main').trim(),
                       note: String(row[`备注${i}`] || '').trim() || undefined,
@@ -239,7 +248,7 @@ const Dashboard: React.FC = () => {
   }
 
   const handleDownloadTemplate = () => {
-    const requiredHeaders = ['项目名称', '项目编号', '产品线', '负责人', '总预算', '已用预算']
+    const requiredHeaders = ['项目名称', '项目编号', '产品线', '开发责任人', '总预算', '已用预算']
     const optionalHeaders = ['代码仓1', '分支1', '备注1', '代码仓2', '分支2', '备注2', '代码仓3', '分支3', '备注3']
     const headerRow = [
       ...requiredHeaders,
@@ -263,7 +272,7 @@ const Dashboard: React.FC = () => {
       '项目编号': p.projectId || '',
       '项目名称': p.name,
       '产品线': p.productLine,
-      '负责人': p.leader,
+      '开发责任人': p.leader,
       '状态': STATUS_LABELS[p.status],
       '项目进展': p.progress,
       '总预算': p.totalAmount,
@@ -273,9 +282,11 @@ const Dashboard: React.FC = () => {
         const cols: Record<string, string> = {}
         p.repositories.forEach((r, i) => {
           const n = i + 1
+          cols[`代码仓编码${n}`] = r.code || ''
           cols[`代码仓${n}`] = r.url
           cols[`分支${n}`] = r.branch || ''
           cols[`备注${n}`] = r.note || ''
+          cols[`代码仓ProjectId${n}`] = r.projectId || ''
         })
         return cols
       })(),
@@ -361,7 +372,7 @@ const Dashboard: React.FC = () => {
                     <button
                       onClick={() => {
                         setShowStatusMenu(v => !v)
-                        setShowMonthMenu(false)
+                        setShowTagMenu(false)
                       }}
                       className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
                         statusFilter !== 'all'
@@ -394,38 +405,49 @@ const Dashboard: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Month filter */}
-                  <div ref={monthMenuRef} className="relative">
+                  {/* Tag filter */}
+                  <div ref={tagMenuRef} className="relative">
                     <button
                       onClick={() => {
-                        setShowMonthMenu(v => !v)
+                        setShowTagMenu(v => !v)
                         setShowStatusMenu(false)
                       }}
                       className={`inline-flex items-center gap-1.5 px-3 h-9 rounded-md text-sm font-body border transition-colors cursor-pointer ${
-                        monthFilter !== '全部'
+                        tagFilter.length > 0
                           ? 'bg-primary-50 border-primary-200 text-primary-700'
                           : 'bg-white border-outline text-on-surface-secondary hover:border-primary-300'
                       }`}
                     >
-                      <span>月份：{monthFilter}</span>
+                      <span>标签：{tagFilter.length > 0 ? tagFilter.join(', ') : '全部'}</span>
                       <Icon name="chevron_down" size={14} className="opacity-60" />
                     </button>
-                    {showMonthMenu && (
-                      <div className="absolute z-[60] mt-1 w-32 max-h-64 overflow-y-auto bg-white border border-outline rounded-md shadow-lg py-1">
-                        {MONTHS.map((m) => (
-                          <button
-                            key={m}
-                            onClick={() => {
-                              setMonthFilter(m)
-                              setShowMonthMenu(false)
-                            }}
-                            className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 cursor-pointer ${
-                              monthFilter === m ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
-                            }`}
-                          >
-                            {m}
-                          </button>
-                        ))}
+                    {showTagMenu && (
+                      <div className="absolute z-[60] mt-1 w-44 max-h-64 overflow-y-auto bg-white border border-outline rounded-md shadow-lg py-1">
+                        {allTags.length === 0 ? (
+                          <div className="px-3 py-2 text-xs text-on-surface-tertiary">暂无标签</div>
+                        ) : (
+                          allTags.map((tag) => {
+                            const isSelected = tagFilter.includes(tag)
+                            return (
+                              <button
+                                key={tag}
+                                onClick={() => {
+                                  setTagFilter(prev =>
+                                    isSelected ? prev.filter(t => t !== tag) : [...prev, tag]
+                                  )
+                                }}
+                                className={`w-full text-left px-3 py-1.5 text-sm font-body hover:bg-primary-50 cursor-pointer flex items-center gap-2 ${
+                                  isSelected ? 'text-primary-600 font-medium bg-primary-50/50' : 'text-on-surface-primary'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary-500 border-primary-500' : 'border-outline'}`}>
+                                  {isSelected && <Icon name="fact_check" size={12} className="text-white" />}
+                                </span>
+                                {tag}
+                              </button>
+                            )
+                          })
+                        )}
                       </div>
                     )}
                   </div>
@@ -437,7 +459,7 @@ const Dashboard: React.FC = () => {
                       type="text"
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      placeholder="搜索项目名称、责任人..."
+                      placeholder="搜索项目名称、开发责任人..."
                       className="w-52 h-9 pl-8 pr-3 bg-white border border-outline rounded-md text-sm font-body text-on-surface-primary placeholder:text-on-surface-tertiary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 transition-colors"
                     />
                     {searchQuery && (
@@ -450,9 +472,9 @@ const Dashboard: React.FC = () => {
                     )}
                   </div>
 
-                  {(statusFilter !== 'all' || monthFilter !== '全部' || searchQuery) && (
+                  {(statusFilter !== 'all' || tagFilter.length > 0 || searchQuery) && (
                     <button
-                      onClick={() => { setStatusFilter('all'); setMonthFilter('全部'); setSearchQuery('') }}
+                      onClick={() => { setStatusFilter('all'); setTagFilter([]); setSearchQuery('') }}
                       className="inline-flex items-center gap-1 px-2 h-9 text-xs font-body text-on-surface-tertiary hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors cursor-pointer"
                     >
                       <Icon name="filter_alt_off" size={12} />
@@ -555,7 +577,7 @@ const Dashboard: React.FC = () => {
                     <p className="text-xs font-body text-on-surface-tertiary">试试调整筛选条件或搜索关键词</p>
                   </div>
                   <button
-                    onClick={() => { setStatusFilter('all'); setMonthFilter('全部'); setSearchQuery('') }}
+                    onClick={() => { setStatusFilter('all'); setTagFilter([]); setSearchQuery('') }}
                     className="mt-1 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-body text-primary-600 hover:bg-primary-50 rounded-lg transition-colors cursor-pointer"
                   >
                     清除筛选
@@ -568,6 +590,7 @@ const Dashboard: React.FC = () => {
                     onView={handleView}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onStatusChange={handleStatusChange}
                   />
                 </div>
               )}

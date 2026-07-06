@@ -18,7 +18,7 @@ export const VALID_STATUSES: StatusKey[] = ['ongoing', 'completed', 'paused']
 export const IMPORT_REQUIRED_HEADERS = [
   '项目名称',
   '产品线',
-  '负责人',
+  '开发责任人',
   '总预算',
   '已用预算',
 ] as const

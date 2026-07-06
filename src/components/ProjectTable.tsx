@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import type { Project } from '../types/index'
+import { VALID_STATUSES, STATUS_LABELS } from '../constants/project'
 import Icon from './Icon'
 
 interface ProjectTableProps {
@@ -7,6 +8,7 @@ interface ProjectTableProps {
   onEdit?: (project: Project) => void
   onDelete?: (project: Project) => void
   onView?: (project: Project) => void
+  onStatusChange?: (project: Project, status: Project['status']) => void
 }
 
 const INITIAL_PAGE_SIZE = 20
@@ -22,6 +24,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   onEdit,
   onDelete,
   onView,
+  onStatusChange,
 }) => {
   const [visibleCount, setVisibleCount] = React.useState(INITIAL_PAGE_SIZE)
   const [isLoadingMore, setIsLoadingMore] = React.useState(false)
@@ -79,11 +82,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       <div className="overflow-x-auto">
         <table className="w-full table-fixed" role="table">
           <colgroup>
+            <col style={{ width: '16%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '8%' }} />
             <col style={{ width: '18%' }} />
             <col style={{ width: '16%' }} />
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '20%' }} />
-            <col style={{ width: '18%' }} />
             <col style={{ width: '14%' }} />
           </colgroup>
           <thead>
@@ -95,7 +99,10 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 产品线
               </th>
               <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
-                负责人
+                开发责任人
+              </th>
+              <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
+                状态
               </th>
               <th scope="col" className="text-left px-4 py-3 text-sm font-body font-semibold text-on-surface-secondary relative before:absolute before:left-0 before:top-3 before:bottom-3 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                 进展
@@ -111,7 +118,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           <tbody ref={tbodyRef}>
             {visibleProjects.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
+                <td colSpan={7} className="text-center px-4 py-12 text-sm font-body text-on-surface-tertiary">
                   <div className="flex flex-col items-center gap-2">
                     <Icon name="inbox" className="text-4xl text-on-surface-tertiary" />
                     <span>暂无项目数据</span>
@@ -167,6 +174,20 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     <span className="block text-xs font-body text-on-surface-secondary truncate" title={project.leader || '未指定'}>
                       {project.leader || '未指定'}
                     </span>
+                  </td>
+                  <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={project.status}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        onStatusChange?.(project, e.target.value as Project['status'])
+                      }}
+                      className="w-full h-7 px-2 bg-white border border-outline rounded text-xs font-body text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717A%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_4px_center] bg-no-repeat pr-6"
+                    >
+                      {VALID_STATUSES.map(s => (
+                        <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="relative px-4 py-2.5 before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-px before:border-l before:border-dashed before:border-outline before:content-[''] before:pointer-events-none">
                     <div className="flex items-center gap-2">

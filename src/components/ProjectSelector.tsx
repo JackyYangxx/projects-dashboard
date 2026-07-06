@@ -44,6 +44,9 @@ export default function ProjectSelector({ selectedIds, onChange }: Props) {
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">项目名称</th>
             <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">仓库地址</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">分支</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">ProjectId</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-secondary">备注</th>
           </tr>
         </thead>
         <tbody>
@@ -71,14 +74,34 @@ export default function ProjectSelector({ selectedIds, onChange }: Props) {
                           href={repo.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary-500 hover:underline"
+                          className="text-primary-500 hover:underline text-xs"
                         >
                           {repo.url}
                         </a>
-                        <span className="text-on-surface-tertiary ml-1">({repo.branch})</span>
                       </div>
                     ))
-                  : '-'}
+                  : <span className="text-on-surface-tertiary">—</span>}
+              </td>
+              <td className="px-4 py-3 text-sm font-mono text-on-surface-secondary">
+                {project.repositories.length > 0
+                  ? project.repositories.map((repo, i) => (
+                      <div key={repo.id} className={i > 0 ? 'mt-0.5' : ''}>{repo.branch || '—'}</div>
+                    ))
+                  : '—'}
+              </td>
+              <td className="px-4 py-3 text-sm font-mono text-on-surface-secondary">
+                {project.repositories.length > 0
+                  ? project.repositories.map((repo, i) => (
+                      <div key={repo.id} className={i > 0 ? 'mt-0.5' : ''}>{repo.projectId || '—'}</div>
+                    ))
+                  : '—'}
+              </td>
+              <td className="px-4 py-3 text-sm text-on-surface-secondary">
+                {project.repositories.length > 0
+                  ? project.repositories.map((repo, i) => (
+                      <div key={repo.id} className={i > 0 ? 'mt-0.5' : ''}>{repo.note || '—'}</div>
+                    ))
+                  : '—'}
               </td>
             </tr>
           ))}

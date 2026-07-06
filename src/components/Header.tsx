@@ -11,7 +11,7 @@ const Header: React.FC<HeaderProps> = ({ title = '项目看板' }) => {
   const navigate = useNavigate()
 
   return (
-    <header className="h-14 bg-white border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
+    <header className="h-14 bg-surface-subtle border-b border-outline flex items-center px-6 gap-4 sticky top-0 z-10">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm font-body min-w-0" aria-label="breadcrumb">
         <span className="text-on-surface-tertiary font-mono text-xs truncate">

@@ -47,7 +47,7 @@ describe('project constants', () => {
     it('contains the five required fields', () => {
       expect(IMPORT_REQUIRED_HEADERS).toContain('项目名称')
       expect(IMPORT_REQUIRED_HEADERS).toContain('产品线')
-      expect(IMPORT_REQUIRED_HEADERS).toContain('负责人')
+      expect(IMPORT_REQUIRED_HEADERS).toContain('开发责任人')
       expect(IMPORT_REQUIRED_HEADERS).toContain('总预算')
       expect(IMPORT_REQUIRED_HEADERS).toContain('已用预算')
       expect(IMPORT_REQUIRED_HEADERS).toHaveLength(5)
