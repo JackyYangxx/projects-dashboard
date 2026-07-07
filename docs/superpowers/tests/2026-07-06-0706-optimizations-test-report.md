@@ -1,6 +1,6 @@
 # E2E Test Report: 0706 Optimizations
 
-**Date:** 2026-07-06
+**Date:** 2026-07-07 (updated)
 **Spec:** `docs/superpowers/specs/2026-07-06-0706-optimizations-design.md`
 **PRD:** `docs/PRD/0706-optimizations.md`
 
@@ -13,8 +13,11 @@
 | Unit tests (Vitest) | 148 (20 files) | All PASS |
 | TypeScript | — | No errors |
 | Console errors | 6 pages | 0 errors |
-| E2E visual verification | 18 cases | All PASS |
+| E2E visual verification (original) | 18 cases | All PASS |
+| E2E visual verification (new) | 11 cases | All PASS |
+| E2E total | **29 cases** | **29/29 PASS** |
 | Existing E2E tests | — | Not modified |
+| Bug fix | 1 | Verified fixed |
 
 ---
 
@@ -107,33 +110,81 @@ npx tsc --noEmit → zero errors
 | `2026-07-06-project-form.png` | Project creation form: defaults paused, budget=0, code input |
 | `2026-07-06-code-review.png` | Code review: ongoing projects only, repo info columns |
 | `2026-07-06-settings.png` | Settings page: bg-surface-subtle header |
+| `2026-07-07-TC-DETAIL-007-add-repo.png` | TC-DETAIL-007: Add repo full flow with all fields filled |
+| `2026-07-07-TC-DASH-006-status-persistence.png` | TC-DASH-006: Status change persists within SPA navigation |
 
 ---
 
-## Files Changed
+## New E2E Test Results (2026-07-07)
 
-| File | Change |
+### Area 9: Repository CRUD
+
+| Test ID | Name | Result |
+|---|---|---|
+| TC-DETAIL-007 | Add repository — full flow (fill all fields, save, verify persistence) | PASS |
+| TC-DETAIL-008 | Modify repository fields (code, URL, note) | PASS |
+| TC-DETAIL-009 | Delete repository | PASS |
+| TC-DETAIL-010 | Empty URL cleanup on exit edit mode | PASS |
+
+### Area 10: Budget Source CRUD
+
+| Test ID | Name | Result |
+|---|---|---|
+| TC-DETAIL-011 | Add budget source | PASS |
+| TC-DETAIL-012 | Modify budget source (name + amount) | PASS |
+| TC-DETAIL-013 | Delete budget source | PASS |
+
+### Area 11: Team Member Management
+
+| Test ID | Name | Result |
+|---|---|---|
+| TC-DETAIL-014 | Add team member (王五, 业务责任人) | PASS |
+| TC-DETAIL-015 | Remove team member | PASS |
+
+### Area 12: Status Persistence
+
+| Test ID | Name | Result |
+|---|---|---|
+| TC-DASH-006 | Status change persists within SPA navigation | PASS ⚠️ |
+
+> ⚠️ Hard page reload resets status to seed data because sql.js is in-memory WASM. In Electron (production), the database persists for the process lifetime and survives navigator reloads.
+
+### Area 13: Business Role
+
+| Test ID | Name | Result |
+|---|---|---|
+| TC-DETAIL-016 | Business role "业务责任人" displayed in strategic team | PASS |
+
+**New Cases: 11/11 PASS**
+
+---
+
+## Bug Fix Verification
+
+| Check | Result |
 |---|---|
-| `src/types/index.ts` | Repository.projectId, Project.tags: string[] |
-| `src/db/projectDao.ts` | parseTags() migration, tags JSON handling |
-| `src/db/index.ts` | JSON.stringify(tags) on insert |
-| `src/data/seedData.ts` | Default status paused, budget=0, tags array |
-| `src/components/ProjectTable.tsx` | Status column + dropdown, 开发责任人 rename, multi-tag display, onStatusChange |
-| `src/components/Sidebar.tsx` | Added "项目详情" nav item with /project route matching |
-| `src/components/Header.tsx` | bg-white → bg-surface-subtle |
-| `src/pages/Dashboard.tsx` | Tag filter replacing month filter, handleStatusChange, import/export updates |
-| `src/pages/ProjectDetail.tsx` | Repo code/ProjectId UI, multi-tag editor |
-| `src/pages/ProjectForm.tsx` | Default status paused, tags: [], bg-surface-subtle |
-| `src/pages/CodeReview.tsx` | bg-surface-elevated → bg-surface-subtle |
-| `src/pages/Settings.tsx` | bg-surface-elevated → bg-surface-subtle |
-| `src/components/ProjectSelector.tsx` | Expanded repo info columns |
-| `src/constants/project.ts` | 负责人 → 开发责任人 in headers |
-| `src/constants/project.test.ts` | Updated header assertion |
-| `src/components/__tests__/ProjectTable.test.tsx` | Updated for 7 columns, tags[], status column |
+| "添加代码仓" creates new empty row that persists | PASS |
+| All 6 repo handlers no longer filter empty URLs | PASS |
+| Empty URL rows cleaned up on exiting edit mode | PASS |
+| Team member delete button (×) visible in edit mode only | PASS |
+| All 6 pages: 0 console errors | PASS |
+| Unit tests 148/148 | PASS |
+| TypeScript compilation | PASS |
 
-## Commits
+---
+
+## Updated Files Changed (since original report)
+
+| File | Additional Change |
+|---|---|
+| `src/pages/ProjectDetail.tsx` | Bug fix: remove .filter(r => r.url.trim()) from all repo handlers; cleanup on edit exit; team member delete button |
+| `docs/superpowers/tests/2026-07-06-0706-optimizations-test-cases.md` | +11 test cases (29 total) |
+| `docs/PRD/0706-verification-report.html` | Updated with bug fix, new test areas, updated totals |
+
+## Updated Commits
 
 ```
+5a2a5eb fix: 修复"添加代码仓"按钮无效bug + 新增团队成员删除按钮 + 补充29条E2E用例
 1a98a06 feat: 0706 optimizations - all implementation changes
 60fa4b4 feat: 0706 optimizations - data model + seed data changes
 ```
