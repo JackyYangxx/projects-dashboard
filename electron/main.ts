@@ -221,14 +221,9 @@ const SCHEDULE_KEY = 'agent-schedule'
 const DEFAULT_CRON = '0 9 * * 1-5'
 
 function getNextScheduledRun(): string | null {
-  if (!cronJob) return null
-  try {
-    // node-cron runtime exposes nextDate() but @types/node-cron does not declare it.
-    return (cronJob as unknown as { nextDate: () => Date }).nextDate().toISOString()
-  } catch (err) {
-    console.error('[scheduler] failed to compute next run:', err)
-    return null
-  }
+  // node-cron v4 does not expose nextDate(); tray label falls back to "定时扫描未启用"
+  // until a proper cron-parser integration is added. See docs/superpowers/issues/.
+  return null
 }
 
 function initScheduler(): void {
