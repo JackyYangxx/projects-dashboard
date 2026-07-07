@@ -693,7 +693,7 @@ git commit -m "feat: add agent DAO layer for rules, memories, tasks, reports"
 **Files:**
 - Create: `src/agents/messageTypes.ts`
 
-- [ ] **Step 1: Create typed message protocol file**
+- [x] **Step 1: Create typed message protocol file**
 
 ```typescript
 // src/agents/messageTypes.ts
@@ -726,7 +726,7 @@ export type WorkerOutMessage =
   | { type: 'agent:db-query'; requestId: string; sql: string; params?: unknown[] }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/agents/messageTypes.ts
@@ -738,7 +738,7 @@ git commit -m "feat: add typed message protocol for Worker-UI communication"
 **Files:**
 - Create: `src/agents/agentWorkerManager.ts`
 
-- [ ] **Step 1: Create the Worker lifecycle singleton**
+- [x] **Step 1: Create the Worker lifecycle singleton**
 
 ```typescript
 // src/agents/agentWorkerManager.ts
@@ -812,7 +812,7 @@ export async function handleDbRequest(msg: WorkerOutMessage & { requestId: strin
 }
 ```
 
-- [ ] **Step 2: Initialize Worker in main.tsx**
+- [x] **Step 2: Initialize Worker in main.tsx**
 
 In `src/main.tsx`, add after `initDatabase()` call:
 
@@ -828,12 +828,12 @@ initDatabase().then(() => {
 })
 ```
 
-- [ ] **Step 3: Verify Worker starts**
+- [x] **Step 3: Verify Worker starts**
 
 Run: `npm run dev`
 Expected: Check browser console — "[App] Database and Agent Worker initialized" logged. No Worker errors in console.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/agents/agentWorkerManager.ts src/main.tsx
@@ -845,7 +845,7 @@ git commit -m "feat: add agentWorkerManager singleton initialized at app bootstr
 **Files:**
 - Create: `src/agents/llmProvider.ts`
 
-- [ ] **Step 1: Create LLMProvider interface and implementations**
+- [x] **Step 1: Create LLMProvider interface and implementations**
 
 ```typescript
 // src/agents/llmProvider.ts
@@ -981,12 +981,12 @@ export function createLLMProvider(config: { modelUrl: string; apiKey: string; mo
 }
 ```
 
-- [ ] **Step 2: Verify compilation**
+- [x] **Step 2: Verify compilation**
 
 Run: `npx tsc --noEmit`
 Expected: No new errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/agents/llmProvider.ts
@@ -998,7 +998,7 @@ git commit -m "feat: add LLMProvider abstraction with OpenAI, Anthropic, and Moc
 **Files:**
 - Create: `src/agents/worker.ts`
 
-- [ ] **Step 1: Create the Worker message handler skeleton**
+- [x] **Step 1: Create the Worker message handler skeleton**
 
 ```typescript
 // src/agents/worker.ts — Web Worker entry point
@@ -1057,14 +1057,14 @@ self.onmessage = async (event: MessageEvent<WorkerInMessage>) => {
 export {}
 ```
 
-- [ ] **Step 2: Verify Worker loads without errors**
+- [x] **Step 2: Verify Worker loads without errors**
 
 Run: `npm run dev`
 Open browser console. Expected: No Worker errors. If you see "[Worker]" imports resolving, the Worker is bundling correctly.
 
 **Note:** Vite bundles `new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })` as a separate chunk. Verify the chunk loads by checking Network tab for a `worker-*.js` file.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/agents/worker.ts
@@ -1080,7 +1080,7 @@ git commit -m "feat: add Agent Web Worker skeleton with message handling"
 **Files:**
 - Create: `src/agents/tokenBudget.ts`
 
-- [ ] **Step 1: Create tokenBudget.ts**
+- [x] **Step 1: Create tokenBudget.ts**
 
 ```typescript
 // src/agents/tokenBudget.ts
@@ -1161,7 +1161,7 @@ export function compressToXml(history: string): string {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/agents/tokenBudget.ts
@@ -1173,7 +1173,7 @@ git commit -m "feat: add token budget manager with shard/degrade strategies"
 **Files:**
 - Create: `src/agents/ruleEngine.ts`
 
-- [ ] **Step 1: Create ruleEngine.ts**
+- [x] **Step 1: Create ruleEngine.ts**
 
 ```typescript
 // src/agents/ruleEngine.ts
@@ -1256,7 +1256,7 @@ export function buildRuleContextPrompt(rules: AgentRule[]): string {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/agents/ruleEngine.ts
@@ -1268,7 +1268,7 @@ git commit -m "feat: add rule matching engine with glob + regex dual-mode"
 **Files:**
 - Create: `src/agents/memoryManager.ts`
 
-- [ ] **Step 1: Create memoryManager.ts**
+- [x] **Step 1: Create memoryManager.ts**
 
 ```typescript
 // src/agents/memoryManager.ts
@@ -1318,7 +1318,7 @@ export function needsEviction(): boolean {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/agents/memoryManager.ts
@@ -1330,7 +1330,7 @@ git commit -m "feat: add memory manager with retrieval prompt and auto-write log
 **Files:**
 - Create: `src/agents/pipeline.ts`
 
-- [ ] **Step 1: Create the 4-stage pipeline**
+- [x] **Step 1: Create the 4-stage pipeline**
 
 ```typescript
 // src/agents/pipeline.ts
@@ -1555,7 +1555,7 @@ function parseIssuesFromResponse(text: string): AIResponseIssue[] {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/agents/pipeline.ts
@@ -1567,7 +1567,7 @@ git commit -m "feat: add 4-stage Agent pipeline with MCP fetch, LLM analysis, is
 **Files:**
 - Modify: `src/agents/worker.ts`
 
-- [ ] **Step 1: Replace the placeholder worker.ts with full implementation**
+- [x] **Step 1: Replace the placeholder worker.ts with full implementation**
 
 ```typescript
 // src/agents/worker.ts — full implementation
@@ -1709,12 +1709,12 @@ self.onmessage = (event: MessageEvent<WorkerInMessage>) => {
 export {}
 ```
 
-- [ ] **Step 2: Verify compilation**
+- [x] **Step 2: Verify compilation**
 
 Run: `npx tsc --noEmit`
 Expected: No errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/agents/worker.ts
@@ -1730,7 +1730,7 @@ git commit -m "feat: wire full pipeline into Agent Web Worker with config loadin
 **Files:**
 - Modify: `src/store/codeReviewStore.ts`
 
-- [ ] **Step 1: Add Agent state and actions to the store interface and implementation**
+- [x] **Step 1: Add Agent state and actions to the store interface and implementation**
 
 Add to the `CodeReviewStore` interface:
 
@@ -1858,12 +1858,12 @@ import { getAllReviewTasks } from '@/db/agentDao'
 import type { ReviewTask } from '@/types/agent'
 ```
 
-- [ ] **Step 2: Verify compilation**
+- [x] **Step 2: Verify compilation**
 
 Run: `npx tsc --noEmit`
 Expected: No type errors. The Circular import between worker manager and store must resolve cleanly.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/store/codeReviewStore.ts
@@ -1875,7 +1875,7 @@ git commit -m "feat: add Agent state and actions to codeReviewStore"
 **Files:**
 - Create: `src/components/AgentProgress.tsx`
 
-- [ ] **Step 1: Create the live progress UI component**
+- [x] **Step 1: Create the live progress UI component**
 
 ```typescript
 // src/components/AgentProgress.tsx
@@ -1983,12 +1983,12 @@ export default function AgentProgress() {
 }
 ```
 
-- [ ] **Step 2: Verify component compiles**
+- [x] **Step 2: Verify component compiles**
 
 Run: `npx tsc --noEmit`
 Expected: No errors. If Icon component doesn't have these names, use `span` with text labels instead.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/AgentProgress.tsx
@@ -2004,7 +2004,7 @@ git commit -m "feat: add AgentProgress component with live phase tracking and co
 **Files:**
 - Create: `src/components/RuleEditor.tsx`
 
-- [ ] **Step 1: Create rule editor with form for CRUD**
+- [x] **Step 1: Create rule editor with form for CRUD**
 
 ```typescript
 // src/components/RuleEditor.tsx
@@ -2105,7 +2105,7 @@ export default function RuleEditor({ rule, onSave, onCancel }: Props) {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/RuleEditor.tsx
@@ -2117,7 +2117,7 @@ git commit -m "feat: add RuleEditor component for rule CRUD"
 **Files:**
 - Create: `src/components/RuleList.tsx`
 
-- [ ] **Step 1: Create the rule list with toggle and edit**
+- [x] **Step 1: Create the rule list with toggle and edit**
 
 ```typescript
 // src/components/RuleList.tsx
@@ -2191,7 +2191,7 @@ export default function RuleList({ rules, onToggle, onEdit, onDelete, onAdd }: P
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/RuleList.tsx
@@ -2203,7 +2203,7 @@ git commit -m "feat: add RuleList component with toggle and edit"
 **Files:**
 - Modify: `src/pages/CodeReview.tsx`
 
-- [ ] **Step 1: Add Agent UI to the CodeReview page**
+- [x] **Step 1: Add Agent UI to the CodeReview page**
 
 Add Agent state imports and components:
 
@@ -2300,7 +2300,7 @@ In the JSX, add after the existing ProjectSelector section and before the result
 
 **Note**: The exact integration depends on the current page layout. Modify existing JSX minimally — add the Agent components alongside existing ones. Keep both old and new flows functional.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/pages/CodeReview.tsx
@@ -2317,14 +2317,14 @@ git commit -m "feat: integrate Agent UI, rules, and progress into CodeReview pag
 - Modify: `electron/main.ts`
 - Modify: `electron/preload.ts`
 
-- [ ] **Step 1: Add node-cron dependency**
+- [x] **Step 1: Add node-cron dependency**
 
 ```bash
 npm install node-cron
 npm install -D @types/node-cron
 ```
 
-- [ ] **Step 2: Add scheduler to main.ts**
+- [x] **Step 2: Add scheduler to main.ts**
 
 In `electron/main.ts`, add import:
 
@@ -2407,7 +2407,7 @@ function updateTrayMenu(): void {
 }
 ```
 
-- [ ] **Step 3: Add window-close confirmation for Windows**
+- [x] **Step 3: Add window-close confirmation for Windows**
 
 Replace the existing `window-all-closed` handler:
 
@@ -2442,7 +2442,7 @@ ipcMain.handle('agent:confirm-close', async () => {
 })
 ```
 
-- [ ] **Step 4: Update preload.ts to expose new IPC channels**
+- [x] **Step 4: Update preload.ts to expose new IPC channels**
 
 Add to `contextBridge.exposeInMainWorld('electronAPI', {`:
 
@@ -2529,7 +2529,7 @@ agentBridge?: {
 }
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add electron/main.ts electron/preload.ts src/types/index.ts package.json package-lock.json
@@ -2545,7 +2545,7 @@ git commit -m "feat: add node-cron scheduler, tray menu updates, and new IPC han
 **Files:**
 - Create: `src/components/ScheduleConfig.tsx`
 
-- [ ] **Step 1: Create schedule configuration UI**
+- [x] **Step 1: Create schedule configuration UI**
 
 ```typescript
 // src/components/ScheduleConfig.tsx
@@ -2634,7 +2634,7 @@ export default function ScheduleConfig() {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/ScheduleConfig.tsx
@@ -2646,7 +2646,7 @@ git commit -m "feat: add ScheduleConfig component with cron presets"
 **Files:**
 - Create: `src/components/ReportGenerator.tsx`
 
-- [ ] **Step 1: Create report generation dialog**
+- [x] **Step 1: Create report generation dialog**
 
 ```typescript
 // src/components/ReportGenerator.tsx
@@ -2767,7 +2767,7 @@ export default function ReportGenerator({ onClose, onGenerated }: Props) {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/components/ReportGenerator.tsx
@@ -2838,7 +2838,7 @@ function setupDbProxy(): void {
 setupDbProxy()
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/store/codeReviewStore.ts
@@ -2847,7 +2847,7 @@ git commit -m "feat: wire DB request proxy for Agent Web Worker in store"
 
 ### Task 22: Final compilation and runtime verification
 
-- [ ] **Step 1: Verify full TypeScript compilation**
+- [x] **Step 1: Verify full TypeScript compilation**
 
 ```bash
 npx tsc --noEmit
@@ -2858,7 +2858,7 @@ Fix any remaining type errors. Common issues:
 - Missing type exports from `src/types/agent.ts`
 - Worker.postMessage serialization — ensure all message types are serializable
 
-- [ ] **Step 2: Verify dev server starts**
+- [x] **Step 2: Verify dev server starts**
 
 ```bash
 npm run dev
@@ -2869,7 +2869,7 @@ Expected: Vite dev server starts without errors. Check browser console for:
 - No Worker errors
 - Web Worker chunk loads in Network tab
 
-- [ ] **Step 3: Quick functional smoke test (with MockProvider)**
+- [x] **Step 3: Quick functional smoke test (with MockProvider)**
 
 Temporarily change the LLM provider in `worker.ts` to use `MockProvider`:
 
@@ -2888,7 +2888,7 @@ Start the app, go to CodeReview page, select a project, click "开始评审". Ve
 
 Revert to real provider after test.
 
-- [ ] **Step 4: Commit any fixes**
+- [x] **Step 4: Commit any fixes**
 
 ```bash
 git add -A
