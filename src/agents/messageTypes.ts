@@ -19,7 +19,9 @@ export type WorkerOutMessage =
   | { type: 'agent:phase-change'; taskId: string; fromPhase: string; toPhase: string }
   | { type: 'agent:completed'; taskId: string; summary: TaskSummary }
   | { type: 'agent:error'; taskId: string; error: string }
-  // DB semantic API
+  | { type: 'agent:db-response'; requestId: string; result: unknown }
+  | { type: 'agent:db-batch-done'; requestId: string; error?: string }
+  // DB semantic API (worker requests DB ops from UI)
   | { type: 'agent:db-search-memories'; requestId: string; projectId: string; filePatterns: string[]; limit: number }
   | { type: 'agent:db-write-memory'; requestId: string; memory: Omit<AgentMemory, 'id' | 'createdAt'> }
   | { type: 'agent:db-task-create'; requestId: string; task: Omit<ReviewTask, 'id'> }

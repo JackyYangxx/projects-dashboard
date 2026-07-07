@@ -1,14 +1,7 @@
 // Agent Web Worker Manager — singleton lifecycle for the code-review agent worker.
 // Worker has its own message channel; all message types share it.
-//
-// Types are imported from ./messageTypes when available (Task 4 deliverable).
-// If that module is not yet present, minimal local placeholders are used so this
-// file type-checks in isolation. Once messageTypes.ts lands, the real types will
-// take over via a single import update.
 
-// Minimal local placeholders (replaced when ./messageTypes is available)
-type WorkerInMessage = Record<string, unknown>
-type WorkerOutMessage = { type: string; [key: string]: unknown }
+import type { WorkerInMessage, WorkerOutMessage } from './messageTypes'
 
 type MessageHandler = (msg: WorkerOutMessage) => void
 

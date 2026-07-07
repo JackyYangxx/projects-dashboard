@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { MCPService, Skill, LLMConfig, MRReviewRecord, ReviewIssue, IssueSeverity } from '@/types'
+import type { ReviewTask } from '@/types/agent'
 import {
   getAllMCPServices, insertMCPService, updateMCPService, deleteMCPService,
   getAllSkills, insertSkill, updateSkill, deleteSkill,
@@ -7,6 +8,8 @@ import {
   insertMRReviewRecord, getAllMRReviewRecords, getMRReviewRecordsByProject,
   deleteMRReviewRecord, deleteAllMRReviewRecords,
 } from '@/db/codeReviewDao'
+import { getAllReviewTasks } from '@/db/agentDao'
+import { getAgentWorker, sendToWorker, subscribeToWorker } from '@/agents/agentWorkerManager'
 import { useProjectStore } from './projectStore'
 import { parseDiff } from '@/utils/diffParser'
 import { resolveIssues, type AIResponseIssue } from '@/utils/issueResolver'
@@ -63,6 +66,23 @@ interface CodeReviewStore {
   loadMRReviewRecords: (projectId?: string) => void
   deleteMRReviewRecord: (id: string) => void
   clearAllReviewData: () => void
+
+  // ─── NEW: Agent state ───
+  agentStatus: 'idle' | 'running' | 'paused'
+  agentTaskId: string | null
+  agentLiveIssues: ReviewIssue[]
+  agentCurrentPhase: string
+  agentProgress: number
+  agentCurrentFile: string
+  agentFoundCount: number
+  reviewTasks: ReviewTask[]
+
+  // ─── NEW: Agent actions ───
+  startAgentReview: (projectId: string, mrIds: string[]) => Promise<void>
+  controlAgent: (action: 'pause' | 'resume' | 'skip' | 'cancel') => void
+  toggleAgentRule: (ruleId: string, enabled: boolean) => void
+  loadReviewTasks: () => void
+  resetAgentState: () => void
 }
 
 export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
@@ -438,6 +458,78 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
     }
 
     set({ isReviewing: false })
+  },
+
+  // ─── NEW: Agent initial state ───
+  agentStatus: 'idle',
+  agentTaskId: null,
+  agentLiveIssues: [],
+  agentCurrentPhase: '',
+  agentProgress: 0,
+  agentCurrentFile: '',
+  agentFoundCount: 0,
+  reviewTasks: [],
+
+  // ─── NEW: Agent actions ───
+  startAgentReview: async (projectId, mrIds) => {
+    const worker = getAgentWorker()
+    if (!worker) { set({ reviewError: 'Agent Worker 未初始化' }); return }
+
+    const taskId = crypto.randomUUID()
+    set({ agentStatus: 'running', agentTaskId: taskId, agentLiveIssues: [], agentCurrentPhase: 'preparing', agentProgress: 0, agentFoundCount: 0, reviewError: null })
+
+    const unsub = subscribeToWorker((msg) => {
+      const state = get()
+      if (msg.type === 'agent:progress') {
+        if (msg.taskId === taskId) {
+          set({ agentCurrentPhase: msg.phase, agentProgress: msg.percent, agentCurrentFile: msg.currentFile, agentFoundCount: msg.foundCount })
+        }
+      } else if (msg.type === 'agent:issue-found') {
+        if (msg.taskId === taskId) {
+          set(s => ({ agentLiveIssues: [...s.agentLiveIssues, msg.issue] }))
+        }
+      } else if (msg.type === 'agent:phase-change') {
+        if (msg.taskId === taskId) set({ agentCurrentPhase: msg.toPhase })
+      } else if (msg.type === 'agent:completed') {
+        if (msg.taskId === taskId) {
+          set({ agentStatus: 'idle', agentTaskId: null, agentProgress: 1 })
+          state.loadMRReviewRecords()
+          state.loadReviewTasks()
+        }
+      } else if (msg.type === 'agent:error') {
+        if (msg.taskId === taskId) {
+          set({ agentStatus: 'idle', agentTaskId: null, reviewError: msg.error })
+        }
+      }
+    })
+
+    sendToWorker({ type: 'agent:start', taskId, projectId, mrIds })
+    void unsub
+  },
+
+  controlAgent: (action) => {
+    const { agentTaskId } = get()
+    if (!agentTaskId) return
+    sendToWorker({ type: 'agent:control', action })
+    if (action === 'pause') set({ agentStatus: 'paused' })
+    else if (action === 'resume') set({ agentStatus: 'running' })
+    else if (action === 'cancel') set({ agentStatus: 'idle', agentTaskId: null })
+  },
+
+  toggleAgentRule: (ruleId, enabled) => {
+    sendToWorker({ type: 'agent:rule-toggle', ruleId, enabled })
+  },
+
+  loadReviewTasks: () => {
+    const tasks = getAllReviewTasks()
+    set({ reviewTasks: tasks })
+  },
+
+  resetAgentState: () => {
+    set({
+      agentStatus: 'idle', agentTaskId: null, agentLiveIssues: [],
+      agentCurrentPhase: '', agentProgress: 0, agentCurrentFile: '', agentFoundCount: 0,
+    })
   },
 
 }))
