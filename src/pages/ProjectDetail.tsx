@@ -282,7 +282,13 @@ const ProjectDetail: React.FC = () => {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <button
-            onClick={() => setIsReadOnly((prev) => !prev)}
+            onClick={() => {
+              if (!isReadOnly) {
+                const cleaned = editRepos.filter(r => r.url.trim())
+                updateProject(project.id, { repositories: cleaned, updatedAt: new Date().toISOString() })
+              }
+              setIsReadOnly((prev) => !prev)
+            }}
             title={isReadOnly ? '切换到编辑模式' : '切换到查看模式'}
             className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm font-body font-medium border transition-colors ${
               isReadOnly
@@ -353,7 +359,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], code: e.target.value }
                             setEditRepos(next)
-                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                            updateProject(project.id, { repositories: next, updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="编码"
@@ -367,7 +373,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], projectId: e.target.value }
                             setEditRepos(next)
-                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                            updateProject(project.id, { repositories: next, updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="ProjectId"
@@ -381,7 +387,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], url: e.target.value }
                             setEditRepos(next)
-                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                            updateProject(project.id, { repositories: next, updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="https://github.com/org/repo"
@@ -395,7 +401,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], branch: e.target.value }
                             setEditRepos(next)
-                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                            updateProject(project.id, { repositories: next, updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm font-mono text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="main"
@@ -409,7 +415,7 @@ const ProjectDetail: React.FC = () => {
                             const next = [...editRepos]
                             next[idx] = { ...next[idx], note: e.target.value }
                             setEditRepos(next)
-                            updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                            updateProject(project.id, { repositories: next, updatedAt: new Date().toISOString() })
                           }}
                           className="w-full h-9 px-3 bg-white border border-outline rounded-md text-sm text-on-surface-primary focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-500/15"
                           placeholder="备注"
@@ -422,7 +428,7 @@ const ProjectDetail: React.FC = () => {
                             onClick={() => {
                               const next = editRepos.filter((_, i) => i !== idx)
                               setEditRepos(next)
-                              updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                              updateProject(project.id, { repositories: next, updatedAt: new Date().toISOString() })
                             }}
                             className="w-8 h-8 flex items-center justify-center rounded-md text-on-surface-tertiary hover:text-red-500 hover:bg-red-50 transition-colors"
                             title="删除此代码仓"
@@ -436,9 +442,7 @@ const ProjectDetail: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const next = [...editRepos, { id: crypto.randomUUID(), code: '', url: '', branch: 'main' }]
-                      setEditRepos(next)
-                      updateProject(project.id, { repositories: next.filter(r => r.url.trim()), updatedAt: new Date().toISOString() })
+                      setEditRepos([...editRepos, { id: crypto.randomUUID(), code: '', url: '', branch: 'main' }])
                     }}
                     className="inline-flex items-center gap-1.5 h-8 px-3 border border-dashed border-outline rounded-md text-xs font-body text-on-surface-tertiary hover:border-primary-300 hover:text-primary-600 transition-colors"
                   >
@@ -776,6 +780,20 @@ const ProjectDetail: React.FC = () => {
                           {member.role}
                         </p>
                       </div>
+                      {!isReadOnly && (
+                        <button
+                          onClick={() => {
+                            updateProject(project.id, {
+                              team: project.team.filter(m => m.id !== member.id),
+                              updatedAt: new Date().toISOString(),
+                            })
+                          }}
+                          className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-on-surface-tertiary hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="移除成员"
+                        >
+                          <Icon name="close" size={14} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

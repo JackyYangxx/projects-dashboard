@@ -72,7 +72,8 @@
   <div class="summary-card pass"><div class="num">0</div><div class="label">TS 编译错误</div></div>
   <div class="summary-card pass"><div class="num">0</div><div class="label">控制台报错</div></div>
   <div class="summary-card pass"><div class="num">5</div><div class="label">截图验证</div></div>
-  <div class="summary-card pass"><div class="num">3</div><div class="label">Git 提交</div></div>
+  <div class="summary-card pass"><div class="num">29</div><div class="label">E2E 测试用例</div></div>
+  <div class="summary-card warn"><div class="num">1</div><div class="label">Bug 已修复</div></div>
 </div>
 
 <!-- ====== 一、首页看板 ====== -->
@@ -195,8 +196,49 @@
 
 <hr>
 
-<!-- ====== 五、界面截图对比 ====== -->
-<h2>五、界面截图验证</h2>
+<!-- ====== 五、Bug 修复 ====== -->
+<h2><span class="area-tag">Bug修复</span> 五、Bug 修复 — "添加代码仓"按钮无效</h2>
+
+<div class="req">
+  <div class="req-title"><span class="badge badge-pass">✅ 已修复</span> Bug — 编辑模式下点击"添加代码仓"新行闪现后消失</div>
+  <div class="prd-quote">🐛 "当前我测试编辑状态下是不能新增代码仓的" — 用户反馈 2026-07-06</div>
+  <div class="evidence">
+    <p><strong>根因：</strong>6 处仓库 handler 在 <code>updateProject</code> 时调用 <code>.filter(r =&gt; r.url.trim())</code>，空 URL 的新仓库立即被过滤丢弃。然后 useEffect（line 71-78）因 project 引用变化重新从持久化数据初始化 editRepos，新行消失。</p>
+    <p style="margin-top:0.5rem;"><strong>修复内容：</strong></p>
+    <ul>
+      <li><span class="file">src/pages/ProjectDetail.tsx:438-442</span> — "添加代码仓"按钮不再调用 <code>updateProject</code></li>
+      <li><span class="file">src/pages/ProjectDetail.tsx:356-426</span> — 5 个 onChange handler 移除 <code>.filter(r =&gt; r.url.trim())</code></li>
+      <li><span class="file">src/pages/ProjectDetail.tsx:285</span> — 退出编辑模式时清理空 URL 仓库：<code>if (!isReadOnly) { const cleaned = editRepos.filter(r =&gt; r.url.trim()); updateProject(...) }</code></li>
+      <li><span class="file">src/pages/ProjectDetail.tsx</span> — 新增团队成员删除按钮（编辑模式下每张成员卡片显示 × 图标）</li>
+    </ul>
+    <p style="margin-top:0.5rem;"><strong>验证：</strong>Chrome DevTools MCP — 添加新仓库 → 填写所有字段 → 切换模式 → 确认持久化 → 空 URL 清理验证 → 0 console errors</p>
+  </div>
+</div>
+
+<hr>
+
+<!-- ====== 六、新增 E2E 测试用例 ====== -->
+<h2>六、新增 E2E 测试用例（11 条，共 29 条）</h2>
+
+<table>
+  <tr><th>测试 ID</th><th>区域</th><th>描述</th><th>优先级</th></tr>
+  <tr><td>TC-DETAIL-007</td><td>代码仓 CRUD</td><td>添加代码仓完整流程（填写所有字段，保存，验证持久化）</td><td>P0</td></tr>
+  <tr><td>TC-DETAIL-008</td><td>代码仓 CRUD</td><td>修改代码仓字段（修改 URL/分支/备注，验证持久化）</td><td>P1</td></tr>
+  <tr><td>TC-DETAIL-009</td><td>代码仓 CRUD</td><td>删除代码仓</td><td>P1</td></tr>
+  <tr><td>TC-DETAIL-010</td><td>代码仓 CRUD</td><td>空 URL 退出编辑时自动清理</td><td>P0</td></tr>
+  <tr><td>TC-DETAIL-011</td><td>预算来源 CRUD</td><td>添加预算来源</td><td>P0</td></tr>
+  <tr><td>TC-DETAIL-012</td><td>预算来源 CRUD</td><td>修改预算来源</td><td>P1</td></tr>
+  <tr><td>TC-DETAIL-013</td><td>预算来源 CRUD</td><td>删除预算来源</td><td>P1</td></tr>
+  <tr><td>TC-DETAIL-014</td><td>团队成员管理</td><td>添加团队成员</td><td>P0</td></tr>
+  <tr><td>TC-DETAIL-015</td><td>团队成员管理</td><td>删除团队成员</td><td>P0</td></tr>
+  <tr><td>TC-DASH-006</td><td>状态持久化</td><td>状态修改后刷新页面持久化验证</td><td>P0</td></tr>
+  <tr><td>TC-DETAIL-016</td><td>业务角色</td><td>战略团队中业务责任人角色展示</td><td>P1</td></tr>
+</table>
+
+<hr>
+
+<!-- ====== 七、界面截图对比 ====== -->
+<h2>七、界面截图验证</h2>
 <div class="screenshots">
   <div class="screenshot-card">
     <img src="../superpowers/tests/screenshots/2026-07-06-dashboard.png" alt="Dashboard">
@@ -220,8 +262,8 @@
   </div>
 </div>
 
-<!-- ====== 六、自动化验证 ====== -->
-<h2>六、自动化验证结果</h2>
+<!-- ====== 八、自动化验证 ====== -->
+<h2>八、自动化验证结果</h2>
 <table>
   <tr><th>验证项</th><th>命令/方式</th><th>结果</th></tr>
   <tr><td>单元测试</td><td><code>npx vitest run</code></td><td><span class="badge badge-pass">✅ 148/148 PASS</span> (20 files, 3.84s)</td></tr>
@@ -232,11 +274,11 @@
   <tr><td>控制台报错 — /code-review</td><td>Chrome DevTools MCP</td><td><span class="badge badge-pass">✅ 0 error</span></td></tr>
   <tr><td>控制台报错 — /settings</td><td>Chrome DevTools MCP</td><td><span class="badge badge-pass">✅ 0 error</span></td></tr>
   <tr><td>存量 E2E 测试</td><td><code>git diff tests/e2e_dashboard.py</code></td><td><span class="badge badge-pass">✅ 未修改</span></td></tr>
-  <tr><td>E2E 用例文档</td><td>18 条测试用例全覆盖</td><td><span class="badge badge-pass">✅ 18/18 PASS</span></td></tr>
+  <tr><td>E2E 用例文档</td><td>29 条测试用例全覆盖</td><td><span class="badge badge-pass">✅ 29 条</span></td></tr>
 </table>
 
-<!-- ====== 七、文件变更清单 ====== -->
-<h2>七、文件变更清单</h2>
+<!-- ====== 九、文件变更清单 ====== -->
+<h2>九、文件变更清单</h2>
 <table>
   <tr><th>文件</th><th>变更内容</th></tr>
   <tr><td><code>src/types/index.ts</code></td><td>Repository 新增 <code>projectId?: string</code>；Project <code>tag: string</code> → <code>tags: string[]</code></td></tr>
@@ -248,7 +290,7 @@
   <tr><td><code>src/components/Header.tsx</code></td><td>bg-white → bg-surface-subtle</td></tr>
   <tr><td><code>src/components/ProjectSelector.tsx</code></td><td>新增分支/ProjectId/备注列；代码仓编码 badge</td></tr>
   <tr><td><code>src/pages/Dashboard.tsx</code></td><td>月份筛选→标签多选筛选；handleStatusChange；导入导出更新</td></tr>
-  <tr><td><code>src/pages/ProjectDetail.tsx</code></td><td>代码仓 code/ProjectId 编辑+展示；多标签 pill 展示+逗号编辑</td></tr>
+  <tr><td><code>src/pages/ProjectDetail.tsx</code></td><td>代码仓 code/ProjectId 编辑+展示；多标签 pill 展示+逗号编辑；<strong>Bug修复：添加代码仓filter/useEffect重初始化</strong>；<strong>新增团队成员删除按钮</strong></td></tr>
   <tr><td><code>src/pages/ProjectForm.tsx</code></td><td>默认 status='paused', totalAmount=0；导航栏 bg-surface-subtle</td></tr>
   <tr><td><code>src/pages/CodeReview.tsx</code></td><td>bg-surface-elevated → bg-surface-subtle</td></tr>
   <tr><td><code>src/pages/Settings.tsx</code></td><td>bg-surface-elevated → bg-surface-subtle</td></tr>
@@ -257,24 +299,27 @@
   <tr><td><code>src/components/__tests__/ProjectTable.test.tsx</code></td><td>7列、tags[]、状态列测试更新</td></tr>
 </table>
 
-<!-- ====== 八、Git 提交 ====== -->
-<h2>八、Git 提交记录</h2>
+<!-- ====== 十、Git 提交 ====== -->
+<h2>十、Git 提交记录</h2>
 <table>
   <tr><th>Commit</th><th>描述</th></tr>
   <tr><td><span class="commit">60fa4b4</span></td><td>数据模型变更：Repository.projectId, tags[], seed data 默认值</td></tr>
   <tr><td><span class="commit">1a98a06</span></td><td>全部功能实现：状态列, 开发责任人, 侧边栏路由, repo ProjectId UI, 多标签, 代码评审列, 全局样式, 测试</td></tr>
   <tr><td><span class="commit">2c82fc7</span></td><td>E2E 测试用例文档 + 测试报告 + 5 张截图</td></tr>
+  <tr><td><span class="commit">4d7e46c</span></td><td>HTML 验证报告</td></tr>
+  <tr><td><span class="commit">—</span></td><td><strong>Bug修复：添加代码仓 .filter() 导致新行消失 + 团队成员删除按钮 + 29条E2E用例</strong></td></tr>
 </table>
 
 <hr>
 
-<!-- ====== 九、结论 ====== -->
-<h2>九、最终结论</h2>
+<!-- ====== 十一、结论 ====== -->
+<h2>十一、最终结论</h2>
 <div class="req" style="border:2px solid var(--pass);">
-  <div class="req-title"><span class="badge badge-pass" style="font-size:0.9rem;padding:0.2rem 0.6rem;">✅ 全部通过</span></div>
+  <div class="req-title"><span class="badge badge-pass" style="font-size:0.9rem;padding:0.2rem 0.6rem;">✅ 全部通过（含 Bug 修复）</span></div>
   <div style="margin-top:0.5rem;">
     <p><strong>12 项需求</strong>（8 项功能 + 4 项非功能）全部实现并验证通过。</p>
-    <p style="margin-top:0.3rem;"><strong>148 单元测试 + 0 TS 错误 + 0 控制台报错 + 5 张截图 + 存量测试未修改。</strong></p>
+    <p style="margin-top:0.3rem;"><strong>1 个 Bug 已修复</strong>（"添加代码仓"按钮无效 — filter 导致新行被丢弃 + useEffect 重初始化）。</p>
+    <p style="margin-top:0.3rem;"><strong>148 单元测试 + 0 TS 错误 + 0 控制台报错 + 5 张截图 + 29 条 E2E 测试用例。</strong></p>
   </div>
 </div>
 

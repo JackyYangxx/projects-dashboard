@@ -3,7 +3,7 @@
 **Spec:** `docs/superpowers/specs/2026-07-06-0706-optimizations-design.md`
 **PRD:** `docs/PRD/0706-optimizations.md`
 **Written:** 2026-07-06T21:00:00+08:00
-**Total Cases:** 18
+**Total Cases:** 29
 
 ---
 
@@ -407,3 +407,261 @@
 - No modifications to existing E2E test files
 
 **Verification:** `git diff tests/e2e_dashboard.py` returns empty.
+
+---
+
+## Area 9: Repository CRUD
+
+### Test Case 9.1: Add Repository — Full Flow
+
+**Test ID:** TC-DETAIL-007
+**Priority:** P0
+
+**Preconditions:** Dev server running, project exists in edit mode
+
+**Steps:**
+1. Navigate to a project detail page
+2. Enter edit mode
+3. Click "添加代码仓" button
+4. Fill in all fields: 编码 (code), ProjectId, URL, 分支 (branch), 备注 (note)
+5. Toggle to view mode
+6. Toggle back to edit mode
+
+**Expected Result:**
+- New empty row appears immediately after clicking "添加代码仓"
+- All fields are editable text inputs
+- After filling fields and toggling to view mode, the new repo is visible
+- After re-entering edit mode, all filled values persist
+- Empty-URL rows are cleaned up when exiting edit mode
+
+**Verification:** Snapshot + screenshot of add flow.
+
+---
+
+### Test Case 9.2: Modify Repository Fields
+
+**Test ID:** TC-DETAIL-008
+**Priority:** P1
+
+**Preconditions:** Project exists with at least one repository
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Modify the 编码 (code) field of an existing repository
+3. Modify the URL field
+4. Modify the 分支 (branch) field
+5. Modify the 备注 (note) field
+6. Toggle to view mode
+
+**Expected Result:**
+- All modified field values are visible in view mode
+- Changes persist after re-entering edit mode
+
+**Verification:** Snapshot + screenshot before/after modification.
+
+---
+
+### Test Case 9.3: Delete Repository
+
+**Test ID:** TC-DETAIL-009
+**Priority:** P1
+
+**Preconditions:** Project exists with at least two repositories
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Click the delete (close) button on one repository row
+3. Verify the repository row is removed
+4. Toggle to view mode
+
+**Expected Result:**
+- Deleted repository no longer appears in view mode
+- Remaining repositories are unaffected
+
+**Verification:** Snapshot + screenshot before/after deletion.
+
+---
+
+### Test Case 9.4: Empty URL Repository Cleanup on Exit Edit
+
+**Test ID:** TC-DETAIL-010
+**Priority:** P0
+
+**Preconditions:** Project exists in edit mode
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Click "添加代码仓" — new empty row appears
+3. Do NOT fill in the URL field
+4. Toggle to view mode (exit edit mode)
+5. Toggle back to edit mode
+
+**Expected Result:**
+- After exiting edit mode, the empty-URL row is automatically removed
+- Re-entering edit mode does not show the empty row
+- Repositories with valid URLs are preserved
+
+**Verification:** Snapshot + screenshot.
+
+---
+
+## Area 10: Budget Source CRUD
+
+### Test Case 10.1: Add Budget Source
+
+**Test ID:** TC-DETAIL-011
+**Priority:** P0
+
+**Preconditions:** Project exists in edit mode
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Locate the "预算来源" section
+3. Click "添加预算来源" button
+4. Fill in source name and amount
+5. Toggle to view mode
+
+**Expected Result:**
+- New budget source row appears after clicking add
+- Filled values persist in view mode
+- Total budget updates to reflect the new source
+
+**Verification:** Snapshot + screenshot of add flow.
+
+---
+
+### Test Case 10.2: Modify Budget Source
+
+**Test ID:** TC-DETAIL-012
+**Priority:** P1
+
+**Preconditions:** Project exists with at least one budget source
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Modify the name of an existing budget source
+3. Modify the amount
+4. Toggle to view mode
+
+**Expected Result:**
+- Modified name and amount are visible in view mode
+- Total budget recalculates correctly
+
+**Verification:** Snapshot + screenshot before/after modification.
+
+---
+
+### Test Case 10.3: Delete Budget Source
+
+**Test ID:** TC-DETAIL-013
+**Priority:** P1
+
+**Preconditions:** Project exists with at least two budget sources
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Click the delete button on one budget source
+3. Verify the row is removed
+4. Toggle to view mode
+
+**Expected Result:**
+- Deleted source no longer appears
+- Total budget updates accordingly
+- Remaining sources are unaffected
+
+**Verification:** Snapshot + screenshot before/after deletion.
+
+---
+
+## Area 11: Team Member Management
+
+### Test Case 11.1: Add Team Member
+
+**Test ID:** TC-DETAIL-014
+**Priority:** P0
+
+**Preconditions:** Project exists in edit mode
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Locate the "团队成员" or "战略团队" section
+3. Click "添加成员" button
+4. Fill in member name and role
+5. Toggle to view mode
+
+**Expected Result:**
+- New member card appears with name, role, and generated avatar
+- Member persists after toggling to view mode
+
+**Verification:** Snapshot + screenshot of add flow.
+
+---
+
+### Test Case 11.2: Remove Team Member
+
+**Test ID:** TC-DETAIL-015
+**Priority:** P0
+
+**Preconditions:** Project exists with at least two team members
+
+**Steps:**
+1. Navigate to a project detail page in edit mode
+2. Locate the close (×) button on a team member card
+3. Click the close button
+4. Verify the member card is removed
+5. Toggle to view mode
+
+**Expected Result:**
+- Removed member no longer appears in view mode
+- Remaining members are unaffected
+- Close button is only visible in edit mode
+
+**Verification:** Snapshot + screenshot before/after removal.
+
+---
+
+## Area 12: Status Persistence
+
+### Test Case 12.1: Status Change Persists After Reload
+
+**Test ID:** TC-DASH-006
+**Priority:** P0
+
+**Preconditions:** Dev server running, at least one project exists
+
+**Steps:**
+1. Navigate to `http://localhost:5173` (dashboard)
+2. Note the current status of a project
+3. Change the project's status via the dropdown (e.g., 进行中 → 暂停中)
+4. Refresh the page
+5. Verify the status shown after reload
+
+**Expected Result:**
+- After page refresh, the changed status persists
+- Status dot color matches the persisted status
+- Status dropdown shows the correct current value
+
+**Verification:** Snapshot before change + after reload.
+
+---
+
+## Area 13: Business Role in Strategic Team
+
+### Test Case 13.1: Business Role Display in Strategic Team
+
+**Test ID:** TC-DETAIL-016
+**Priority:** P1
+
+**Preconditions:** Project exists with team members including one with role "业务责任人"
+
+**Steps:**
+1. Navigate to a project detail page
+2. Locate the "战略团队" section
+3. Inspect the roles displayed for team members
+
+**Expected Result:**
+- Team member with role "业务责任人" is displayed
+- The role label is clearly shown on the member card
+- Multiple team members with different roles (开发责任人, 业务责任人, etc.) are all visible
+
+**Verification:** Snapshot + screenshot.
