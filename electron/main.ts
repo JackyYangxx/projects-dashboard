@@ -2,11 +2,23 @@ import { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, type NativeImage 
 import path from 'path'
 import fs from 'fs'
 import Store from 'electron-store'
+import cron, { type ScheduledTask } from 'node-cron'
+
+// Augment Electron's App type with our custom quitting flag.
+declare global {
+  namespace Electron {
+    interface App {
+      isQuitting?: boolean
+    }
+  }
+}
 
 const isDev = !import.meta.env.PROD && !app.isPackaged
 
+let mainWindow: BrowserWindow | null = null
+
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 1280,
@@ -23,14 +35,14 @@ function createWindow() {
     center: true,
   })
 
-  win.once('ready-to-show', () => {
-    win.show()
+  mainWindow.once('ready-to-show', () => {
+    mainWindow!.show()
   })
 
   if (isDev) {
-    win.loadURL('http://localhost:5173')
+    mainWindow.loadURL('http://localhost:5173')
   } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'))
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
   }
 }
 
@@ -63,15 +75,32 @@ function createTray() {
     tray = new Tray(loadTrayIcon())
     tray.setToolTip('项目管理看板')
     tray.on('click', toggleMainWindow)
-    tray.setContextMenu(Menu.buildFromTemplate([
-      { label: '显示主窗口', click: toggleMainWindow },
-      { type: 'separator' },
-      { label: '退出', click: () => app.quit() },
-    ]))
+    updateTrayMenu()
   } catch (err) {
     console.error('[tray] failed to create tray:', err)
     tray = null
   }
+}
+
+function updateTrayMenu(): void {
+  if (!tray) return
+  const nextRun = getNextScheduledRun()
+  const nextRunLabel = nextRun ? `下次扫描: ${new Date(nextRun).toLocaleString('zh-CN')}` : '定时扫描未启用'
+  const contextMenu = Menu.buildFromTemplate([
+    { label: '显示主窗口', click: toggleMainWindow },
+    { label: nextRunLabel, enabled: false },
+    {
+      label: '立即扫描',
+      click: () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('agent:schedule-tick', { triggerTime: new Date().toISOString() })
+        }
+      },
+    },
+    { type: 'separator' },
+    { label: '退出', click: () => { app.isQuitting = true; app.quit() } },
+  ])
+  tray.setContextMenu(contextMenu)
 }
 
 const gotTheLock = app.requestSingleInstanceLock()
@@ -90,15 +119,27 @@ app.on('second-instance', () => {
 app.whenReady().then(() => {
   createWindow()
   createTray()
+  initScheduler()
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit()
+    // Keep app alive in tray for Windows/Linux. The renderer uses
+    // `agent:confirm-close` to ask the user before closing; if they choose
+    // "quit", `app.isQuitting` is set and the renderer calls `app.quit()`.
+    if (app.isQuitting) {
+      app.quit()
+    }
+    // Otherwise: stay alive in tray, no-op here.
   }
 })
 
 app.on('before-quit', () => {
+  app.isQuitting = true
+  if (cronJob) {
+    cronJob.stop()
+    cronJob = null
+  }
   if (tray) {
     tray.destroy()
     tray = null
@@ -173,3 +214,63 @@ const store = new Store()
 ipcMain.handle('store:get', (_event, key: string) => store.get(key))
 ipcMain.handle('store:set', (_event, key: string, value: unknown) => store.set(key, value))
 ipcMain.handle('store:delete', (_event, key: string) => store.delete(key))
+
+// Agent scheduler
+let cronJob: ScheduledTask | null = null
+const SCHEDULE_KEY = 'agent-schedule'
+const DEFAULT_CRON = '0 9 * * 1-5'
+
+function getNextScheduledRun(): string | null {
+  if (!cronJob) return null
+  try {
+    // node-cron runtime exposes nextDate() but @types/node-cron does not declare it.
+    return (cronJob as unknown as { nextDate: () => Date }).nextDate().toISOString()
+  } catch (err) {
+    console.error('[scheduler] failed to compute next run:', err)
+    return null
+  }
+}
+
+function initScheduler(): void {
+  const config = store.get(SCHEDULE_KEY) as { cronExpression?: string; enabled?: boolean } | undefined
+  const expression = config?.cronExpression || DEFAULT_CRON
+  const enabled = config?.enabled !== false
+
+  if (cronJob) {
+    cronJob.stop()
+    cronJob = null
+  }
+
+  if (enabled && cron.validate(expression)) {
+    cronJob = cron.schedule(expression, () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('agent:schedule-tick', { triggerTime: new Date().toISOString() })
+      }
+    })
+  } else if (!cron.validate(expression)) {
+    console.warn(`[scheduler] invalid cron expression: ${expression}`)
+  }
+
+  updateTrayMenu()
+}
+
+ipcMain.handle('agent:get-schedule', async () => {
+  const config = store.get(SCHEDULE_KEY) as { cronExpression?: string; enabled?: boolean } | undefined
+  return config || { cronExpression: DEFAULT_CRON, enabled: true }
+})
+
+ipcMain.handle('agent:set-schedule', async (_event, config: { cronExpression: string; enabled: boolean }) => {
+  store.set(SCHEDULE_KEY, config)
+  initScheduler()
+})
+
+ipcMain.handle('agent:get-next-run', async () => {
+  return getNextScheduledRun()
+})
+
+ipcMain.handle('agent:confirm-close', async () => {
+  const closeBehavior = store.get('close-behavior') as string | undefined
+  if (closeBehavior === 'quit') return { action: 'quit' }
+  // Default: minimize to tray
+  return { action: 'tray' }
+})

@@ -166,10 +166,12 @@ declare global {
       saveDatabase?: (data: number[]) => boolean
       getSchedule?: () => Promise<{ cronExpression: string; enabled: boolean } | null>  // NEW
       setSchedule?: (config: { cronExpression: string; enabled: boolean }) => Promise<void> // NEW
-      onScheduleTick?: (callback: () => void) => void     // NEW
-      removeScheduleTick?: () => void                      // NEW
       getNextScheduledRun?: () => Promise<string | null>   // NEW
-      onCloseToTray?: (callback: () => void) => void       // NEW
+      confirmClose?: () => Promise<{ action: 'quit' | 'tray' }> // NEW
+    }
+    agentBridge?: {
+      onScheduleTick: (callback: () => void) => void      // NEW
+      removeScheduleTick: (handler: (event: Event) => void) => void  // NEW
     }
     mcpAPI?: {
       listTools: (params: { url: string; authHeader?: string }) => Promise<unknown>
