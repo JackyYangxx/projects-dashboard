@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './styles/globals.css'
 import { initDatabase, persistDatabase } from './db'
+import { initAgentWorker } from './agents/agentWorkerManager'
 
 // Global unhandled error handlers
 window.addEventListener('error', (event) => {
@@ -27,7 +28,11 @@ if (window.location.protocol !== 'file:' && window.location.pathname !== '/' && 
 console.log('[App] Starting, window.location.href:', window.location.href)
 console.log('[App] Starting database initialization...')
 initDatabase()
-  .then(() => console.log('[App] Database initialized successfully'))
+  .then(() => {
+    console.log('[App] Database initialized successfully')
+    initAgentWorker()
+    console.log('[App] Agent Worker initialized')
+  })
   .catch((err) => {
     console.error('[App] Database init failed:', err)
     document.body.innerHTML = `
