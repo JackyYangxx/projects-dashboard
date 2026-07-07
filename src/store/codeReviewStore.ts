@@ -8,7 +8,9 @@ import {
   insertMRReviewRecord, getAllMRReviewRecords, getMRReviewRecordsByProject,
   deleteMRReviewRecord, deleteAllMRReviewRecords,
 } from '@/db/codeReviewDao'
-import { getAllReviewTasks } from '@/db/agentDao'
+import { getAllReviewTasks, searchMemories, insertMemory, insertReviewTask, updateReviewTask } from '@/db/agentDao'
+import { getDatabase, persistDatabase } from '@/db'
+import type { WorkerOutMessage } from '@/agents/messageTypes'
 import { getAgentWorker, sendToWorker, subscribeToWorker } from '@/agents/agentWorkerManager'
 import { useProjectStore } from './projectStore'
 import { parseDiff } from '@/utils/diffParser'
@@ -533,6 +535,55 @@ export const useCodeReviewStore = create<CodeReviewStore>((set, get) => ({
   },
 
 }))
+
+// Handle DB requests from Agent Web Worker
+function setupDbProxy(): void {
+  subscribeToWorker((msg: WorkerOutMessage) => {
+    const db = getDatabase()
+    if (!db) return
+
+    if (!('requestId' in msg)) return
+
+    try {
+      if (msg.type === 'agent:db-search-memories') {
+        const memories = searchMemories(msg.projectId, msg.filePatterns, msg.limit)
+        sendToWorker({ type: 'agent:db-response', requestId: msg.requestId, result: memories })
+      } else if (msg.type === 'agent:db-write-memory') {
+        const now = new Date().toISOString()
+        const memory = { ...msg.memory, id: crypto.randomUUID(), createdAt: now, updatedAt: now }
+        insertMemory(memory)
+        sendToWorker({ type: 'agent:db-response', requestId: msg.requestId, result: memory })
+      } else if (msg.type === 'agent:db-task-create') {
+        const task = { ...msg.task, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+        insertReviewTask(task)
+        sendToWorker({ type: 'agent:db-response', requestId: msg.requestId, result: task })
+      } else if (msg.type === 'agent:db-task-update') {
+        updateReviewTask(msg.id, msg.updates)
+        sendToWorker({ type: 'agent:db-response', requestId: msg.requestId, result: undefined })
+      } else if (msg.type === 'agent:db-batch') {
+        try {
+          db.run('BEGIN')
+          for (const stmt of msg.statements) {
+            db.run(stmt.sql, (stmt.params as Parameters<typeof db.run>[1]) || [])
+          }
+          db.run('COMMIT')
+          persistDatabase()
+          sendToWorker({ type: 'agent:db-batch-done', requestId: msg.requestId })
+        } catch (err) {
+          try { db.run('ROLLBACK') } catch { /* ignore */ }
+          sendToWorker({ type: 'agent:db-batch-done', requestId: msg.requestId, error: err instanceof Error ? err.message : 'Batch failed' })
+        }
+      } else if (msg.type === 'agent:db-query') {
+        const result = db.exec(msg.sql)
+        sendToWorker({ type: 'agent:db-response', requestId: msg.requestId, result: result[0]?.values || [] })
+      }
+    } catch (err) {
+      sendToWorker({ type: 'agent:db-batch-done', requestId: msg.requestId, error: err instanceof Error ? err.message : 'DB error' })
+    }
+  })
+}
+
+setupDbProxy()
 
 interface RawAIResponse {
   severity?: string
