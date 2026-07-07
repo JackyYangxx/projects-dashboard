@@ -143,6 +143,7 @@ export interface MRReviewRecord {
   status: 'pending' | 'reviewing' | 'completed' | 'failed'
   diff: string
   issues: ReviewIssue[]
+  taskId?: string           // NEW: link to review_tasks
   reviewedAt: string
   createdAt: string
 }
@@ -163,6 +164,12 @@ declare global {
       getWasmBinary?: () => Promise<Uint8Array>
       loadDatabase?: () => Promise<Uint8Array | null>
       saveDatabase?: (data: number[]) => boolean
+      getSchedule?: () => Promise<{ cronExpression: string; enabled: boolean } | null>  // NEW
+      setSchedule?: (config: { cronExpression: string; enabled: boolean }) => Promise<void> // NEW
+      onScheduleTick?: (callback: () => void) => void     // NEW
+      removeScheduleTick?: () => void                      // NEW
+      getNextScheduledRun?: () => Promise<string | null>   // NEW
+      onCloseToTray?: (callback: () => void) => void       // NEW
     }
     mcpAPI?: {
       listTools: (params: { url: string; authHeader?: string }) => Promise<unknown>
