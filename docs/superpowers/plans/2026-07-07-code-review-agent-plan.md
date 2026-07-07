@@ -54,7 +54,7 @@ Modify:
 - Create: `src/types/agent.ts`
 - Modify: `src/types/index.ts:94-155`
 
-- [ ] **Step 1: Create agent types file**
+- [x] **Step 1: Create agent types file**
 
 ```typescript
 // src/types/agent.ts — Agent-specific types
@@ -163,7 +163,7 @@ export interface TaskSummary {
 }
 ```
 
-- [ ] **Step 2: Extend MRReviewRecord in types/index.ts**
+- [x] **Step 2: Extend MRReviewRecord in types/index.ts**
 
 Open `src/types/index.ts`, find `MRReviewRecord` interface (around line 140), add `taskId`:
 
@@ -184,7 +184,7 @@ export interface MRReviewRecord {
 }
 ```
 
-- [ ] **Step 3: Extend Window interface for new IPC channels**
+- [x] **Step 3: Extend Window interface for new IPC channels**
 
 In `src/types/index.ts`, add to `Window` interface:
 
@@ -208,12 +208,12 @@ interface Window {
 }
 ```
 
-- [ ] **Step 4: Verify types compile**
+- [x] **Step 4: Verify types compile**
 
 Run: `npx tsc --noEmit`
 Expected: No new type errors introduced.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit** (commit 8e1d4fd)
 
 ```bash
 git add src/types/agent.ts src/types/index.ts
@@ -225,11 +225,11 @@ git commit -m "feat: add Agent types and extend MRReviewRecord with taskId"
 **Files:**
 - Modify: `src/db/index.ts`
 
-- [ ] **Step 1: Read current table creation in db/index.ts to locate insertion point**
+- [x] **Step 1: Read current table creation in db/index.ts to locate insertion point**
 
 Read `src/db/index.ts`, find the last `CREATE TABLE IF NOT EXISTS` statement. New tables go after all existing tables, before the seed data section.
 
-- [ ] **Step 2: Add 4 new CREATE TABLE statements**
+- [x] **Step 2: Add 4 new CREATE TABLE statements**
 
 Insert after the last existing `CREATE TABLE` statement in the `doInitDatabase()` function:
 
@@ -314,7 +314,7 @@ try {
 }
 ```
 
-- [ ] **Step 3: Add built-in rules seed**
+- [x] **Step 3: Add built-in rules seed**
 
 In the seed data section (after the `seedProjects` block), add seed rules insertion guarded by a count check:
 
@@ -356,12 +356,12 @@ if ((ruleCount[0]?.values[0]?.[0] as number) === 0) {
 
 **Important:** Use the exact `db.run()` with `?` placeholders pattern from existing seed code. Do not use template literals for values.
 
-- [ ] **Step 4: Verify DB init works**
+- [x] **Step 4: Verify DB init works**
 
 Run: `npm run electron:dev`
 Expected: App starts without errors. Check DevTools console — no "table already exists" errors on second launch.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit** (commit 161e7f4)
 
 ```bash
 git add src/db/index.ts
@@ -373,7 +373,7 @@ git commit -m "feat: add agent tables migration and 16 built-in rules seed"
 **Files:**
 - Create: `src/db/agentDao.ts`
 
-- [ ] **Step 1: Create agentDao.ts with CRUD for all 4 new tables**
+- [x] **Step 1: Create agentDao.ts with CRUD for all 4 new tables**
 
 ```typescript
 // src/db/agentDao.ts
@@ -672,12 +672,12 @@ while (stmt.step()) { rows.push(stmt.getAsObject() as unknown as unknown[]) }
 stmt.free()
 ```
 
-- [ ] **Step 2: Verify TypeScript compilation**
+- [x] **Step 2: Verify TypeScript compilation**
 
 Run: `npx tsc --noEmit`
 Expected: No type errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit** (commit e47e705)
 
 ```bash
 git add src/db/agentDao.ts
