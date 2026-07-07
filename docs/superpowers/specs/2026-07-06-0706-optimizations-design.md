@@ -5,70 +5,112 @@
 
 ---
 
-## 设计概述
+## 一、首页看板
 
-为 Repository 数据模型新增 `code` 可选字段，在项目详情页（编辑/只读）、项目创建页、项目选择器中展示和编辑该字段。
+### 1.1 初始化默认值
 
----
+**需求:** 初始化时项目总预算为0，默认暂停状态
 
-## 数据模型变更
+**设计:**
+- `src/data/seedData.ts`: 示例项目 totalAmount=0, usedAmount=0, status='paused'
+- `src/pages/ProjectForm.tsx`: 创建项目表单初始值 totalAmount: 0, usedAmount: 0, status: 'paused'
 
-```typescript
-// src/types/index.ts - Repository 接口
-export interface Repository {
-  id: string
-  code?: string  // 新增：代码仓业务编码
-  url: string
-  branch: string
-  note?: string
-}
-```
+### 1.2 状态列
 
----
+**需求:** 表格中新增一列，通过下拉选择修改项目状态
 
-## UI 设计
+**设计:**
+- ProjectTable 新增"状态"列（位于"进展"和"预算执行"之间，宽度 8%）
+- 渲染 `<select>` 下拉，选项来自 VALID_STATUSES + STATUS_LABELS
+- onChange 调用 `updateProject(id, { status })`
+- select 样式匹配表格单元格风格
+- 调整现有列宽百分比以容纳新列
 
-### 项目详情页 - 编辑模式
+### 1.3 负责人角色重命名
 
-代码仓编辑行布局：`编码(2) | URL(4) | branch(2) | note(3) | 删除(1)`
+**需求:** 首页负责人改为"开发责任人"，当前负责人改为"业务责任人"放入战略团队
 
-- 编码输入框：placeholder="编码"，font-mono，实时保存
-
-### 项目详情页 - 只读模式
-
-- 编码以 badge 样式展示：圆角边框 + mono 字体 + tertiary 色
-- code 为空时不展示 badge
-- 移除原有的 projectId badge（该 badge 错误地显示了项目的 projectId 而非仓库编码）
-
-### 项目详情页 - 导航栏
-
-- 移除 projectId 显示，仅保留 `#id前8位`
-
-### 项目创建页
-
-- 新增"代码仓编码"输入框，位于"代码仓"之前
-- placeholder: "如 REPO-001"
-
-### 项目选择器
-
-- 仓库列表中，当 repo.code 存在时，在链接前显示编码 badge
+**设计:**
+- ProjectTable 列头 "负责人" → "开发责任人"（数据仍来自 `project.leader`）
+- 导入/导出 headers 同步更新
+- ProjectDetail 团队区域展示"业务责任人"角色，战略团队展示开发团队内容
 
 ---
 
-## 种子数据
+## 二、项目详情
 
-唯一项目 PRJ-2026-001 的仓库添加 `code: 'REPO-001'`
+### 2.1 侧边栏路由高亮
+
+**需求:** 进入项目详情页时，左侧菜单应有对应高亮
+
+**设计:**
+- Sidebar 新增 `{ label: '项目详情', icon: 'description', path: '/project' }` 导航项
+- 高亮逻辑: `/project` 路径使用 `startsWith('/project')` 匹配，其他保持精确匹配
+- 导航项位于"项目看板"下方
+
+### 2.2 代码仓 ProjectId 字段
+
+**需求:** 代码仓信息缺少 ProjectId 字段
+
+**设计:**
+- `Repository` 接口新增 `projectId?: string` 可选字段
+- ProjectDetail 编辑模式: 新增 ProjectId 输入列
+- ProjectDetail 只读模式: 展示 ProjectId（与 code/url/branch/note 同级）
+- 导入/导出: 新增 "代码仓ProjectId1-3" 可选字段
+
+### 2.3 多标签支持
+
+**需求:** 标签支持多个，首页筛选支持按标签筛选
+
+**设计:**
+- **数据模型**: `tag: string` → `tags: string[]`
+- **迁移**: projectDao.findAll() 检测旧 tag 字段，自动转换为 `tags: [tag]`
+- **Dashboard 表格**: 项目名列下方展示多个标签 pill（最多2个，超出显示 "+N"）
+- **ProjectDetail**: 标签编辑改为多标签输入（输入后回车添加，点击×删除）
+- **Dashboard 筛选**: 月份筛选替换为标签筛选，收集所有唯一标签供选择
+- **导入**: 标签以逗号分隔解析；导出: 标签以逗号连接
 
 ---
 
-## 测试策略
+## 三、代码评审
 
-### 单元测试
-- seedData 测试验证：单种子项目、仓库编码字段存在
+### 3.1 项目选择表格
 
-### E2E 测试（新增，不修改存量）
-- TC-001: 项目详情页只读模式下显示仓库编码 badge
-- TC-002: 项目详情页编辑模式下可输入/修改仓库编码
-- TC-003: 项目创建页新增仓库编码字段
-- TC-004: 项目选择器显示仓库编码 badge
-- TC-005: 存量 E2E 测试全部通过，控制台无 error
+**需求:** 表格显示进行中的项目，包含项目名称、代码仓地址、分支、ProjectId、备注
+
+**设计:**
+- ProjectSelector 已筛选 `status === 'ongoing'`，保持不变
+- 扩展表格列: 项目名称 | 代码仓地址 | 分支 | ProjectId | 备注
+- 多仓库项目每个仓库一行展示
+
+---
+
+## 四、全局样式
+
+### 4.1 标题栏颜色区分
+
+**需求:** 标题栏颜色应区分内容栏
+
+**设计:**
+- 所有页面顶部导航栏背景从 `bg-white` 改为 `bg-surface-subtle` (#FAFAFA)
+- 涉及: Dashboard Header, ProjectDetail top nav, ProjectForm top nav, CodeReview top nav, Settings top nav
+- 内容卡片保持 `bg-white`，形成视觉层次
+
+---
+
+## 五、数据迁移
+
+| 变更 | 策略 |
+|------|------|
+| tag → tags[] | findAll() 自动检测转换，JSON TEXT 存储 |
+| Repository.projectId | 新可选字段，无需迁移 |
+| 种子数据 | 更新默认值 |
+
+---
+
+## 六、测试策略
+
+- **E2E 测试**: 通过 Chrome DevTools MCP 执行
+- **存量测试**: 不允许修改
+- **新增测试**: 覆盖所有需求区域
+- **验证**: 截图对比 + 控制台无 error
