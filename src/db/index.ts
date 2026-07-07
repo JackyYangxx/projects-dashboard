@@ -225,6 +225,87 @@ async function doInitDatabase(): Promise<Database> {
     )
   `)
 
+  // Migration: add task_id column to mr_review_records (idempotent)
+  try {
+    db.run('ALTER TABLE mr_review_records ADD COLUMN task_id TEXT')
+  } catch {
+    // Column already exists — safe to ignore on re-init.
+  }
+
+  // Create agent_rules table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS agent_rules (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      content TEXT NOT NULL,
+      examples_good TEXT DEFAULT '[]',
+      examples_bad TEXT DEFAULT '[]',
+      severity TEXT NOT NULL DEFAULT 'warning',
+      scope TEXT NOT NULL DEFAULT 'global',
+      project_id TEXT,
+      file_patterns TEXT DEFAULT '[]',
+      match_patterns TEXT DEFAULT '[]',
+      enabled INTEGER NOT NULL DEFAULT 1,
+      is_builtin INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `)
+
+  // Create agent_memories table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS agent_memories (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      category TEXT DEFAULT '',
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      project_id TEXT,
+      file_pattern TEXT,
+      source_review_id TEXT,
+      occurrence_count INTEGER DEFAULT 1,
+      confidence REAL DEFAULT 0.5,
+      last_accessed_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `)
+
+  // Create review_tasks table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS review_tasks (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      trigger_type TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      phase TEXT,
+      progress REAL DEFAULT 0,
+      total_mr_count INTEGER DEFAULT 0,
+      completed_mr_count INTEGER DEFAULT 0,
+      total_issue_count INTEGER DEFAULT 0,
+      summary TEXT,
+      error_message TEXT,
+      started_at TEXT,
+      completed_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `)
+
+  // Create agent_reports table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS agent_reports (
+      id TEXT PRIMARY KEY,
+      time_range_start TEXT NOT NULL,
+      time_range_end TEXT NOT NULL,
+      project_ids TEXT DEFAULT '[]',
+      summary TEXT DEFAULT '',
+      stats_json TEXT DEFAULT '{}',
+      top_issues_json TEXT DEFAULT '{}',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `)
+
   // Load seed data if database is empty
   if (!seeded) {
     const result = db.exec('SELECT COUNT(*) as count FROM projects')
@@ -275,6 +356,46 @@ async function doInitDatabase(): Promise<Database> {
     } else {
       console.log('[DB] Skipping seed, count != 0')
     }
+
+    // Seed built-in agent rules if table is empty
+    const ruleCountResult = db.exec('SELECT COUNT(*) as c FROM agent_rules')
+    const ruleCount = (ruleCountResult[0]?.values[0]?.[0] as number) || 0
+    if (ruleCount === 0) {
+      console.log('[DB] Seeding built-in agent rules...')
+      const builtinRules = [
+        { name: '避免 any 类型', severity: 'warning', category: '通用', content: '使用具体的 TypeScript 类型而非 any。any 类型会绕过类型检查，导致潜在的类型错误。', matchPatterns: [':\\s*any\\b'], filePatterns: ['*.ts', '*.tsx'], examplesGood: ['const user: User = fetchUser()'], examplesBad: ['const user: any = fetchUser()'] },
+        { name: '避免 dangerouslySetInnerHTML', severity: 'critical', category: '通用', content: '直接使用 dangerouslySetInnerHTML 或 innerHTML 赋值可能导致 XSS 攻击。使用 React 安全渲染或 DOMPurify。', matchPatterns: ['dangerouslySetInnerHTML', '\\.innerHTML\\s*='], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['<div>{userContent}</div>', '<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />'], examplesBad: ['document.getElementById(\'content\').innerHTML = userInput', '<div dangerouslySetInnerHTML={{ __html: userInput }} />'] },
+        { name: '避免 eval()/new Function()', severity: 'critical', category: '通用', content: '使用 eval() 或 new Function() 执行动态代码存在严重安全风险（代码注入）。', matchPatterns: ['eval\\(.*\\)', 'new Function\\('], filePatterns: ['*.ts', '*.tsx', '*.js', '*.jsx'], examplesGood: ['const result = JSON.parse(data)'], examplesBad: ['const result = eval("(" + data + ")")'] },
+        { name: 'useEffect 缺少依赖项或未清理', severity: 'warning', category: '通用', content: 'useEffect 应声明所有依赖项，并在需要时返回 cleanup 函数。缺少依赖项可能导致使用过期闭包值，缺少 cleanup 可能导致内存泄漏。', matchPatterns: [], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['useEffect(() => { const id = setInterval(fn, 1000); return () => clearInterval(id); }, [fn])'], examplesBad: ['useEffect(() => { fetchData() }) // 无依赖数组，每次渲染都执行'] },
+        { name: '循环/条件中调用 Hooks', severity: 'critical', category: '通用', content: 'React Hooks 必须在组件顶层调用，不能在条件语句、循环或嵌套函数中使用。', matchPatterns: [], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['const [count, setCount] = useState(0); if (count > 0) { /* ... */ }'], examplesBad: ['if (condition) { const [count, setCount] = useState(0) }'] },
+        { name: '大列表未使用虚拟滚动', severity: 'suggestion', category: 'PC Web', content: '渲染超过 500 项的列表时应使用虚拟滚动，避免创建大量 DOM 节点导致性能问题。', matchPatterns: ['\\.map\\(.*=>'], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['<VirtualList items={data} itemHeight={40} />'], examplesBad: ['{data.map(item => <Row key={item.id} {...item} />)} // data 可能有 1000+ 项'] },
+        { name: '图片未设置懒加载', severity: 'suggestion', category: 'PC Web', content: '图片应设置 loading="lazy" 以延迟加载视口外的图片，减少初始页面加载时间。', matchPatterns: ['<img(?!.*loading=)'], filePatterns: ['*.tsx', '*.jsx', '*.html'], examplesGood: ['<img src={url} alt="..." loading="lazy" />'], examplesBad: ['<img src={url} alt="..." />'] },
+        { name: '未处理接口竞态', severity: 'warning', category: 'PC Web', content: '在 useEffect 中发起异步请求时，应使用 AbortController 或 cleanup flag 取消请求，避免组件卸载后更新状态。', matchPatterns: [], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['useEffect(() => { const ctrl = new AbortController(); fetch(url, { signal: ctrl.signal }).then(setData); return () => ctrl.abort() }, [])'], examplesBad: ['useEffect(() => { fetch(url).then(setData) }, [])'] },
+        { name: '未使用 ResizeObserver', severity: 'warning', category: '大屏', content: '大屏场景下应使用 ResizeObserver 监听容器尺寸变化，而非 window.resize 事件，以获得更精确的尺寸响应。', matchPatterns: [], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['const observer = new ResizeObserver(entries => { /* update size */ }); observer.observe(containerRef.current)'], examplesBad: ['window.addEventListener(\'resize\', handleResize)'] },
+        { name: '动画帧性能隐患', severity: 'suggestion', category: '大屏', content: 'requestAnimationFrame 中的回调应保持轻量。嵌套或连续的 rAF 可能导致主线程阻塞。', matchPatterns: ['requestAnimationFrame'], filePatterns: ['*.tsx', '*.tsx', '*.js'], examplesGood: ['const animate = () => { /* single lightweight update */; rafId = requestAnimationFrame(animate) }'], examplesBad: ['requestAnimationFrame(() => { requestAnimationFrame(() => { /* heavy work */ }) })'] },
+        { name: '图表未按需加载', severity: 'suggestion', category: '大屏', content: 'ECharts 等大型图表库应动态导入（React.lazy + Suspense），减少首屏 JS bundle 体积。', matchPatterns: ['import.*echarts', 'import.*chart'], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['const Chart = React.lazy(() => import(\'./Chart\'))'], examplesBad: ['import * as echarts from \'echarts\' // 顶层静态导入'] },
+        { name: '未使用 touch 事件兼容', severity: 'warning', category: '移动', content: '移动端应同时处理 click 和 touch 事件，仅使用 click 会有 300ms 延迟。使用 onTouchEnd 或 CSS touch-action。', matchPatterns: ['onClick(?!.*onTouch)'], filePatterns: ['*.tsx', '*.jsx'], examplesGood: ['<button onClick={fn} onTouchEnd={fn}>...</button>'], examplesBad: ['<button onClick={fn}>...</button> // 移动端 300ms 延迟'] },
+        { name: 'viewport 设置不当', severity: 'warning', category: '移动', content: '应正确设置 viewport meta 标签以支持响应式布局，避免固定宽度导致横滚。', matchPatterns: ['<meta.*viewport'], filePatterns: ['*.html', '*.tsx'], examplesGood: ['<meta name="viewport" content="width=device-width, initial-scale=1.0" />'], examplesBad: ['<meta name="viewport" content="width=1024" />'] },
+        { name: '点击区域 < 44x44px', severity: 'suggestion', category: '移动', content: '移动端可点击元素的最小尺寸应为 44x44px（iOS HIG），过小的点击区域降低可用性。', matchPatterns: [], filePatterns: ['*.css', '*.scss', '*.tsx'], examplesGood: ['.btn { min-width: 44px; min-height: 44px }'], examplesBad: ['.btn { width: 24px; height: 24px }'] },
+        { name: '敏感数据存 localStorage', severity: 'warning', category: '安全', content: '不应将 token、密码、个人信息等敏感数据存储在 localStorage 中，因其可被 XSS 攻击读取。', matchPatterns: ['localStorage\\.setItem'], filePatterns: ['*.ts', '*.tsx', '*.js'], examplesGood: ['// 使用 httpOnly cookie 存储 token'], examplesBad: ['localStorage.setItem(\'token\', userToken)'] },
+        { name: '第三方脚本未 SRI', severity: 'suggestion', category: '安全', content: '加载第三方 CDN 脚本时应添加 integrity 属性（Subresource Integrity），防止 CDN 被篡改。', matchPatterns: ['<script.*src=(?!.*integrity)'], filePatterns: ['*.html'], examplesGood: ['<script src="..." integrity="sha384-..." crossorigin="anonymous"></script>'], examplesBad: ['<script src="https://cdn.example.com/lib.js"></script>'] },
+      ]
+
+      for (const rule of builtinRules) {
+        const id = crypto.randomUUID()
+        const now = new Date().toISOString()
+        db.run(
+          `INSERT INTO agent_rules (id, name, description, content, examples_good, examples_bad, severity, scope, file_patterns, match_patterns, enabled, is_builtin, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 'global', ?, ?, 1, 1, ?, ?)`,
+          [id, rule.name, '', rule.content, JSON.stringify(rule.examplesGood), JSON.stringify(rule.examplesBad), rule.severity, JSON.stringify(rule.filePatterns), JSON.stringify(rule.matchPatterns), now, now]
+        )
+      }
+      console.log('[DB] Built-in agent rules seeded:', builtinRules.length)
+      persistDatabase()
+    } else {
+      console.log('[DB] Skipping agent rules seed, count:', ruleCount)
+    }
+
     seeded = true
   } else {
     console.log('[DB] Skipping seed, already seeded')
