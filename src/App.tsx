@@ -47,6 +47,7 @@ function App() {
           <div className="ml-64 relative z-30">
             <Routes>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/project" element={<ProjectDetail />} />
               <Route path="/project/new" element={<ProjectForm />} />
               <Route path="/project/:id" element={<ProjectDetail />} />
               <Route path="/code-review" element={<CodeReview />} />

@@ -15,8 +15,12 @@ const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { getProjectById, updateProject, filteredProjectIds } = useProjectStore()
+  const { projects, isLoading, getProjectById, updateProject, filteredProjectIds, loadProjects } = useProjectStore()
   const project = id ? getProjectById(id) : undefined
+
+  useEffect(() => {
+    loadProjects()
+  }, [loadProjects])
 
   const currentIndex = project ? filteredProjectIds.indexOf(project.id) : -1
   // displayIndex is 1-based (for user-facing counter), validated to be within bounds
@@ -148,6 +152,35 @@ const ProjectDetail: React.FC = () => {
     setNewMilestoneStatus('pending')
     setNewMilestoneDescription('')
     setShowMilestoneModal(false)
+  }
+
+  useEffect(() => {
+    if (!id && projects.length > 0) {
+      navigate(`/project/${projects[0].id}`, { replace: true })
+    }
+  }, [id, projects, navigate])
+
+  if (!id) {
+    if (isLoading || projects.length > 0) return null
+    return (
+      <div className="min-h-screen bg-surface-base flex items-center justify-center">
+        <div className="text-center">
+          <Icon name="search_off" size={48} className="text-on-surface-tertiary mb-4" />
+          <h2 className="text-xl font-heading font-semibold text-on-surface-primary mb-2">
+            暂无项目数据
+          </h2>
+          <p className="text-sm font-body text-on-surface-secondary mb-6">
+            请先创建一个项目
+          </p>
+          <button
+            onClick={() => navigate('/project/new')}
+            className="inline-flex items-center h-9 px-3 bg-primary-500 text-white rounded-md text-sm font-body font-medium hover:bg-primary-600 transition-colors"
+          >
+            创建项目
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (!project) {
