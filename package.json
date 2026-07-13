@@ -10,6 +10,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "cli:dev": "npx tsx cli/server.ts",
+    "cli:build": "npx tsc -p cli/tsconfig.json",
+    "cli:start": "node cli-dist/server.js",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run build && electron-builder",
     "icons:build": "node scripts/build-icons.mjs"
