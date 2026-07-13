@@ -1,1 +1,12 @@
-{"mcpServers":{"chrome-devtools":{"command":"npx","args":["-y","chrome-devtools-mcp@latest"]}}}
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    },
+    "projects-dashboard": {
+      "command": "npx",
+      "args": ["tsx", "cli/server.ts"]
+    }
+  }
+}
